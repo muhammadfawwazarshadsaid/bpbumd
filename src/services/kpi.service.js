@@ -52,7 +52,8 @@ async function createKpi(user, payload) {
             [action_plan_id, name, kpiStatus],
         );
 
-        const newKpi = result.rows;
+        // PERBAIKAN: Menambahkan [0]
+        const newKpi = result.rows[0];
 
         // ── Catat Riwayat Aktivitas ──
         await client.query(
@@ -110,7 +111,8 @@ async function updateKpi(user, kpiId, payload) {
             throw error;
         }
 
-        const kpi = existing.rows;
+        // PERBAIKAN: Menambahkan [0]
+        const kpi = existing.rows[0];
 
         // ── Build SET clause dynamically ──
         const sets = [];
@@ -140,7 +142,7 @@ async function updateKpi(user, kpiId, payload) {
         }
 
         sets.push(`updated_at = CURRENT_TIMESTAMP`);
-        values.push(kpiId); // Parameter terakhir untuk WHERE id = $x
+        values.push(kpiId);
 
         const result = await client.query(
             `
@@ -152,7 +154,8 @@ async function updateKpi(user, kpiId, payload) {
             values,
         );
 
-        const updatedKpi = result.rows;
+        // PERBAIKAN: Menambahkan [0]
+        const updatedKpi = result.rows[0];
 
         // ── Catat Riwayat Aktivitas ──
         let description = `Memperbarui KPI: ${kpi.name}`;
@@ -212,7 +215,8 @@ async function deleteKpi(user, kpiId) {
             throw error;
         }
 
-        const kpi = existing.rows;
+        // PERBAIKAN: Menambahkan [0]
+        const kpi = existing.rows[0];
 
         // ── Delete KPI ──
         await client.query("DELETE FROM kpis WHERE id = $1", [kpiId]);

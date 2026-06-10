@@ -7,6 +7,7 @@ const dashboardRoutes = require("./src/routes/dashboard.routes");
 const aspectRoutes = require("./src/routes/aspect.routes");
 const actionPlanRoutes = require("./src/routes/actionplan.routes");
 const subActionPlanRoutes = require("./src/routes/subactionplan.routes");
+const kpiRoutes = require("./src/routes/kpi.routes");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -51,6 +52,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/aspects", aspectRoutes);
 app.use("/api/action-plans", actionPlanRoutes);
 app.use("/api/sub-action-plans", subActionPlanRoutes);
+app.use("/api/kpis", kpiRoutes);
 
 // API fallback - supaya endpoint API yang salah nggak balikin HTML
 app.use("/api", (req, res) => {
