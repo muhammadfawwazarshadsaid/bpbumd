@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BPBUMD Control Tower — Aspek</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sidebar-icon-w: 64px;
+      --navy: #0F2044;
+      --navy-mid: #1B3A6B;
+      --sky: #0EA5E9;
+      --emerald: #10B981;
+      --amber: #F59E0B;
+      --rose: #EF4444;
+      --violet: #8B5CF6;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-300: #CBD5E1;
+      --slate-400: #94A3B8;
+      --slate-500: #64748B;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-900: #0F172A;
+    }
+    html { font-size: 14px; scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #F0F4FA;
+      color: var(--slate-900);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── TOP NAVBAR ─────────────────────────────── */
+    .topnav {
+      background: white;
+      border-bottom: 1px solid var(--slate-200);
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+    .brand-logo {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #0EA5E9, #0F2044);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-logo svg { width: 24px; height: 24px; fill: white; }
+    .brand-text .t1 { font-size: 14px; font-weight: 800; color: var(--navy); letter-spacing: 0.3px; }
+    .brand-text .t2 { font-size: 10px; color: var(--slate-400); margin-top: 1px; font-weight: 500; }
+    .brand-divider {
+      width: 1px; height: 32px;
+      background: var(--slate-200);
+    }
+    .brand-title { font-size: 15px; font-weight: 700; color: var(--slate-700); }
+    .brand-sub { font-size: 10px; color: var(--slate-400); margin-top: 1px; }
+
+    .nav-search {
+      flex: 1;
+      max-width: 280px;
+      margin-left: auto;
+      position: relative;
+    }
+    .nav-search input {
+      width: 100%;
+      padding: 7px 12px 7px 34px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--slate-50);
+      outline: none;
+      color: var(--slate-700);
+    }
+    .nav-search input:focus { border-color: var(--sky); background: white; }
+    .nav-search-icon {
+      position: absolute;
+      left: 10px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--slate-400);
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      margin-left: 12px;
+    }
+    .nav-tab {
+      padding: 7px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--slate-500);
+      transition: all 0.18s;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+    .nav-tab:hover { background: var(--slate-100); color: var(--slate-700); }
+    .nav-tab.active {
+      background: var(--navy);
+      color: white;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 12px;
+      flex-shrink: 0;
+    }
+    .notif-btn {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      border: 1.5px solid var(--slate-200);
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--slate-500);
+      position: relative;
+    }
+    .notif-btn .badge {
+      position: absolute;
+      top: -4px; right: -4px;
+      background: var(--rose);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid white;
+    }
+    .user-avatar-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0EA5E9, #0F2044);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* ── BODY LAYOUT ─────────────────────────────── */
+    .body-wrap {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ── ICON SIDEBAR ────────────────────────────── */
+    .icon-sidebar {
+      width: var(--sidebar-icon-w);
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      gap: 4px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+    }
+    .icon-btn {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: rgba(255,255,255,0.45);
+      transition: all 0.18s;
+      text-decoration: none;
+      border: none;
+      background: none;
+    }
+    .icon-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+    .icon-btn.active { background: rgba(14,165,233,0.2); color: var(--sky); }
+    .icon-btn svg { width: 20px; height: 20px; }
+    .icon-sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 4px; align-items: center; padding-bottom: 8px; }
+
+    /* ── MAIN AREA ───────────────────────────────── */
+    .main-area {
+      flex: 1;
+      min-width: 0;
+      padding: 24px 28px;
+      overflow-y: auto;
+    }
+
+    /* BREADCRUMB */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      font-size: 13px;
+    }
+    .breadcrumb a {
+      color: var(--sky);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb-sep { color: var(--slate-400); }
+    .breadcrumb-current {
+      font-weight: 700;
+      color: var(--slate-700);
+    }
+    .page-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .page-heading-icon {
+      width: 36px; height: 36px;
+      background: var(--slate-100);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--slate-500);
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+    .page-heading-icon:hover { background: var(--slate-200); }
+    .page-heading-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.3px;
+    }
+
+    /* SUMMARY CARDS */
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .sum-card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px 20px;
+      border: 1px solid var(--slate-200);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .sum-card.progress-card {
+      background: white;
+    }
+    .sum-card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--slate-400);
+      margin-bottom: 12px;
+    }
+    .sum-card-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -1px;
+    }
+    .sum-card-value.green { color: var(--emerald); }
+    .sum-card-value.blue { color: var(--sky); }
+    .sum-card-value.red { color: var(--rose); }
+    .sum-card-value.gray { color: var(--slate-400); }
+
+    .progress-pct {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--amber);
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+    .progress-bar-wrap {
+      height: 10px;
+      background: var(--slate-100);
+      border-radius: 5px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      background: linear-gradient(90deg, var(--amber), #FCD34D);
+      transition: width 0.6s ease;
+    }
+    .progress-target {
+      font-size: 11px;
+      color: var(--slate-400);
+      font-weight: 500;
+    }
+
+    /* STRATEGY TABLE */
+    .strategy-section {
+      background: white;
+      border-radius: 16px;
+      border: 1px solid var(--slate-200);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .strategy-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--slate-200);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--slate-600);
+    }
+    .strategy-col-header {
+      display: grid;
+      grid-template-columns: 1fr 200px 140px 80px 130px 36px;
+      gap: 12px;
+      padding: 10px 24px;
+      background: var(--slate-50);
+      border-bottom: 1px solid var(--slate-200);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--slate-400);
+    }
+
+    /* STRATEGY ROW */
+    .strategy-row {
+      border-bottom: 1px solid var(--slate-100);
+    }
+    .strategy-row:last-child { border-bottom: none; }
+    .strategy-main {
+      display: grid;
+      grid-template-columns: 1fr 200px 140px 80px 130px 36px;
+      gap: 12px;
+      padding: 16px 24px;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .strategy-main:hover { background: var(--slate-50); }
+    .strategy-name {
+      font-size: 13px;
+      color: var(--slate-700);
+      line-height: 1.5;
+    }
+    .strategy-name strong {
+      color: var(--slate-900);
+      display: block;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .prog-cell { display: flex; flex-direction: column; gap: 4px; }
+    .prog-num { font-size: 13px; font-weight: 700; color: var(--slate-900); }
+    .prog-bar-sm {
+      height: 6px;
+      background: var(--slate-100);
+      border-radius: 3px;
+      overflow: hidden;
+      width: 100%;
+    }
+    .prog-bar-sm-fill { height: 100%; border-radius: 3px; }
+    .prog-bar-sm-fill.green { background: var(--emerald); }
+    .prog-bar-sm-fill.amber { background: var(--amber); }
+    .prog-bar-sm-fill.red { background: var(--rose); }
+    .prog-bar-sm-fill.blue { background: var(--sky); }
+    .prog-target { font-size: 10px; color: var(--slate-400); }
+
+    .ra-cell { font-size: 12px; color: var(--slate-600); }
+    .ra-count { font-weight: 700; color: var(--slate-900); }
+    .ra-label { color: var(--slate-400); font-size: 10px; }
+
+    .bobot-cell { font-size: 13px; font-weight: 700; color: var(--slate-700); }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .status-pill.dalam-progress { background: #DBEAFE; color: #1D4ED8; }
+    .status-pill.selesai { background: #D1FAE5; color: #059669; }
+    .status-pill.terlambat { background: #FEE2E2; color: #DC2626; }
+    .status-pill.belum-mulai { background: var(--slate-100); color: var(--slate-500); }
+    .status-pill::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+    }
+    .status-pill.dalam-progress::before { background: #1D4ED8; }
+    .status-pill.selesai::before { background: #059669; }
+    .status-pill.terlambat::before { background: #DC2626; }
+    .status-pill.belum-mulai::before { background: var(--slate-400); }
+
+    .expand-btn {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      border: 1.5px solid var(--slate-200);
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--slate-400);
+      transition: all 0.18s;
+      flex-shrink: 0;
+    }
+    .expand-btn:hover { border-color: var(--sky); color: var(--sky); background: #EFF6FF; }
+    .expand-btn.open { border-color: var(--sky); color: var(--sky); background: #EFF6FF; }
+    .expand-btn svg { width: 14px; height: 14px; transition: transform 0.2s; }
+    .expand-btn.open svg { transform: rotate(180deg); }
+
+    /* COLLAPSIBLE BODY */
+    .strategy-body {
+      display: none;
+      padding: 0 24px 16px;
+      background: var(--slate-50);
+      border-top: 1px solid var(--slate-100);
+    }
+    .strategy-body.open { display: block; }
+
+    /* ACTIVITY GROUP */
+    .activity-group {
+      margin-top: 12px;
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      background: white;
+      overflow: hidden;
+    }
+    .ag-header {
+      display: grid;
+      grid-template-columns: 1fr 200px 140px 80px 130px 36px;
+      gap: 12px;
+      padding: 13px 18px;
+      cursor: pointer;
+      align-items: center;
+      transition: background 0.15s;
+    }
+    .ag-header:hover { background: #F8FAFC; }
+    .ag-name { font-size: 12px; color: var(--slate-700); line-height: 1.5; }
+    .ag-name strong {
+      font-weight: 600;
+      color: var(--slate-800);
+      font-size: 12px;
+    }
+    .ag-tag {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--slate-400);
+      margin-bottom: 2px;
+    }
+
+    /* RENCANA AKSI ROWS */
+    .ra-body { display: none; }
+    .ra-body.open { display: block; }
+    .ra-row {
+      display: grid;
+      grid-template-columns: 1fr 200px 140px 80px 130px 120px;
+      gap: 12px;
+      padding: 12px 18px;
+      border-top: 1px solid var(--slate-100);
+      align-items: center;
+    }
+    .ra-row:hover { background: #F8FAFC; }
+    .ra-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px;
+      background: var(--sky);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 6px;
+      margin-right: 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .ra-title-cell {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .ra-desc { font-size: 12px; color: var(--slate-700); line-height: 1.5; }
+
+    .btn-lihat-detail {
+      padding: 6px 12px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background 0.18s;
+    }
+    .btn-lihat-detail:hover { background: var(--navy-mid); }
+
+    /* SEE ALL LINK */
+    .see-all-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 10px;
+      margin-left: 18px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--sky);
+      cursor: pointer;
+      text-decoration: none;
+      padding: 4px 0;
+    }
+    .see-all-link:hover { text-decoration: underline; }
+
+    /* RENCANA AKSI DETAIL MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,32,68,0.55);
+      z-index: 500;
+      display: none;
+      align-items: flex-start;
+      justify-content: flex-end;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-panel {
+      width: 560px;
+      height: 100vh;
+      background: white;
+      box-shadow: -4px 0 32px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideIn 0.25s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0); opacity: 1; }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--slate-200);
+      flex-shrink: 0;
+    }
+    .modal-header-info { flex: 1; }
+    .modal-header-info h3 { font-size: 15px; font-weight: 700; color: var(--slate-900); }
+    .modal-header-info p { font-size: 12px; color: var(--slate-400); margin-top: 2px; }
+    .modal-close {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1.5px solid var(--slate-200);
+      background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--slate-400);
+      font-size: 16px;
+      transition: all 0.18s;
+    }
+    .modal-close:hover { border-color: var(--rose); color: var(--rose); }
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    .modal-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--slate-400);
+      margin-bottom: 12px;
+      margin-top: 20px;
+    }
+    .modal-section-title:first-child { margin-top: 0; }
+    .modal-kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+    .modal-kpi {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .modal-kpi-label { font-size: 11px; color: var(--slate-400); font-weight: 500; margin-bottom: 4px; }
+    .modal-kpi-val { font-size: 18px; font-weight: 800; color: var(--slate-900); }
+    .modal-kpi-val.green { color: var(--emerald); }
+    .modal-kpi-val.amber { color: var(--amber); }
+    .modal-kpi-val.red { color: var(--rose); }
+    .modal-field {
+      margin-bottom: 14px;
+    }
+    .modal-field-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--slate-400);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .modal-field-value {
+      font-size: 13px;
+      color: var(--slate-700);
+      line-height: 1.6;
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .modal-progress-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .modal-progress-label { font-size: 12px; color: var(--slate-600); width: 80px; flex-shrink: 0; }
+    .modal-progress-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--slate-100);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .modal-progress-fill { height: 100%; border-radius: 4px; }
+    .modal-progress-fill.green { background: var(--emerald); }
+    .modal-progress-fill.amber { background: var(--amber); }
+    .modal-progress-fill.red { background: var(--rose); }
+    .modal-progress-pct { font-size: 12px; font-weight: 700; color: var(--slate-700); width: 40px; text-align: right; }
+    .milestone-list { list-style: none; }
+    .milestone-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--slate-100);
+    }
+    .milestone-item:last-child { border-bottom: none; }
+    .milestone-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .milestone-dot.done { background: var(--emerald); }
+    .milestone-dot.progress { background: var(--sky); }
+    .milestone-dot.late { background: var(--rose); }
+    .milestone-dot.pending { background: var(--slate-300); border: 2px solid var(--slate-400); background: white; }
+    .milestone-text { font-size: 12px; color: var(--slate-700); line-height: 1.5; }
+    .milestone-date { font-size: 11px; color: var(--slate-400); margin-top: 2px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--slate-200);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+    .btn-secondary {
+      padding: 9px 18px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      background: white;
+      color: var(--slate-600);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .btn-secondary:hover { border-color: var(--slate-400); }
+    .btn-primary {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 8px;
+      background: var(--navy);
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+    .btn-primary:hover { background: var(--navy-mid); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAVBAR -->
+  <nav class="topnav">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+      </div>
+      <div class="brand-text">
+        <div class="t1">BPBUMD</div>
+        <div class="t2">Control Tower</div>
+      </div>
+    </div>
+    <div class="brand-divider"></div>
+    <div>
+      <div class="brand-title">CONTROL TOWER</div>
+      <div class="brand-sub">Platform Pemantauan Rencana Aksi</div>
+    </div>
+
+    <div class="nav-search">
+      <span class="nav-search-icon">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </span>
+      <input type="text" placeholder="Search" />
+    </div>
+
+    <div class="nav-tabs">
+      <a class="nav-tab" href="/dashboard.html">Dashboard</a>
+      <button class="nav-tab active">Aspek</button>
+      <button class="nav-tab">Rencana Aksi</button>
+    </div>
+
+    <div class="nav-right">
+      <button class="notif-btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span class="badge">2</span>
+      </button>
+      <button class="user-avatar-btn" id="userAvatarBtn">A</button>
+    </div>
+  </nav>
+
+  <div class="body-wrap">
+    <!-- ICON SIDEBAR -->
+    <aside class="icon-sidebar">
+      <a class="icon-btn" href="/dashboard.html" title="Dashboard">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      </a>
+      <a class="icon-btn active" title="Aspek">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+      </a>
+      <a class="icon-btn" title="Laporan">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14,2 14,8 20,8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/>
+        </svg>
+      </a>
+
+      <div class="icon-sidebar-bottom">
+        <a class="icon-btn" title="Bantuan">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </a>
+        <a class="icon-btn" title="Keluar" onclick="window.location.href='/login.html'">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <main class="main-area">
+
+      <!-- BREADCRUMB -->
+      <div class="breadcrumb">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+        <span class="breadcrumb-sep">›</span>
+        <span class="breadcrumb-current" id="breadcrumbText">ASPEK 1 - PENGUATAN BISNIS INTI</span>
+      </div>
+
+      <!-- PAGE HEADING -->
+      <div class="page-heading">
+        <div class="page-heading-icon" onclick="history.back()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <polyline points="15,18 9,12 15,6"/>
+          </svg>
+        </div>
+        <div class="page-heading-title" id="pageHeadingTitle">ASPEK 1 - PENGUATAN BISNIS INTI</div>
+      </div>
+
+      <!-- SUMMARY CARDS -->
+      <div class="summary-row">
+        <div class="sum-card progress-card">
+          <div class="sum-card-label">Progres Aspek</div>
+          <div class="progress-pct" id="progPct">63%</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progBar" style="width:63%"></div>
+          </div>
+          <div class="progress-target">Target: 65%</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-card-label">Total Aktivitas</div>
+          <div class="sum-card-value">24</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-card-label">Selesai</div>
+          <div class="sum-card-value green">12</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-card-label">Dalam Progres</div>
+          <div class="sum-card-value blue">8</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-card-label">Terlambat</div>
+          <div class="sum-card-value red">4</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-card-label">Belum Mulai</div>
+          <div class="sum-card-value gray">0</div>
+        </div>
+      </div>
+
+      <!-- STRATEGI TABLE -->
+      <div class="strategy-section">
+        <div class="strategy-header">Daftar Strategi</div>
+        <div class="strategy-col-header">
+          <div>Strategi / Activity Group</div>
+          <div>Progres</div>
+          <div>Rencana Aksi</div>
+          <div>Bobot</div>
+          <div>Status</div>
+          <div></div>
+        </div>
+
+        <!-- STRATEGI 1.A -->
+        <div class="strategy-row" id="row-1a">
+          <div class="strategy-main" onclick="toggleStrategy('1a')">
+            <div class="strategy-name">
+              <strong>Strategi 1.A</strong>
+              Validasi segmen profitable dan potensi repositioning dengan mempertimbangkan persona atau karakteristik pelanggan yang ada pada suatu segmen yang akan dituju serta cara pendekatan (how to approach) yang relevan dan sesuai dengan kapabilitas
+            </div>
+            <div class="prog-cell">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="prog-num">58%</span>
+              </div>
+              <div class="prog-bar-sm"><div class="prog-bar-sm-fill amber" style="width:58%"></div></div>
+              <div class="prog-target">Target: 65%</div>
+            </div>
+            <div class="ra-cell">
+              <div><span class="ra-count">12/18</span></div>
+              <div class="ra-label">Rencana Aksi</div>
+            </div>
+            <div class="bobot-cell">50%</div>
+            <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
+            <button class="expand-btn" id="expand-1a" onclick="event.stopPropagation();toggleStrategy('1a')">
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>
+            </button>
+          </div>
+          <div class="strategy-body" id="body-1a">
+            <!-- Activity Group 1.A.1 -->
+            <div class="activity-group">
+              <div class="ag-header" onclick="toggleAG('1a1')">
+                <div class="ag-name">
+                  <div class="ag-tag">Activity Group</div>
+                  <strong>Activity Group 1.A.1:</strong> Melakukan uji kesiapan atau internal capability & readiness check untuk memastikan bahwa strategi relevan terhadap segmen yang dituju dan dapat dijalankan
+                </div>
+                <div class="prog-cell">
+                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">67%</span></div>
+                  <div class="prog-bar-sm"><div class="prog-bar-sm-fill green" style="width:67%"></div></div>
+                  <div class="prog-target">Target: 65%</div>
+                </div>
+                <div class="ra-cell">
+                  <div><span class="ra-count">4/6</span></div>
+                  <div class="ra-label">Rencana Aksi</div>
+                </div>
+                <div class="bobot-cell">20%</div>
+                <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
+                <button class="expand-btn" id="expand-ag-1a1" onclick="event.stopPropagation();toggleAG('1a1')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>
+                </button>
+              </div>
+              <div class="ra-body" id="ra-body-1a1">
+                <!-- Rencana Aksi 1 -->
+                <div class="ra-row">
+                  <div class="ra-title-cell">
+                    <span class="ra-chip">1.A.1.1</span>
+                    <span class="ra-desc">Melakukan analisis komprehensif dengan menganalisis performa historis, perbandingan dengan channel lain, nilai strategis (branding &amp; data konsumen), kebutuhan legalitas dan aspek feasibility study yang dibutuhkan serta membandingkan profitabilitas dan biaya untuk pendirian anak usaha dan perizinannya</span>
+                  </div>
+                  <div class="prog-cell">
+                    <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
+                    <div class="prog-bar-sm"><div class="prog-bar-sm-fill red" style="width:50%"></div></div>
+                    <div class="prog-target">Target: 65%</div>
+                  </div>
+                  <div class="ra-cell">
+                    <div><span class="ra-count">2/4</span></div>
+                    <div class="ra-label">Sub Rencana Aksi</div>
+                  </div>
+                  <div class="bobot-cell">10%</div>
+                  <div><span class="status-pill terlambat">Terlambat</span></div>
+                  <button class="btn-lihat-detail" onclick="window.location.href='/rencana-aksi.html?id=1.A.1.1&status=terlambat&desc=' + encodeURIComponent('Melakukan analisis komprehensif dengan menganalisis performa historis, perbandingan dengan channel lain, nilai strategis (branding & data konsumen), kebutuhan legalitas dan aspek feasibility study yang dibutuhkan serta membandingkan profitabilitas dan biaya untuk pendirian anak usaha dan perizinannya.')">Lihat Detail</button>
+                </div>
+                <!-- Rencana Aksi 2 -->
+                <div class="ra-row">
+                  <div class="ra-title-cell">
+                    <span class="ra-chip">1.A.1.1</span>
+                    <span class="ra-desc">Menyesuaikan kesiapan portofolio produk yang selaras dengan karakteristik channel dan kebutuhan masing-masing footprint</span>
+                  </div>
+                  <div class="prog-cell">
+                    <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">100%</span></div>
+                    <div class="prog-bar-sm"><div class="prog-bar-sm-fill green" style="width:100%"></div></div>
+                    <div class="prog-target">Target: 65%</div>
+                  </div>
+                  <div class="ra-cell">
+                    <div><span class="ra-count">2/2</span></div>
+                    <div class="ra-label">Sub Rencana Aksi</div>
+                  </div>
+                  <div class="bobot-cell">10%</div>
+                  <div><span class="status-pill selesai">Selesai</span></div>
+                  <button class="btn-lihat-detail" onclick="window.location.href='/rencana-aksi.html?id=1.A.1.2&status=selesai&desc=' + encodeURIComponent('Menyesuaikan kesiapan portofolio produk yang selaras dengan karakteristik channel dan kebutuhan masing-masing footprint untuk memastikan relevansi dan daya saing produk.')">Lihat Detail</button>
+                </div>
+              </div>
+              <a class="see-all-link">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"/></svg>
+                Lihat Semua Rencana Aksi (5)
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- STRATEGI 1.B -->
+        <div class="strategy-row" id="row-1b">
+          <div class="strategy-main" onclick="toggleStrategy('1b')">
+            <div class="strategy-name">
+              <strong>Strategi 1.B</strong>
+              Pencapaian demand capture dan penetapan harga optimal dengan mempertimbangkan RPH yang undercapacity agar mencapai break even point
+            </div>
+            <div class="prog-cell">
+              <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">100%</span></div>
+              <div class="prog-bar-sm"><div class="prog-bar-sm-fill green" style="width:100%"></div></div>
+              <div class="prog-target">Target: 65%</div>
+            </div>
+            <div class="ra-cell">
+              <div><span class="ra-count">2/2</span></div>
+              <div class="ra-label">Rencana Aksi</div>
+            </div>
+            <div class="bobot-cell">100%</div>
+            <div><span class="status-pill selesai">Selesai</span></div>
+            <button class="expand-btn" id="expand-1b" onclick="event.stopPropagation();toggleStrategy('1b')">
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>
+            </button>
+          </div>
+          <div class="strategy-body" id="body-1b">
+            <div class="activity-group">
+              <div class="ag-header" onclick="toggleAG('1b1')">
+                <div class="ag-name">
+                  <div class="ag-tag">Activity Group</div>
+                  <strong>Activity Group 1.B.1:</strong> Penetapan harga optimal dan strategi demand capture berbasis data kapasitas RPH
+                </div>
+                <div class="prog-cell">
+                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">100%</span></div>
+                  <div class="prog-bar-sm"><div class="prog-bar-sm-fill green" style="width:100%"></div></div>
+                  <div class="prog-target">Target: 65%</div>
+                </div>
+                <div class="ra-cell">
+                  <div><span class="ra-count">2/2</span></div>
+                  <div class="ra-label">Rencana Aksi</div>
+                </div>
+                <div class="bobot-cell">100%</div>
+                <div><span class="status-pill selesai">Selesai</span></div>
+                <button class="expand-btn" id="expand-ag-1b1" onclick="event.stopPropagation();toggleAG('1b1')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>
+                </button>
+              </div>
+              <div class="ra-body" id="ra-body-1b1">
+                <div class="ra-row">
+                  <div class="ra-title-cell">
+                    <span class="ra-chip">1.B.1.1</span>
+                    <span class="ra-desc">Analisis kapasitas terpasang RPH dan penetapan pricing optimal berdasarkan biaya operasional dan break-even point</span>
+                  </div>
+                  <div class="prog-cell">
+                    <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">100%</span></div>
+                    <div class="prog-bar-sm"><div class="prog-bar-sm-fill green" style="width:100%"></div></div>
+                  </div>
+                  <div class="ra-cell">
+                    <div><span class="ra-count">3/3</span></div>
+                    <div class="ra-label">Sub Rencana Aksi</div>
+                  </div>
+                  <div class="bobot-cell">50%</div>
+                  <div><span class="status-pill selesai">Selesai</span></div>
+                  <button class="btn-lihat-detail" onclick="window.location.href='/rencana-aksi.html?id=1.B.1.1&status=selesai&desc=' + encodeURIComponent('Analisis kapasitas terpasang RPH dan penetapan pricing optimal berdasarkan biaya operasional dan break-even point untuk memastikan profitabilitas usaha.')">Lihat Detail</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STRATEGI 1.C -->
+        <div class="strategy-row" id="row-1c">
+          <div class="strategy-main" onclick="toggleStrategy('1c')">
+            <div class="strategy-name">
+              <strong>Strategi 1.C</strong>
+              Strategi pemasaran yang terfokus dengan penekanan pada value proposition atau faktor pembeda dari kompetitor lainnya
+            </div>
+            <div class="prog-cell">
+              <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
+              <div class="prog-bar-sm"><div class="prog-bar-sm-fill red" style="width:50%"></div></div>
+              <div class="prog-target">Target: 65%</div>
+            </div>
+            <div class="ra-cell">
+              <div><span class="ra-count">1/2</span></div>
+              <div class="ra-label">Rencana Aksi</div>
+            </div>
+            <div class="bobot-cell">50%</div>
+            <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
+            <button class="expand-btn" id="expand-1c" onclick="event.stopPropagation();toggleStrategy('1c')">
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>
+            </button>
+          </div>
+          <div class="strategy-body" id="body-1c">
+            <div class="activity-group">
+              <div class="ag-header">
+                <div class="ag-name">
+                  <div class="ag-tag">Activity Group</div>
+                  <strong>Activity Group 1.C.1:</strong> Pengembangan materi pemasaran dan positioning brand berbasis value proposition unik
+                </div>
+                <div class="prog-cell">
+                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
+                  <div class="prog-bar-sm"><div class="prog-bar-sm-fill amber" style="width:50%"></div></div>
+                </div>
+                <div class="ra-cell">
+                  <div><span class="ra-count">1/2</span></div>
+                  <div class="ra-label">Rencana Aksi</div>
+                </div>
+                <div class="bobot-cell">50%</div>
+                <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
+                <button class="expand-btn">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STRATEGI 1.D -->
+        <div class="strategy-row" id="row-1d">
+          <div class="strategy-main" onclick="toggleStrategy('1d')">
+            <div class="strategy-name">
+              <strong>Strategi 1.D</strong>
+              Penawaran sesuai preferensi dan key purchasing (Terms of Payment) criteria segmen yang dituju untuk menonjolkan keunggulan kompetitif selain harga serta meminimalisasi biaya akuisisi pelanggan yang tinggi
+            </div>
+            <div class="prog-cell">
+              <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
+              <div class="prog-bar-sm"><div class="prog-bar-sm-fill red" style="width:50%"></div></div>
+              <div class="prog-target">Target: 65%</div>
+            </div>
+            <div class="ra-cell">
+              <div><span class="ra-count">1/2</span></div>
+              <div class="ra-label">Rencana Aksi</div>
+            </div>
+            <div class="bobot-cell">50%</div>
+            <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
+            <button class="expand-btn" id="expand-1d" onclick="event.stopPropagation();toggleStrategy('1d')">
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>
+            </button>
+          </div>
+          <div class="strategy-body" id="body-1d">
+            <div class="activity-group">
+              <div class="ag-header">
+                <div class="ag-name">
+                  <div class="ag-tag">Activity Group</div>
+                  <strong>Activity Group 1.D.1:</strong> Pengembangan skema ToP fleksibel dan paket bundling sesuai segmen pelanggan prioritas
+                </div>
+                <div class="prog-cell">
+                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
+                  <div class="prog-bar-sm"><div class="prog-bar-sm-fill amber" style="width:50%"></div></div>
+                </div>
+                <div class="ra-cell">
+                  <div><span class="ra-count">1/2</span></div>
+                  <div class="ra-label">Rencana Aksi</div>
+                </div>
+                <div class="bobot-cell">50%</div>
+                <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
+                <button class="expand-btn">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /strategy-section -->
+    </main>
+  </div><!-- /body-wrap -->
+
+  <!-- DETAIL MODAL (Slide-in Panel) -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeDetailFromOverlay(event)">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <h3 id="modalTitle">Detail Rencana Aksi</h3>
+          <p id="modalSubtitle">Rencana Aksi 1.A.1.1</p>
+        </div>
+        <button class="modal-close" onclick="closeDetail()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <!-- Injected by JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeDetail()">Tutup</button>
+        <button class="btn-primary">Edit Rencana Aksi</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── INIT ─────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+      const user = JSON.parse(sessionStorage.getItem('bpbumd_user') || '{"name":"Administrator","role":"Pengawas BUMD"}');
+      document.getElementById('userAvatarBtn').textContent = user.name.charAt(0).toUpperCase();
+
+      // Read aspek param
+      const params = new URLSearchParams(window.location.search);
+      const aspekId   = params.get('id')   || '1';
+      const aspekName = params.get('name') || 'PENGUATAN BISNIS INTI';
+      const title     = 'ASPEK ' + aspekId + ' - ' + aspekName.toUpperCase();
+      document.getElementById('pageHeadingTitle').textContent = title;
+      document.getElementById('breadcrumbText').textContent   = title;
+    });
+
+    // ── TOGGLE STRATEGY ───────────────────────────────────────────
+    function toggleStrategy(id) {
+      const body   = document.getElementById('body-' + id);
+      const btn    = document.getElementById('expand-' + id);
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      btn.classList.toggle('open', !isOpen);
+    }
+
+    // ── TOGGLE ACTIVITY GROUP ─────────────────────────────────────
+    function toggleAG(id) {
+      const body = document.getElementById('ra-body-' + id);
+      const btn  = document.getElementById('expand-ag-' + id);
+      if (!body) return;
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      if (btn) btn.classList.toggle('open', !isOpen);
+    }
+
+    // ── DETAIL MODAL ──────────────────────────────────────────────
+    function openDetail(data) {
+      const statusMap = {
+        'terlambat'      : '<span class="status-pill terlambat">Terlambat</span>',
+        'selesai'        : '<span class="status-pill selesai">Selesai</span>',
+        'dalam-progress' : '<span class="status-pill dalam-progress">Dalam Progress</span>',
+        'belum-mulai'    : '<span class="status-pill belum-mulai">Belum Mulai</span>',
+      };
+      const colorMap = { 'terlambat': 'red', 'selesai': 'green', 'dalam-progress': 'blue', 'belum-mulai': 'gray' };
+      const barColor = data.progres >= data.target ? 'green' : data.progres >= data.target * 0.7 ? 'amber' : 'red';
+
+      document.getElementById('modalTitle').textContent   = data.title;
+      document.getElementById('modalSubtitle').textContent = 'Rencana Aksi ' + data.id;
+
+      const milestonesHtml = (data.milestones || []).map(m => `
+        <li class="milestone-item">
+          <div class="milestone-dot ${m.status === 'done' ? 'done' : m.status === 'progress' ? 'progress' : m.status === 'late' ? 'late' : 'pending'}"></div>
+          <div>
+            <div class="milestone-text">${m.label}</div>
+            <div class="milestone-date">${m.date}</div>
+          </div>
+        </li>`).join('');
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="modal-section-title">Ringkasan</div>
+        <div class="modal-kpi-grid">
+          <div class="modal-kpi">
+            <div class="modal-kpi-label">Status</div>
+            <div>${statusMap[data.status] || data.status}</div>
+          </div>
+          <div class="modal-kpi">
+            <div class="modal-kpi-label">Bobot</div>
+            <div class="modal-kpi-val">${data.bobot}%</div>
+          </div>
+          <div class="modal-kpi">
+            <div class="modal-kpi-label">Progres</div>
+            <div class="modal-kpi-val ${barColor}">${data.progres}%</div>
+          </div>
+          <div class="modal-kpi">
+            <div class="modal-kpi-label">Sub Rencana Aksi</div>
+            <div class="modal-kpi-val">${data.raSelesai}/${data.raTotal}</div>
+          </div>
+        </div>
+
+        <div class="modal-section-title">Progres vs Target</div>
+        <div class="modal-progress-row">
+          <div class="modal-progress-label">Realisasi</div>
+          <div class="modal-progress-bar"><div class="modal-progress-fill ${barColor}" style="width:${data.progres}%"></div></div>
+          <div class="modal-progress-pct">${data.progres}%</div>
+        </div>
+        <div class="modal-progress-row">
+          <div class="modal-progress-label">Target</div>
+          <div class="modal-progress-bar"><div class="modal-progress-fill" style="width:${data.target}%;background:var(--slate-300)"></div></div>
+          <div class="modal-progress-pct">${data.target}%</div>
+        </div>
+
+        <div class="modal-section-title">Informasi</div>
+        <div class="modal-field">
+          <div class="modal-field-label">Deskripsi</div>
+          <div class="modal-field-value">${data.deskripsi}</div>
+        </div>
+        <div class="modal-kpi-grid">
+          <div class="modal-field">
+            <div class="modal-field-label">PIC / Pelaksana</div>
+            <div class="modal-field-value">${data.picName}</div>
+          </div>
+          <div class="modal-field">
+            <div class="modal-field-label">Batas Waktu</div>
+            <div class="modal-field-value">${data.deadline}</div>
+          </div>
+        </div>
+
+        ${data.milestones && data.milestones.length ? `
+        <div class="modal-section-title">Milestone</div>
+        <ul class="milestone-list">${milestonesHtml}</ul>` : ''}
+      `;
+
+      document.getElementById('modalOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetail() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function closeDetailFromOverlay(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeDetail();
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+  </script>
+</body>
+</html>
