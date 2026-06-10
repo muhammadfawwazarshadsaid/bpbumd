@@ -1,8 +1,8 @@
 -- =========================
 -- MOCK REGISTER USERS
 -- Password plain: password123
--- Hash bcrypt:
--- $2a$10$7EqJtq98hPqEX7fNZaFWoOHiq7iX4HTiK7jfb2Lfv2tJ2xl8W8L5K
+-- Hash bcrypt (generated with bcryptjs v3):
+-- $2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6
 -- =========================
 
 INSERT INTO users (
@@ -17,7 +17,7 @@ VALUES
 (
     1,
     'admin_bpbumd',
-    '$2a$10$7EqJtq98hPqEX7fNZaFWoOHiq7iX4HTiK7jfb2Lfv2tJ2xl8W8L5K',
+    '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
     'Admin BPBUMD',
     'admin',
     TRUE
@@ -25,7 +25,7 @@ VALUES
 (
     2,
     'user_jakpro',
-    '$2a$10$7EqJtq98hPqEX7fNZaFWoOHiq7iX4HTiK7jfb2Lfv2tJ2xl8W8L5K',
+    '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
     'User Jakpro',
     'user',
     TRUE
@@ -33,7 +33,7 @@ VALUES
 (
     2,
     'approver_jakpro_1',
-    '$2a$10$7EqJtq98hPqEX7fNZaFWoOHiq7iX4HTiK7jfb2Lfv2tJ2xl8W8L5K',
+    '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
     'Approver Jakpro 1',
     'user',
     TRUE
@@ -41,7 +41,7 @@ VALUES
 (
     2,
     'approver_jakpro_2',
-    '$2a$10$7EqJtq98hPqEX7fNZaFWoOHiq7iX4HTiK7jfb2Lfv2tJ2xl8W8L5K',
+    '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
     'Approver Jakpro 2',
     'user',
     TRUE
