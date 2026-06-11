@@ -197,8 +197,29 @@ async function getCurrentUser(userId) {
   return result.rows[0];
 }
 
+async function getAllUsers() {
+  const result = await pool.query(
+    `
+      SELECT
+        u.id,
+        u.username,
+        u.name,
+        u.role,
+        u.company_id,
+        c.name AS company_name
+      FROM users u
+      LEFT JOIN companies c ON c.id = u.company_id
+      WHERE u.is_active = TRUE
+      ORDER BY u.name ASC
+    `,
+  );
+
+  return result.rows;
+}
+
 module.exports = {
   registerUser,
   loginUser,
   getCurrentUser,
+  getAllUsers,
 };

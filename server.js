@@ -36,6 +36,9 @@ app.use(
   }),
 );
 
+// Serve uploads directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // Root → login
 app.get("/", (req, res) => {
   res.redirect("/login.html");

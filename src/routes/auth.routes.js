@@ -96,4 +96,23 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/users", authMiddleware, async (req, res) => {
+  try {
+    const users = await authService.getAllUsers();
+    
+    res.json({
+      success: true,
+      message: "Berhasil mendapatkan daftar user",
+      data: users,
+    });
+  } catch (error) {
+    console.error("Get Users error:", error);
+    
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal mengambil daftar user",
+    });
+  }
+});
+
 module.exports = router;

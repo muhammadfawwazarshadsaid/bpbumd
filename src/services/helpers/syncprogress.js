@@ -5,13 +5,13 @@
  * @param {number} fallbackActivityGroupId - ID Activity Group (digunakan khusus saat Action Plan dihapus)
  */
 async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroupId = null) {
-    let agId = fallbackActivityGroupId;
-    let sId = null;
-    let aId = null;
+  let agId = fallbackActivityGroupId;
+  let sId = null;
+  let aId = null;
 
-    // ── 1. Update Rencana Aksi (Action Plan) berdasarkan Sub Rencana Aksi ──
-    if (actionPlanId) {
-        await client.query(`
+  // ── 1. Update Rencana Aksi (Action Plan) berdasarkan Sub Rencana Aksi ──
+  if (actionPlanId) {
+    await client.query(`
       UPDATE action_plans ap
       SET progress_percentage = COALESCE(
         (SELECT ROUND((COUNT(*) FILTER (WHERE status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
@@ -20,8 +20,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
       WHERE id = $1
     `, [actionPlanId]);
 
-        // Ambil ID hirarki di atasnya
-        const rel = await client.query(`
+    // Ambil ID hirarki di atasnya
+    const rel = await client.query(`
       SELECT ag.id AS ag_id, s.id AS s_id, a.id AS a_id
       FROM action_plans ap
       JOIN activity_groups ag ON ag.id = ap.activity_group_id
@@ -30,16 +30,16 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
       WHERE ap.id = $1
     `, [actionPlanId]);
 
-        if (rel.rowCount > 0) {
-            agId = rel.rows.ag_id;
-            sId = rel.rows.s_id;
-            aId = rel.rows.a_id;
-        }
+    if (rel.rowCount > 0) {
+      agId = rel.rows.ag_id;
+      sId = rel.rows.s_id;
+      aId = rel.rows.a_id;
     }
+  }
 
-    // Jika Action Plan dihapus, kita ambil hirarki dari fallback Activity Group
-    if (!actionPlanId && fallbackActivityGroupId) {
-        const rel = await client.query(`
+  // Jika Action Plan dihapus, kita ambil hirarki dari fallback Activity Group
+  if (!actionPlanId && fallbackActivityGroupId) {
+    const rel = await client.query(`
       SELECT s.id AS s_id, a.id AS a_id
       FROM activity_groups ag
       JOIN strategies s ON s.id = ag.strategy_id
@@ -47,17 +47,17 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
       WHERE ag.id = $1
     `, [fallbackActivityGroupId]);
 
-        if (rel.rowCount > 0) {
-            sId = rel.rows.s_id;
-            aId = rel.rows.a_id;
-        }
+    if (rel.rowCount > 0) {
+      sId = rel.rows.s_id;
+      aId = rel.rows.a_id;
     }
+  }
 
-    // Jika tidak ditemukan hirarki, hentikan proses
-    if (!agId) return;
+  // Jika tidak ditemukan hirarki, hentikan proses
+  if (!agId) return;
 
-    // ── 2. Update Activity Group berdasarkan Rencana Aksi ──
-    await client.query(`
+  // ── 2. Update Activity Group berdasarkan Rencana Aksi ──
+  await client.query(`
     UPDATE activity_groups ag
     SET progress_percentage = COALESCE(
       (SELECT ROUND((COUNT(*) FILTER (WHERE status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
@@ -66,8 +66,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
     WHERE id = $1
   `, [agId]);
 
-    // ── 3. Update Strategi berdasarkan Rencana Aksi ──
-    await client.query(`
+  // ── 3. Update Strategi berdasarkan Rencana Aksi ──
+  await client.query(`
     UPDATE strategies s
     SET progress_percentage = COALESCE(
       (SELECT ROUND((COUNT(ap.*) FILTER (WHERE ap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(ap.*), 0)::NUMERIC * 100, 2)
@@ -78,8 +78,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
     WHERE id = $1
   `, [sId]);
 
-    // ── 4. Update Aspek berdasarkan Rencana Aksi ──
-    await client.query(`
+  // ── 4. Update Aspek berdasarkan Rencana Aksi ──
+  await client.query(`
     UPDATE aspects a
     SET progress_percentage = COALESCE(
       (SELECT ROUND((COUNT(ap.*) FILTER (WHERE ap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(ap.*), 0)::NUMERIC * 100, 2)
@@ -91,3 +91,5 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
     WHERE id = $1
   `, [aId]);
 }
+
+module.exports = { syncProgressHierarchy };
