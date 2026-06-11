@@ -95,6 +95,49 @@ router.post(
 );
 
 /**
+ * PUT /api/documents/:documentId
+ *
+ * Update a document metadata and optionally replace the file
+ * Content-Type: multipart/form-data
+ */
+router.put(
+  "/:documentId",
+  authMiddleware,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const documentId = Number(req.params.documentId);
+
+      if (!documentId || isNaN(documentId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Parameter documentId harus berupa angka",
+        });
+      }
+
+      const data = await documentService.updateDocument(
+        req.user,
+        documentId,
+        req.file,
+        req.body,
+      );
+
+      res.json({
+        success: true,
+        message: "Dokumen berhasil diperbarui",
+        data,
+      });
+    } catch (error) {
+      console.error("Update document error:", error);
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Gagal memperbarui dokumen",
+      });
+    }
+  },
+);
+
+/**
  * PUT /api/documents/:documentId/verify
  *
  * Verify a document

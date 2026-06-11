@@ -1647,10 +1647,25 @@
       font-weight: 800;
     }
 
-    .doc-preview-nopreview-icon.pdf { background: #FEE2E2; color: #DC2626; }
-    .doc-preview-nopreview-icon.xlsx { background: #D1FAE5; color: #059669; }
-    .doc-preview-nopreview-icon.docx { background: #DBEAFE; color: #1D4ED8; }
-    .doc-preview-nopreview-icon.default { background: var(--slate-100); color: var(--slate-600); }
+    .doc-preview-nopreview-icon.pdf {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .doc-preview-nopreview-icon.xlsx {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .doc-preview-nopreview-icon.docx {
+      background: #DBEAFE;
+      color: #1D4ED8;
+    }
+
+    .doc-preview-nopreview-icon.default {
+      background: var(--slate-100);
+      color: var(--slate-600);
+    }
 
     .doc-preview-nopreview-text {
       font-size: 13px;
@@ -1734,11 +1749,30 @@
       flex-shrink: 0;
     }
 
-    .upload-file-icon.pdf { background: #FEE2E2; color: #DC2626; }
-    .upload-file-icon.xlsx { background: #D1FAE5; color: #059669; }
-    .upload-file-icon.docx { background: #DBEAFE; color: #1D4ED8; }
-    .upload-file-icon.img { background: #EDE9FE; color: var(--violet); }
-    .upload-file-icon.default { background: var(--slate-100); color: var(--slate-600); }
+    .upload-file-icon.pdf {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .upload-file-icon.xlsx {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .upload-file-icon.docx {
+      background: #DBEAFE;
+      color: #1D4ED8;
+    }
+
+    .upload-file-icon.img {
+      background: #EDE9FE;
+      color: var(--violet);
+    }
+
+    .upload-file-icon.default {
+      background: var(--slate-100);
+      color: var(--slate-600);
+    }
 
     .upload-file-info {
       flex: 1;
@@ -2151,6 +2185,7 @@
                     <th>Diunggah Oleh</th>
                     <th>Tanggal Unggah</th>
                     <th>Status</th>
+                    <th>Verifikator</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
@@ -2413,6 +2448,67 @@
   </div>
 
   <!-- MODAL UPLOAD DOKUMEN -->
+  <!-- MODAL EDIT DOKUMEN -->
+  <div class="modal-overlay" id="modalEditDoc">
+    <div class="modal-container" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title">Edit Dokumen</div>
+        <button class="modal-close" onclick="closeEditDocModal()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditDoc" onsubmit="submitEditDoc(event)">
+          <input type="hidden" id="editDocId" />
+          <div class="form-group">
+            <label class="form-label">File Dokumen Baru (Opsional)</label>
+            <div style="font-size:11px; color:var(--slate-500); margin-bottom:8px;">Abaikan jika tidak ingin mengganti
+              file. Mengganti file akan mereset status menjadi "Diunggah".</div>
+            <input type="file" id="editFileInput" style="display:none"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv,.zip,.rar" />
+            <div class="upload-dropzone" id="editDropzone">
+              <div class="upload-dropzone-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17,8 12,3 7,8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <div class="upload-dropzone-text">
+                Seret file ke sini atau <span class="upload-dropzone-link">pilih file baru</span>
+              </div>
+              <div class="upload-dropzone-hint" id="editCurrentFileHint">File saat ini: -</div>
+            </div>
+            <div id="editFilePreview" style="display:none;"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nama Dokumen</label>
+            <input type="text" class="form-input" id="editDocName" required placeholder="Masukkan nama dokumen" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Deskripsi (Opsional)</label>
+            <textarea class="textarea-notes" id="editDocDesc" placeholder="Deskripsi singkat dokumen"></textarea>
+          </div>
+          <div class="upload-progress" id="editProgress">
+            <div class="upload-progress-bar-bg">
+              <div class="upload-progress-bar" id="editProgressBar"></div>
+            </div>
+            <div class="upload-progress-text" id="editProgressText">Memperbarui...</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeEditDocModal()">Batal</button>
+        <button class="btn btn-primary" type="submit" form="formEditDoc" id="btnSubmitEdit">
+          Simpan Perubahan
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modalUploadDoc">
     <div class="modal-container" style="max-width:520px;">
       <div class="modal-header">
@@ -2447,8 +2543,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Nama Dokumen</label>
-            <input type="text" class="form-input" id="uploadDocName" required
-              placeholder="Masukkan nama dokumen" />
+            <input type="text" class="form-input" id="uploadDocName" required placeholder="Masukkan nama dokumen" />
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label">Deskripsi (Opsional)</label>
@@ -2502,12 +2597,15 @@
           <div class="detail-value" id="verifyDocStatus"></div>
         </div>
 
-        <div id="verifyDecisionSection" style="margin-top:20px; padding-top:20px; border-top:1px dashed var(--slate-200);">
+        <div id="verifyDecisionSection"
+          style="margin-top:20px; padding-top:20px; border-top:1px dashed var(--slate-200);">
           <div class="form-group">
             <label class="form-label">Keputusan Verifikasi</label>
             <div style="display:flex; gap:10px;">
-              <div id="docChipVerify" class="verif-chip chip-outline-setuju" onclick="selectDocVerif('terverifikasi')">Verifikasi</div>
-              <div id="docChipReject" class="verif-chip chip-outline-tolak" onclick="selectDocVerif('ditolak')">Tolak</div>
+              <div id="docChipVerify" class="verif-chip chip-outline-setuju" onclick="selectDocVerif('terverifikasi')">
+                Verifikasi</div>
+              <div id="docChipReject" class="verif-chip chip-outline-tolak" onclick="selectDocVerif('ditolak')">Tolak
+              </div>
             </div>
             <input type="hidden" id="docVerifDecision" value="">
           </div>
@@ -2520,6 +2618,49 @@
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeVerifyDocModal()">Batal</button>
         <button class="btn btn-primary" id="btnSubmitVerifyDoc" onclick="submitDocVerification()">Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PREVIEW DOKUMEN -->
+  <div class="modal-overlay" id="modalPreviewDoc">
+    <div class="modal-container" style="max-width: 800px; width: 90%;">
+      <div class="modal-header">
+        <div class="modal-title">Pratinjau Dokumen</div>
+        <button class="modal-close" onclick="closePreviewDocModal()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="doc-preview-container">
+          <div class="doc-preview-meta">
+            <div class="doc-meta-item">
+              <span class="doc-meta-label">Nama Dokumen</span>
+              <span class="doc-meta-value" id="previewDocName"></span>
+            </div>
+            <div class="doc-meta-item">
+              <span class="doc-meta-label">Tipe File</span>
+              <span class="doc-meta-value" id="previewDocType"></span>
+            </div>
+          </div>
+          <div class="doc-preview-frame" id="previewDocFrame">
+            <!-- Content injected by JS -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closePreviewDocModal()">Tutup</button>
+        <button class="btn btn-primary" id="btnDownloadPreview" onclick="">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7,10 12,15 17,10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Unduh
+        </button>
       </div>
     </div>
   </div>
@@ -2538,7 +2679,8 @@
       </div>
       <div class="modal-body">
         <p style="font-size: 14px; color: var(--slate-700); line-height: 1.5;">Apakah Anda yakin ingin menghapus dokumen
-          <strong id="deleteDocName"></strong>? Tindakan ini tidak dapat dibatalkan.</p>
+          <strong id="deleteDocName"></strong>? Tindakan ini tidak dapat dibatalkan.
+        </p>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeDeleteDocModal()">Batal</button>
@@ -2942,7 +3084,7 @@
     function renderDocTable(docs) {
       const docBody = document.getElementById('docTableBody');
       if (!docs || docs.length === 0) {
-        docBody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada dokumen</td></tr>`;
+        docBody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada dokumen</td></tr>`;
         return;
       }
       docBody.innerHTML = docs.map(doc => {
@@ -2953,6 +3095,22 @@
           : doc.status === 'ditolak'
             ? '<span class="pending-badge" style="background:#FEE2E2;color:#DC2626;">Ditolak</span>'
             : '<span class="pending-badge">Perlu Verifikasi</span>';
+
+        let verifikatorHtml = '–';
+        if (doc.status === 'terverifikasi' || doc.status === 'ditolak') {
+          const verifierName = doc.verified_by ? escapeHtml(doc.verified_by.name) : 'Sistem';
+          verifikatorHtml = `<div style="font-size:13px;">${verifierName}</div>`;
+
+          if (doc.status === 'ditolak' && doc.rejection_reason) {
+            const cleanNote = escapeHtml(doc.rejection_reason);
+            verifikatorHtml += `
+              <div title="Lihat alasan penolakan" style="display:inline-flex; align-items:center; gap:2px; color:var(--rose); cursor:pointer; margin-top: 4px;" onclick="showNoteModal(this.getAttribute('data-note'))" data-note="${cleanNote}">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span style="font-size:10px; font-weight:600;">Lihat Alasan</span>
+              </div>
+            `;
+          }
+        }
 
         const verifyBtn = doc.status === 'diunggah' ? `
               <button class="doc-action-btn" title="Verifikasi" onclick="openVerifyDocModal(${doc.document_id})">
@@ -2973,6 +3131,7 @@
           <td>${doc.uploaded_by ? escapeHtml(doc.uploaded_by.name) : '–'}</td>
           <td>${formatDateShort(doc.uploaded_at)}</td>
           <td>${statusBadge}</td>
+          <td>${verifikatorHtml}</td>
           <td>
             <div class="doc-actions">
               <button class="doc-action-btn" title="Lihat" onclick="viewDocument(${doc.document_id})">
@@ -2988,6 +3147,12 @@
                 </svg>
               </button>
               ${verifyBtn}
+              <button class="doc-action-btn" title="Edit" onclick="openEditDocModal(${doc.document_id})">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
               <button class="doc-action-btn danger" title="Hapus" onclick="openDeleteDocModal(${doc.document_id})">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -3684,13 +3849,49 @@
 
     // ── DOCUMENT VIEW & DOWNLOAD ─────────────────────────────────
     function viewDocument(docId) {
-      // Open the file in a new tab via download endpoint
       const doc = currentData.dokumen.find(d => d.document_id === docId);
-      if (doc && doc.file_path) {
-        window.open(doc.file_path, '_blank');
+      if (!doc) return;
+
+      const ext = getFileExtension(doc.original_file_name || doc.document_name);
+      const fileName = doc.original_file_name || doc.document_name;
+
+      document.getElementById('previewDocName').textContent = fileName;
+      document.getElementById('previewDocType').textContent = (ext || 'FILE').toUpperCase();
+
+      const frame = document.getElementById('previewDocFrame');
+      const docUrl = doc.file_path || `/api/documents/${docId}/download`;
+
+      // Set download button
+      document.getElementById('btnDownloadPreview').setAttribute('onclick', `downloadDocument(${docId})`);
+
+      // Determine how to preview based on extension
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+        frame.innerHTML = `<img src="${docUrl}" alt="${fileName}" />`;
+      } else if (ext === 'pdf') {
+        frame.innerHTML = `<iframe src="${docUrl}#toolbar=0"></iframe>`;
       } else {
-        window.open(`/api/documents/${docId}/download`, '_blank');
+        // Fallback for types that can't be rendered in browser (docx, xlsx, etc)
+        let iconCSS = 'default';
+        if (['xls', 'xlsx'].includes(ext)) iconCSS = 'xlsx';
+        else if (['doc', 'docx'].includes(ext)) iconCSS = 'docx';
+
+        frame.innerHTML = `
+          <div class="doc-preview-nopreview">
+            <div class="doc-preview-nopreview-icon ${iconCSS}">${(ext || 'FILE').toUpperCase()}</div>
+            <div class="doc-preview-nopreview-text">Pratinjau tidak tersedia untuk tipe file ini</div>
+            <div class="doc-preview-nopreview-hint">Silakan unduh file untuk melihat kontennya.</div>
+          </div>
+        `;
       }
+
+      document.getElementById('modalPreviewDoc').classList.add('active');
+    }
+
+    function closePreviewDocModal() {
+      document.getElementById('modalPreviewDoc').classList.remove('active');
+      setTimeout(() => {
+        document.getElementById('previewDocFrame').innerHTML = ''; // Clear iframe memory
+      }, 300);
     }
 
     function downloadDocument(docId) {

@@ -141,6 +141,152 @@ async function uploadDocument(user, file, body) {
 }
 
 // ═════════════════════════════════════════════
+//  UPDATE DOCUMENT
+// ═════════════════════════════════════════════
+
+/**
+ * PUT /api/documents/:documentId
+ *
+ * Updates document metadata (name, description) and optionally replaces the file.
+ */
+async function updateDocument(user, documentId, file, body) {
+  const { name, description } = body;
+
+  if (!name || !name.trim()) {
+    const error = new Error("Nama dokumen wajib diisi");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const existing = await client.query(
+      `SELECT d.*, ap.name AS ap_name
+       FROM documents d
+       LEFT JOIN action_plans ap ON ap.id = d.action_plan_id
+       WHERE d.id = $1
+       FOR UPDATE OF d`,
+      [documentId]
+    );
+
+    if (existing.rowCount === 0) {
+      if (file && fs.existsSync(file.path)) {
+        fs.unlinkSync(file.path);
+      }
+      const error = new Error("Dokumen tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const doc = existing.rows[0];
+
+    // Build update query
+    let sets = ["name = $1", "description = $2", "updated_at = CURRENT_TIMESTAMP"];
+    let values = [name.trim(), description || null];
+    let paramIndex = 3;
+
+    let changes = [];
+    if (doc.name !== name.trim()) changes.push(`nama menjadi "${name.trim()}"`);
+
+    // Handle optional file replacement
+    if (file) {
+      const ext = path.extname(file.originalname).toLowerCase();
+      const fileType = ext.replace(".", "") || "unknown";
+      const relativePath = `/uploads/${file.filename}`;
+
+      sets.push(`original_file_name = $${paramIndex++}`);
+      values.push(file.originalname);
+      
+      sets.push(`file_type = $${paramIndex++}`);
+      values.push(fileType);
+      
+      sets.push(`file_size = $${paramIndex++}`);
+      values.push(file.size);
+      
+      sets.push(`file_path = $${paramIndex++}`);
+      values.push(relativePath);
+
+      // Status goes back to 'diunggah' if file changed
+      sets.push(`status = $${paramIndex++}`);
+      values.push("diunggah");
+      
+      sets.push(`verified_by_user_id = NULL`);
+      sets.push(`verified_at = NULL`);
+      sets.push(`rejection_reason = NULL`);
+
+      changes.push(`file diperbarui`);
+
+      // Delete old file from disk
+      try {
+        const oldAbsolutePath = path.join(__dirname, "../../", doc.file_path);
+        if (fs.existsSync(oldAbsolutePath)) {
+          fs.unlinkSync(oldAbsolutePath);
+        }
+      } catch (fsErr) {
+        console.error("Failed to delete old file from disk:", fsErr.message);
+      }
+    } else {
+      // If status was rejected and they only updated metadata, move it back to 'diunggah'
+      if (doc.status === 'ditolak') {
+        sets.push(`status = $${paramIndex++}`);
+        values.push("diunggah");
+        sets.push(`verified_by_user_id = NULL`);
+        sets.push(`verified_at = NULL`);
+        sets.push(`rejection_reason = NULL`);
+      }
+    }
+
+    values.push(documentId);
+
+    const result = await client.query(
+      `
+        UPDATE documents
+        SET ${sets.join(", ")}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `,
+      values
+    );
+
+    const updatedDoc = result.rows[0];
+
+    // Log history
+    if (doc.action_plan_id && changes.length > 0) {
+      await logHistory(
+        client,
+        doc.action_plan_id,
+        user.id,
+        `Memperbarui dokumen "${doc.name}": ${changes.join(", ")}`
+      );
+    }
+
+    await client.query("COMMIT");
+
+    return {
+      document_id: Number(updatedDoc.id),
+      document_name: updatedDoc.name,
+      description: updatedDoc.description,
+      original_file_name: updatedDoc.original_file_name,
+      file_type: updatedDoc.file_type,
+      file_size: toNumber(updatedDoc.file_size),
+      file_path: updatedDoc.file_path,
+      status: updatedDoc.status,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    if (file && fs.existsSync(file.path)) {
+      try { fs.unlinkSync(file.path); } catch (e) {}
+    }
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+// ═════════════════════════════════════════════
 //  VERIFY DOCUMENT
 // ═════════════════════════════════════════════
 
@@ -160,7 +306,7 @@ async function verifyDocument(user, documentId) {
        FROM documents d
        LEFT JOIN action_plans ap ON ap.id = d.action_plan_id
        WHERE d.id = $1
-       FOR UPDATE`,
+       FOR UPDATE OF d`,
       [documentId],
     );
 
@@ -233,7 +379,7 @@ async function rejectDocument(user, documentId, reason) {
        FROM documents d
        LEFT JOIN action_plans ap ON ap.id = d.action_plan_id
        WHERE d.id = $1
-       FOR UPDATE`,
+       FOR UPDATE OF d`,
       [documentId],
     );
 
@@ -387,6 +533,7 @@ async function getDocumentForDownload(documentId) {
 
 module.exports = {
   uploadDocument,
+  updateDocument,
   verifyDocument,
   rejectDocument,
   deleteDocument,
