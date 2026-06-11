@@ -1,6 +1,7 @@
 "use strict";
 
 const { pool } = require("../config/database");
+const { syncProgressHierarchy } = require("../utils/helpers");
 
 function isHqUser(user) {
   return user.company_type === "bpbumd";
@@ -677,6 +678,7 @@ async function createActionPlan(user, payload) {
       `Membuat rencana aksi baru: ${name}`,
     );
 
+    await syncProgressHierarchy(client, ap.id);
     await client.query("COMMIT");
 
     return formatActionPlanRow(ap);
@@ -804,6 +806,7 @@ async function updateActionPlan(user, actionPlanId, payload) {
       await logHistory(client, actionPlanId, user.id, description);
     }
 
+    await syncProgressHierarchy(client, actionPlanId);
     await client.query("COMMIT");
 
     return formatActionPlanRow(result.rows[0]);
@@ -886,6 +889,7 @@ async function deleteActionPlan(user, actionPlanId) {
       actionPlanId,
     ]);
 
+    await syncProgressHierarchy(client, null, ap.activity_group_id);
     await client.query("COMMIT");
 
     return {

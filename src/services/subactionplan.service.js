@@ -1,6 +1,7 @@
 "use strict";
 
 const { pool } = require("../config/database");
+const { syncProgressHierarchy } = require("../utils/helpers");
 
 function toNumber(value) {
   return Number(value || 0);
@@ -116,6 +117,7 @@ async function createSubActionPlan(user, payload) {
       [action_plan_id, user.id, `Mengajukan sub rencana aksi baru: ${name}`]
     );
 
+    await syncProgressHierarchy(client, action_plan_id);
     await client.query("COMMIT");
 
     return formatSubActionPlan(subActionPlan);
@@ -259,6 +261,7 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
       [sap.action_plan_id, user.id, actionDesc]
     );
 
+    await syncProgressHierarchy(client, sap.action_plan_id);
     await client.query("COMMIT");
 
     return formatSubActionPlan(result.rows[0]);
@@ -329,6 +332,7 @@ async function deleteSubActionPlan(user, subActionPlanId) {
       [sap.action_plan_id, user.id, `Menghapus sub rencana aksi: ${sap.name}`]
     );
 
+    await syncProgressHierarchy(client, sap.action_plan_id);
     await client.query("COMMIT");
 
     return { deleted_id: Number(subActionPlanId) };
@@ -468,6 +472,7 @@ async function approveSubActionPlan(user, subActionPlanId, payload) {
       [sap.action_plan_id, user.id, `Menyetujui (Approver ${expectedOrder}) sub rencana aksi: ${sap.name}`]
     );
 
+    await syncProgressHierarchy(client, sap.action_plan_id);
     await client.query("COMMIT");
 
     return {
@@ -609,6 +614,7 @@ async function rejectSubActionPlan(user, subActionPlanId, payload) {
       [sap.action_plan_id, user.id, `Menolak sub rencana aksi: ${sap.name}. Alasan: ${notes}`]
     );
 
+    await syncProgressHierarchy(client, sap.action_plan_id);
     await client.query("COMMIT");
 
     return {
