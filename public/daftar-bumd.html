@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BPBUMD Control Tower — Daftar BUMD</title>
+  <meta name="description" content="Kelola daftar Badan Usaha Milik Daerah (BUMD) dengan fitur CRUD lengkap" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --sidebar-w: 260px;
+      --navy: #0F2044;
+      --navy-mid: #1B3A6B;
+      --sky: #0EA5E9;
+      --sky-light: #BAE6FD;
+      --emerald: #10B981;
+      --amber: #F59E0B;
+      --rose: #EF4444;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-400: #94A3B8;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-900: #0F172A;
+    }
+
+    html {
+      font-size: 14px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--slate-100);
+      color: var(--slate-900);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ───────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+      overflow-y: auto;
+      transition: transform 0.3s;
+    }
+
+    .sidebar-logo {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sidebar-logo .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon-sm {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #0EA5E9, #38BDF8);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-icon-sm svg {
+      width: 22px;
+      height: 22px;
+      fill: white;
+    }
+
+    .logo-text .t1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .logo-text .t2 {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 1px;
+    }
+
+    .nav-section {
+      padding: 12px 0;
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: capitalize;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.3);
+      padding: 8px 20px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: white;
+    }
+
+    .nav-item.active {
+      background: rgba(14, 165, 233, 0.15);
+      color: var(--sky);
+      border-left-color: var(--sky);
+    }
+
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--rose);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #0EA5E9, #38BDF8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .user-info .name {
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .user-info .role {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .logout-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.2s;
+    }
+
+    .logout-btn:hover {
+      color: var(--rose);
+    }
+
+    /* ── MAIN ─────────────────────────────────── */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--slate-200);
+      padding: 0 28px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-left {
+      flex: 1;
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .page-sub {
+      font-size: 12px;
+      color: var(--slate-400);
+      margin-top: 1px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .topbar-date {
+      font-size: 12px;
+      color: var(--slate-400);
+      background: var(--slate-100);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    .content {
+      padding: 24px 28px;
+    }
+
+    /* ── KPI SUMMARY ────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: white;
+      border-radius: 16px;
+      padding: 22px 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+      border: 1px solid var(--slate-200);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .kpi-card.blue::before {
+      background: linear-gradient(90deg, #0EA5E9, #38BDF8);
+    }
+
+    .kpi-card.green::before {
+      background: linear-gradient(90deg, #10B981, #34D399);
+    }
+
+    .kpi-card.amber::before {
+      background: linear-gradient(90deg, #F59E0B, #FCD34D);
+    }
+
+    .kpi-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kpi-icon.blue {
+      background: #E0F2FE;
+      color: #0284C7;
+    }
+
+    .kpi-icon.green {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .kpi-icon.amber {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .kpi-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: var(--slate-400);
+      font-weight: 500;
+    }
+
+    /* ── TABLE CARD ─────────────────────────────── */
+    .table-card {
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      border: 1px solid var(--slate-200);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--slate-400);
+      margin-top: 2px;
+    }
+
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 300px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--slate-400);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: var(--slate-50);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--sky);
+      background: white;
+    }
+
+    .filter-select {
+      padding: 8px 12px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: var(--slate-50);
+      color: var(--slate-700);
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s, transform 0.15s;
+      margin-left: auto;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: capitalize;
+      letter-spacing: 0.5px;
+      color: var(--slate-400);
+      background: var(--slate-50);
+      border-bottom: 1px solid var(--slate-200);
+    }
+
+    thead th:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    thead th:last-child {
+      border-radius: 0 8px 8px 0;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--slate-100);
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background: var(--slate-50);
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody td {
+      padding: 14px;
+      font-size: 13px;
+      color: var(--slate-700);
+      vertical-align: middle;
+    }
+
+    .bumd-name {
+      font-weight: 600;
+      color: var(--slate-900);
+    }
+
+    .sector-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #E0F2FE;
+      color: #0284C7;
+    }
+
+    /* ── USER CHIPS ─────────────────────────────── */
+    .user-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px 4px 4px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--slate-100);
+      color: var(--slate-700);
+      border: 1px solid var(--slate-200);
+      transition: all 0.2s;
+    }
+
+    .user-chip:hover {
+      border-color: var(--sky-light);
+      background: #F0F9FF;
+    }
+
+    .user-chip.empty-slot {
+      background: transparent;
+      border: 1px dashed var(--slate-300);
+      color: var(--slate-400);
+      cursor: pointer;
+    }
+
+    .user-chip.empty-slot:hover {
+      border-color: var(--sky);
+      color: var(--sky);
+      background: #F0F9FF;
+    }
+
+    .user-chip .chip-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--sky), #38BDF8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .no-users {
+      font-size: 11px;
+      color: var(--slate-400);
+      font-style: italic;
+    }
+
+    /* ── ACTION BUTTONS ─────────────────────────── */
+    .action-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .action-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1.5px solid var(--slate-200);
+      background: white;
+      color: var(--slate-600);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .action-btn:hover {
+      border-color: var(--sky);
+      color: var(--sky);
+    }
+
+    .action-btn.delete:hover {
+      border-color: var(--rose);
+      color: var(--rose);
+    }
+
+    .action-btn svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    /* ── MODAL ──────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 540px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+      animation: slideUp 0.3s ease;
+      overflow: visible;
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--slate-100);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--slate-600);
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: var(--slate-200);
+      color: var(--slate-900);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--slate-700);
+      margin-bottom: 6px;
+    }
+
+    .form-label .required {
+      color: var(--rose);
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: var(--slate-50);
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      color: var(--slate-900);
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      border-color: var(--sky);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    .form-select {
+      cursor: pointer;
+    }
+
+    /* ── MULTI CHIP SELECTOR ───────────────────── */
+    .chip-selector {
+      border: 1.5px solid var(--slate-200);
+      border-radius: 10px;
+      background: var(--slate-50);
+      padding: 8px;
+      min-height: 44px;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      cursor: text;
+    }
+
+    .chip-selector:focus-within {
+      border-color: var(--sky);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    .chip-selector .selected-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .chip-selector .selected-chips:empty {
+      margin-bottom: 0;
+    }
+
+    .chip-selector .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px 4px 4px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background: linear-gradient(135deg, #E0F2FE, #BAE6FD);
+      color: #0369A1;
+      border: 1px solid #7DD3FC;
+      animation: chipIn 0.2s ease;
+    }
+
+    .chip-selector .chip .chip-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--sky), #38BDF8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .chip-selector .chip .chip-remove {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(3, 105, 161, 0.15);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #0369A1;
+      font-size: 12px;
+      line-height: 1;
+      transition: background 0.15s;
+      padding: 0;
+    }
+
+    .chip-selector .chip .chip-remove:hover {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--rose);
+    }
+
+    .chip-search-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      font-family: inherit;
+      background: transparent;
+      color: var(--slate-900);
+      padding: 2px 4px;
+    }
+
+    .chip-search-input::placeholder {
+      color: var(--slate-400);
+    }
+
+    .chip-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 10px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      max-height: 180px;
+      overflow-y: auto;
+      display: none;
+      z-index: 10;
+    }
+
+    .chip-dropdown.show {
+      display: block;
+      animation: slideDown 0.15s ease;
+    }
+
+    .chip-dropdown-item {
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--slate-700);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.1s;
+    }
+
+    .chip-dropdown-item:hover {
+      background: var(--slate-50);
+    }
+
+    .chip-dropdown-item.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .chip-dropdown-item .dd-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--sky), #38BDF8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .chip-dropdown-item .dd-info {
+      flex: 1;
+    }
+
+    .chip-dropdown-item .dd-name {
+      font-weight: 600;
+      color: var(--slate-900);
+      font-size: 12px;
+    }
+
+    .chip-dropdown-item .dd-role {
+      font-size: 10px;
+      color: var(--slate-400);
+    }
+
+    .chip-dropdown-item .dd-check {
+      color: var(--emerald);
+      flex-shrink: 0;
+    }
+
+    .chip-selector-wrap {
+      position: relative;
+    }
+
+    .chip-limit-hint {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 4px;
+    }
+
+    .chip-limit-hint.warn {
+      color: var(--amber);
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--slate-200);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .btn-cancel {
+      padding: 9px 18px;
+      background: var(--slate-100);
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-600);
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background: var(--slate-200);
+    }
+
+    .btn-submit {
+      padding: 9px 20px;
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-submit:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* ── CONFIRM DIALOG ────────────────────────── */
+    .confirm-modal .modal {
+      max-width: 400px;
+    }
+
+    .confirm-body {
+      text-align: center;
+      padding: 28px 24px;
+    }
+
+    .confirm-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #FEE2E2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      color: var(--rose);
+    }
+
+    .confirm-text {
+      font-size: 14px;
+      color: var(--slate-700);
+      line-height: 1.6;
+    }
+
+    .confirm-text strong {
+      color: var(--slate-900);
+    }
+
+    .btn-danger {
+      padding: 9px 20px;
+      background: linear-gradient(135deg, #DC2626, #EF4444);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-danger:hover {
+      opacity: 0.9;
+    }
+
+    /* ── TOAST ──────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: white;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideIn 0.3s ease;
+      min-width: 280px;
+    }
+
+    .toast.success {
+      background: linear-gradient(135deg, #059669, #10B981);
+    }
+
+    .toast.error {
+      background: linear-gradient(135deg, #DC2626, #EF4444);
+    }
+
+    .toast svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ── EMPTY STATE ────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+    }
+
+    .empty-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: var(--slate-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      color: var(--slate-400);
+    }
+
+    .empty-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--slate-700);
+      margin-bottom: 4px;
+    }
+
+    .empty-desc {
+      font-size: 12px;
+      color: var(--slate-400);
+    }
+
+    /* ── LOADING ────────────────────────────────── */
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--slate-200);
+      border-top-color: var(--sky);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* ── SCROLLBAR ──────────────────────────────── */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--slate-200);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--slate-400);
+    }
+
+    /* ── ANIMATIONS ─────────────────────────────── */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes chipIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .table-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-wrap {
+        max-width: 100%;
+      }
+
+      .btn-primary {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-row">
+        <div class="logo-icon-sm">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+          </svg>
+        </div>
+        <div class="logo-text">
+          <div class="t1">BPBUMD</div>
+          <div class="t2">Control Tower v2.4</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Utama</div>
+      <a class="nav-item" href="/dashboard.html">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+        Dashboard
+      </a>
+      <a class="nav-item active" href="/daftar-bumd.html">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9,22 9,12 15,12 15,22" />
+        </svg>
+        Daftar BUMD
+      </a>
+      <a class="nav-item" href="/dashboard-aspek.html">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
+        </svg>
+        Kinerja & KPI
+      </a>
+      <a class="nav-item" href="/rencana-aksi.html">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+        Rencana Aksi
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Administrasi</div>
+      <a class="nav-item">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+        </svg>
+        Pengaturan
+      </a>
+      <a class="nav-item">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        Manajemen Pengguna
+      </a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar" id="sidebarAvatar">A</div>
+        <div class="user-info">
+          <div class="name" id="sidebarName">Administrator</div>
+          <div class="role" id="sidebarRole">Pengawas BUMD</div>
+        </div>
+        <button class="logout-btn" onclick="BPBUMDAuth.logout()" title="Keluar">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16,17 21,12 16,7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="page-title">Daftar BUMD</div>
+        <div class="page-sub">Kelola data Badan Usaha Milik Daerah</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbarDate"></div>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- KPI SUMMARY -->
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-top">
+            <div class="kpi-icon blue">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9,22 9,12 15,12 15,22" />
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpiTotal">-</div>
+          <div class="kpi-label">Total BUMD</div>
+        </div>
+
+        <div class="kpi-card green">
+          <div class="kpi-top">
+            <div class="kpi-icon green">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpiUsers">-</div>
+          <div class="kpi-label">Total User Terdaftar</div>
+        </div>
+
+        <div class="kpi-card amber">
+          <div class="kpi-top">
+            <div class="kpi-icon amber">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+              </svg>
+            </div>
+          </div>
+          <div class="kpi-value" id="kpiSectors">-</div>
+          <div class="kpi-label">Jumlah Sektor</div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Data BUMD</div>
+            <div class="card-sub">Kelola daftar badan usaha dan penugasan user</div>
+          </div>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="search-wrap">
+            <svg class="search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input class="search-input" id="searchInput" type="text" placeholder="Cari nama BUMD..."
+              autocomplete="off" />
+          </div>
+          <select class="filter-select" id="filterSector">
+            <option value="">Semua Sektor</option>
+          </select>
+          <button class="btn-primary" id="btnTambah" onclick="openModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Tambah BUMD
+          </button>
+        </div>
+
+        <div id="tableContainer">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE/EDIT -->
+  <div class="modal-overlay" id="bumdModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">Tambah BUMD</div>
+        <button class="modal-close" onclick="closeModal()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="inputName">Nama BUMD <span class="required">*</span></label>
+          <input class="form-input" id="inputName" type="text" placeholder="Contoh: PT Tirta Maju Sejahtera" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inputSector">Sektor</label>
+          <select class="form-select" id="inputSector">
+            <option value="">Pilih sektor...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">User Terdaftar <span style="font-weight:400;color:var(--slate-400)">(maks.
+              3)</span></label>
+          <div class="chip-selector-wrap">
+            <div class="chip-selector" id="chipSelector" onclick="focusChipInput()">
+              <div class="selected-chips" id="selectedChips"></div>
+              <input class="chip-search-input" id="chipSearchInput" type="text" placeholder="Cari user..."
+                autocomplete="off" />
+            </div>
+            <div class="chip-dropdown" id="chipDropdown"></div>
+          </div>
+          <div class="chip-limit-hint" id="chipHint">0 / 3 user dipilih</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Batal</button>
+        <button class="btn-submit" id="btnSave" onclick="saveBumd()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17,21 17,13 7,13 7,21" />
+            <polyline points="7,3 7,8 15,8" />
+          </svg>
+          Simpan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DELETE CONFIRM -->
+  <div class="modal-overlay confirm-modal" id="deleteModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Hapus BUMD</div>
+        <button class="modal-close" onclick="closeDeleteModal()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="confirm-body">
+        <div class="confirm-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <polyline points="3,6 5,6 21,6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <line x1="10" y1="11" x2="10" y2="17" />
+            <line x1="14" y1="11" x2="14" y2="17" />
+          </svg>
+        </div>
+        <div class="confirm-text">
+          Apakah Anda yakin ingin menghapus<br /><strong id="deleteName">-</strong>?
+          <br /><small style="color:var(--slate-400)">Tindakan ini tidak dapat dibatalkan.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeDeleteModal()">Batal</button>
+        <button class="btn-danger" id="btnDelete" onclick="confirmDelete()">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE PENGGUNA -->
+  <div class="modal-overlay" id="createUserModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Create Pengguna</div>
+        <button class="modal-close" onclick="closeCreateUserModal()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="createUserName">Nama Lengkap <span class="required">*</span></label>
+          <input class="form-input" id="createUserName" type="text" placeholder="Masukkan nama lengkap" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="createUserUsername">Username <span class="required">*</span></label>
+          <input class="form-input" id="createUserUsername" type="text" placeholder="Masukkan username" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="createUserPassword">Password <span class="required">*</span></label>
+          <input class="form-input" id="createUserPassword" type="password" placeholder="Minimal 6 karakter" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="createUserRole">Role</label>
+          <select class="form-select" id="createUserRole">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeCreateUserModal()">Batal</button>
+        <button class="btn-submit" id="btnCreateUser" onclick="submitCreateUser()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Create
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/auth.js"></script>
+  <script>
+    // ════════════════════════════════════════════
+    //  STATE
+    // ════════════════════════════════════════════
+
+    let allBumds = [];
+    let allSectors = [];
+    let allUsers = [];
+    let selectedUsers = [];
+    let editingId = null;
+    let deletingId = null;
+    let creatingUserId = null;
+    let searchTimeout = null;
+
+    // ════════════════════════════════════════════
+    //  INIT
+    // ════════════════════════════════════════════
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await BPBUMDAuth.requireAuth();
+      initUserInfo(user);
+      initDate();
+      initEventListeners();
+      await Promise.all([loadBumds(), loadSectors(), loadUsers()]);
+    });
+
+    function initUserInfo(user) {
+      if (!user) return;
+      const avatar = user.name ? user.name.charAt(0).toUpperCase() : 'U';
+      document.getElementById('sidebarAvatar').textContent = avatar;
+      document.getElementById('sidebarName').textContent = user.name || user.username;
+      document.getElementById('sidebarRole').textContent = user.role === 'admin' ? 'Administrator' : 'User';
+    }
+
+    function initDate() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('topbarDate').textContent = now.toLocaleDateString('id-ID', options);
+    }
+
+    function initEventListeners() {
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => loadBumds(), 300);
+      });
+
+      document.getElementById('filterSector').addEventListener('change', () => loadBumds());
+
+      // Chip search
+      const chipInput = document.getElementById('chipSearchInput');
+      chipInput.addEventListener('input', () => renderChipDropdown());
+      chipInput.addEventListener('focus', () => renderChipDropdown());
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        const wrap = document.querySelector('.chip-selector-wrap');
+        if (wrap && !wrap.contains(e.target)) {
+          document.getElementById('chipDropdown').classList.remove('show');
+        }
+      });
+
+      // ESC to close modals
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeModal();
+          closeDeleteModal();
+          closeCreateUserModal();
+        }
+      });
+    }
+
+    // ════════════════════════════════════════════
+    //  API CALLS
+    // ════════════════════════════════════════════
+
+    async function apiFetch(url, options = {}) {
+      const res = await fetch(url, {
+        ...options,
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Terjadi kesalahan');
+      return data;
+    }
+
+    async function loadBumds() {
+      const search = document.getElementById('searchInput').value.trim();
+      const sectorId = document.getElementById('filterSector').value;
+
+      let url = '/api/bumds?';
+      if (search) url += `search=${encodeURIComponent(search)}&`;
+      if (sectorId) url += `sector_id=${sectorId}&`;
+
+      try {
+        const res = await apiFetch(url);
+        allBumds = res.data || [];
+        renderTable();
+        updateKPIs();
+      } catch (err) {
+        showToast(err.message, 'error');
+        document.getElementById('tableContainer').innerHTML = renderEmpty('Gagal memuat data');
+      }
+    }
+
+    async function loadSectors() {
+      try {
+        const res = await apiFetch('/api/bumds/sectors');
+        allSectors = res.data || [];
+        renderSectorOptions();
+        updateKPIs();
+      } catch {
+        // silently fail
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await apiFetch('/api/auth/users');
+        allUsers = res.data || [];
+      } catch {
+        // silently fail
+      }
+    }
+
+    // ════════════════════════════════════════════
+    //  RENDER
+    // ════════════════════════════════════════════
+
+    function updateKPIs() {
+      document.getElementById('kpiTotal').textContent = allBumds.length;
+
+      const uniqueUsers = new Set();
+      allBumds.forEach(b => (b.users || []).forEach(u => uniqueUsers.add(u.user_id)));
+      document.getElementById('kpiUsers').textContent = uniqueUsers.size;
+
+      document.getElementById('kpiSectors').textContent = allSectors.length;
+    }
+
+    function renderSectorOptions() {
+      const filterSelect = document.getElementById('filterSector');
+      const formSelect = document.getElementById('inputSector');
+
+      // Keep first option
+      filterSelect.innerHTML = '<option value="">Semua Sektor</option>';
+      formSelect.innerHTML = '<option value="">Pilih sektor...</option>';
+
+      allSectors.forEach(s => {
+        filterSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+        formSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+      });
+    }
+
+    function renderTable() {
+      const container = document.getElementById('tableContainer');
+
+      if (allBumds.length === 0) {
+        container.innerHTML = renderEmpty('Belum ada data BUMD');
+        return;
+      }
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px">No</th>
+              <th>Nama BUMD</th>
+              <th>Sektor</th>
+              <th>User Terdaftar</th>
+              <th style="width:120px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      allBumds.forEach((bumd, i) => {
+        const users = bumd.users || [];
+        let chipsHtml = users.map(u => `
+              <div class="user-chip">
+                <span class="chip-avatar">${getInitials(u.name)}</span>
+                ${escapeHtml(u.name)}
+              </div>
+            `).join('');
+
+        const emptyCount = 3 - users.length;
+        for (let j = 0; j < emptyCount; j++) {
+          chipsHtml += `
+            <div class="user-chip empty-slot" onclick="openCreateUserModal(${bumd.id}, '${escapeHtml(bumd.name).replace(/'/g, "\\'")}')" title="Tambah Pengguna">
+              <span class="chip-avatar" style="background: transparent; border: 1px dashed var(--slate-400); color: var(--slate-500);">
+                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </span>
+              Tambah Pengguna
+            </div>
+          `;
+        }
+
+        html += `
+          <tr>
+            <td style="color:var(--slate-400);font-weight:600">${i + 1}</td>
+            <td><div class="bumd-name">${escapeHtml(bumd.name)}</div></td>
+            <td>
+              ${bumd.sector_name
+            ? `<span class="sector-badge">${escapeHtml(bumd.sector_name)}</span>`
+            : '<span class="no-users">-</span>'}
+            </td>
+            <td>
+              <div class="user-chips">${chipsHtml}</div>
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="action-btn" onclick="openEditModal(${bumd.id})" title="Edit">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Edit
+                </button>
+                <button class="action-btn delete" onclick="openDeleteModal(${bumd.id}, '${escapeHtml(bumd.name).replace(/'/g, "\\'")}')" title="Hapus">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <polyline points="3,6 5,6 21,6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                  Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function renderEmpty(msg) {
+      return `
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9,22 9,12 15,12 15,22" />
+            </svg>
+          </div>
+          <div class="empty-title">${msg}</div>
+          <div class="empty-desc">Klik tombol "Tambah BUMD" untuk menambahkan data baru</div>
+        </div>
+      `;
+    }
+
+    // ════════════════════════════════════════════
+    //  MODAL: CREATE / EDIT
+    // ════════════════════════════════════════════
+
+    function openModal() {
+      editingId = null;
+      selectedUsers = [];
+      document.getElementById('modalTitle').textContent = 'Tambah BUMD';
+      document.getElementById('inputName').value = '';
+      document.getElementById('inputSector').value = '';
+      document.getElementById('chipSearchInput').value = '';
+      renderSelectedChips();
+      updateChipHint();
+      document.getElementById('bumdModal').classList.add('show');
+      setTimeout(() => document.getElementById('inputName').focus(), 100);
+    }
+
+    function openEditModal(id) {
+      const bumd = allBumds.find(b => b.id === id);
+      if (!bumd) return;
+
+      editingId = id;
+      selectedUsers = (bumd.users || []).map(u => ({
+        id: u.user_id,
+        name: u.name,
+        username: u.username,
+        role: u.role,
+      }));
+
+      document.getElementById('modalTitle').textContent = 'Edit BUMD';
+      document.getElementById('inputName').value = bumd.name;
+      document.getElementById('inputSector').value = bumd.sector_id || '';
+      document.getElementById('chipSearchInput').value = '';
+      renderSelectedChips();
+      updateChipHint();
+      document.getElementById('bumdModal').classList.add('show');
+      setTimeout(() => document.getElementById('inputName').focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('bumdModal').classList.remove('show');
+      document.getElementById('chipDropdown').classList.remove('show');
+    }
+
+    async function saveBumd() {
+      const name = document.getElementById('inputName').value.trim();
+      const sectorId = document.getElementById('inputSector').value;
+      const userIds = selectedUsers.map(u => u.id);
+
+      if (!name) {
+        showToast('Nama BUMD wajib diisi', 'error');
+        document.getElementById('inputName').focus();
+        return;
+      }
+
+      const btn = document.getElementById('btnSave');
+      btn.disabled = true;
+
+      const payload = {
+        name,
+        sector_id: sectorId ? Number(sectorId) : null,
+        user_ids: userIds,
+      };
+
+      try {
+        if (editingId) {
+          await apiFetch(`/api/bumds/${editingId}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+          });
+          showToast('BUMD berhasil diubah', 'success');
+        } else {
+          await apiFetch('/api/bumds', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+          showToast('BUMD berhasil ditambahkan', 'success');
+        }
+
+        closeModal();
+        await loadBumds();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ════════════════════════════════════════════
+    //  MODAL: DELETE
+    // ════════════════════════════════════════════
+
+    function openDeleteModal(id, name) {
+      deletingId = id;
+      document.getElementById('deleteName').textContent = name;
+      document.getElementById('deleteModal').classList.add('show');
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').classList.remove('show');
+      deletingId = null;
+    }
+
+    async function confirmDelete() {
+      if (!deletingId) return;
+
+      const btn = document.getElementById('btnDelete');
+      btn.disabled = true;
+
+      try {
+        await apiFetch(`/api/bumds/${deletingId}`, { method: 'DELETE' });
+        showToast('BUMD berhasil dihapus', 'success');
+        closeDeleteModal();
+        await loadBumds();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ════════════════════════════════════════════
+    //  MODAL: CREATE PENGGUNA
+    // ════════════════════════════════════════════
+
+    function openCreateUserModal(bumdId, bumdName) {
+      creatingUserId = bumdId;
+      document.getElementById('createUserName').value = '';
+      document.getElementById('createUserUsername').value = '';
+      document.getElementById('createUserPassword').value = '';
+      document.getElementById('createUserRole').value = 'user';
+      document.getElementById('createUserModal').classList.add('show');
+      setTimeout(() => document.getElementById('createUserName').focus(), 100);
+    }
+
+    function closeCreateUserModal() {
+      document.getElementById('createUserModal').classList.remove('show');
+      creatingUserId = null;
+    }
+
+    async function submitCreateUser() {
+      const name = document.getElementById('createUserName').value.trim();
+      const username = document.getElementById('createUserUsername').value.trim();
+      const password = document.getElementById('createUserPassword').value;
+      const role = document.getElementById('createUserRole').value;
+
+      if (!name || !username || !password) {
+        showToast('Nama, username, dan password wajib diisi', 'error');
+        return;
+      }
+
+      if (password.length < 6) {
+        showToast('Password minimal 6 karakter', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btnCreateUser');
+      btn.disabled = true;
+
+      try {
+        await apiFetch('/api/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({
+            company_id: creatingUserId,
+            name,
+            username,
+            password,
+            role
+          })
+        });
+        showToast('Pengguna berhasil dibuat', 'success');
+        closeCreateUserModal();
+        await loadBumds();
+        await loadUsers(); // So the newly created user is available elsewhere if needed
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ════════════════════════════════════════════
+    //  MULTI CHIP SELECTOR
+    // ════════════════════════════════════════════
+
+    function focusChipInput() {
+      document.getElementById('chipSearchInput').focus();
+    }
+
+    function renderSelectedChips() {
+      const container = document.getElementById('selectedChips');
+      container.innerHTML = selectedUsers.map((u, i) => `
+        <div class="chip">
+          <span class="chip-avatar">${getInitials(u.name)}</span>
+          ${escapeHtml(u.name)}
+          <button class="chip-remove" onclick="event.stopPropagation(); removeUser(${i})" title="Hapus">&times;</button>
+        </div>
+      `).join('');
+    }
+
+    function removeUser(index) {
+      selectedUsers.splice(index, 1);
+      renderSelectedChips();
+      updateChipHint();
+      renderChipDropdown();
+    }
+
+    function addUser(userId) {
+      if (selectedUsers.length >= 3) return;
+
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+      if (selectedUsers.some(u => u.id === userId)) return;
+
+      selectedUsers.push({
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+      });
+
+      document.getElementById('chipSearchInput').value = '';
+      renderSelectedChips();
+      updateChipHint();
+      renderChipDropdown();
+      focusChipInput();
+    }
+
+    function updateChipHint() {
+      const hint = document.getElementById('chipHint');
+      const count = selectedUsers.length;
+      hint.textContent = `${count} / 3 user dipilih`;
+      hint.className = count >= 3 ? 'chip-limit-hint warn' : 'chip-limit-hint';
+    }
+
+    function renderChipDropdown() {
+      const dropdown = document.getElementById('chipDropdown');
+      const query = document.getElementById('chipSearchInput').value.trim().toLowerCase();
+      const selectedIds = new Set(selectedUsers.map(u => u.id));
+
+      const filtered = allUsers.filter(u => {
+        const matchQuery = !query ||
+          u.name.toLowerCase().includes(query) ||
+          u.username.toLowerCase().includes(query);
+        return matchQuery;
+      });
+
+      if (filtered.length === 0) {
+        dropdown.innerHTML = '<div style="padding:12px;text-align:center;color:var(--slate-400);font-size:12px">User tidak ditemukan</div>';
+        dropdown.classList.add('show');
+        return;
+      }
+
+      const atLimit = selectedUsers.length >= 3;
+
+      dropdown.innerHTML = filtered.map(u => {
+        const isSelected = selectedIds.has(u.id);
+        const isAlreadyRegistered = u.company_type === 'bumd' && u.company_id !== editingId;
+        const isAdmin = u.company_type === 'bpbumd';
+        const isUnavailable = !isSelected && (isAlreadyRegistered || isAdmin);
+        const isDisabled = (atLimit && !isSelected) || isUnavailable;
+
+        let roleText = `@${escapeHtml(u.username)} · ${u.role}`;
+        if (isAlreadyRegistered) {
+          roleText += ` · <span style="color:var(--rose)">Terdaftar di ${escapeHtml(u.company_name)}</span>`;
+        } else if (isAdmin) {
+          roleText += ` · <span style="color:var(--amber)">User Pusat</span>`;
+        }
+
+        return `
+          <div class="chip-dropdown-item ${isDisabled ? 'disabled' : ''}"
+               onclick="${isDisabled ? '' : (isSelected ? `removeUserById(${u.id})` : `addUser(${u.id})`)}">
+            <div class="dd-avatar">${getInitials(u.name)}</div>
+            <div class="dd-info">
+              <div class="dd-name">${escapeHtml(u.name)}</div>
+              <div class="dd-role">${roleText}</div>
+            </div>
+            ${isSelected ? `
+              <svg class="dd-check" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <polyline points="20,6 9,17 4,12" />
+              </svg>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      dropdown.classList.add('show');
+    }
+
+    function removeUserById(userId) {
+      const idx = selectedUsers.findIndex(u => u.id === userId);
+      if (idx !== -1) removeUser(idx);
+    }
+
+    // ════════════════════════════════════════════
+    //  TOAST
+    // ════════════════════════════════════════════
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const icon = type === 'success'
+        ? '<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>'
+        : '<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `${icon}<span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(40px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // ════════════════════════════════════════════
+    //  HELPERS
+    // ════════════════════════════════════════════
+
+    function getInitials(name) {
+      if (!name) return '?';
+      const parts = name.split(' ');
+      if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return String(str).replace(/[&<>"']/g, c => map[c]);
+    }
+  </script>
+</body>
+
+</html>

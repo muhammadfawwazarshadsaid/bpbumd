@@ -352,7 +352,7 @@
         try {
           const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
           if (res.ok) {
-            window.location.href = '/dashboard.html';
+            window.location.href = '/dashboard-aspek.html';
             return;
           }
         } catch { }
@@ -389,7 +389,7 @@
           // Cookie sudah di-set oleh server (httpOnly)
           // Simpan user display data saja (non-sensitive)
           BPBUMDAuth.setUser(result.data.user);
-          window.location.href = '/dashboard.html';
+          window.location.href = '/dashboard-aspek.html';
         } else {
           errorMsg.textContent = result.message || 'Login gagal. Silakan coba kembali.';
           errorMsg.style.display = 'block';

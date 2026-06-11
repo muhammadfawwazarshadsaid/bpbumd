@@ -206,7 +206,8 @@ async function getAllUsers() {
         u.name,
         u.role,
         u.company_id,
-        c.name AS company_name
+        c.name AS company_name,
+        c.company_type
       FROM users u
       LEFT JOIN companies c ON c.id = u.company_id
       WHERE u.is_active = TRUE

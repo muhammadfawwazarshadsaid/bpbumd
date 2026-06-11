@@ -12,6 +12,7 @@ const kpiRoutes = require("./src/routes/kpi.routes");
 const strategyRoutes = require("./src/routes/strategy.routes");
 const activityGroupRoutes = require("./src/routes/activitygroup.routes");
 const documentRoutes = require("./src/routes/document.routes");
+const bumdRoutes = require("./src/routes/bumd.routes");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -64,6 +65,7 @@ app.use("/api/kpis", kpiRoutes);
 app.use("/api/strategies", strategyRoutes);
 app.use("/api/activity-groups", activityGroupRoutes);
 app.use("/api/documents", documentRoutes);
+app.use("/api/bumds", bumdRoutes);
 
 // API fallback - supaya endpoint API yang salah nggak balikin HTML
 app.use("/api", (req, res) => {
