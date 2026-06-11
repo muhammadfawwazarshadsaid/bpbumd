@@ -1567,6 +1567,247 @@
         transform: rotate(360deg);
       }
     }
+
+    /* ── DOCUMENT PREVIEW MODAL ── */
+    .doc-preview-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .doc-preview-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .doc-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .doc-meta-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--slate-400);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .doc-meta-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-800);
+    }
+
+    .doc-preview-frame {
+      width: 100%;
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--slate-50);
+      min-height: 300px;
+      max-height: 50vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .doc-preview-frame iframe {
+      width: 100%;
+      height: 50vh;
+      border: none;
+    }
+
+    .doc-preview-frame img {
+      max-width: 100%;
+      max-height: 50vh;
+      object-fit: contain;
+    }
+
+    .doc-preview-nopreview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 40px 20px;
+      color: var(--slate-400);
+    }
+
+    .doc-preview-nopreview-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .doc-preview-nopreview-icon.pdf { background: #FEE2E2; color: #DC2626; }
+    .doc-preview-nopreview-icon.xlsx { background: #D1FAE5; color: #059669; }
+    .doc-preview-nopreview-icon.docx { background: #DBEAFE; color: #1D4ED8; }
+    .doc-preview-nopreview-icon.default { background: var(--slate-100); color: var(--slate-600); }
+
+    .doc-preview-nopreview-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--slate-500);
+    }
+
+    .doc-preview-nopreview-hint {
+      font-size: 11px;
+      color: var(--slate-400);
+    }
+
+    /* ── UPLOAD DROPZONE ── */
+    .upload-dropzone {
+      border: 2px dashed var(--slate-300);
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      background: var(--slate-50);
+      position: relative;
+    }
+
+    .upload-dropzone:hover,
+    .upload-dropzone.dragover {
+      border-color: var(--sky);
+      background: #F0F9FF;
+    }
+
+    .upload-dropzone-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #E0F2FE, #BAE6FD);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      color: var(--sky);
+    }
+
+    .upload-dropzone-text {
+      font-size: 13px;
+      color: var(--slate-600);
+      margin-bottom: 4px;
+    }
+
+    .upload-dropzone-hint {
+      font-size: 11px;
+      color: var(--slate-400);
+    }
+
+    .upload-dropzone-link {
+      color: var(--sky);
+      font-weight: 600;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .upload-file-preview {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      background: white;
+      margin-top: 12px;
+    }
+
+    .upload-file-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .upload-file-icon.pdf { background: #FEE2E2; color: #DC2626; }
+    .upload-file-icon.xlsx { background: #D1FAE5; color: #059669; }
+    .upload-file-icon.docx { background: #DBEAFE; color: #1D4ED8; }
+    .upload-file-icon.img { background: #EDE9FE; color: var(--violet); }
+    .upload-file-icon.default { background: var(--slate-100); color: var(--slate-600); }
+
+    .upload-file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .upload-file-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-900);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .upload-file-size {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 2px;
+    }
+
+    .upload-file-remove {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1.5px solid var(--slate-200);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--slate-400);
+      transition: all .18s;
+      flex-shrink: 0;
+    }
+
+    .upload-file-remove:hover {
+      border-color: var(--rose);
+      color: var(--rose);
+    }
+
+    /* ── PROGRESS BAR ── */
+    .upload-progress {
+      margin-top: 12px;
+      display: none;
+    }
+
+    .upload-progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--slate-100);
+      overflow: hidden;
+    }
+
+    .upload-progress-bar {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--sky), #38BDF8);
+      width: 0%;
+      transition: width .3s ease;
+    }
+
+    .upload-progress-text {
+      font-size: 11px;
+      color: var(--slate-500);
+      margin-top: 6px;
+      text-align: center;
+    }
   </style>
 </head>
 
@@ -1917,7 +2158,7 @@
                   <!-- Injected by JS -->
                 </tbody>
               </table>
-              <button class="btn-add">
+              <button class="btn-add" onclick="openUploadDocModal()">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="17,8 12,3 7,8" />
@@ -2171,7 +2412,146 @@
     </div>
   </div>
 
+  <!-- MODAL UPLOAD DOKUMEN -->
+  <div class="modal-overlay" id="modalUploadDoc">
+    <div class="modal-container" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title">Unggah Dokumen</div>
+        <button class="modal-close" onclick="closeUploadDocModal()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formUploadDoc" onsubmit="submitUploadDoc(event)">
+          <div class="form-group">
+            <label class="form-label">File Dokumen</label>
+            <input type="file" id="uploadFileInput" style="display:none"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv,.zip,.rar" />
+            <div class="upload-dropzone" id="uploadDropzone">
+              <div class="upload-dropzone-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17,8 12,3 7,8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+              <div class="upload-dropzone-text">
+                Seret file ke sini atau <span class="upload-dropzone-link">pilih file</span>
+              </div>
+              <div class="upload-dropzone-hint">PDF, DOC, XLS, PPT, JPG, PNG — maks. 25 MB</div>
+            </div>
+            <div id="uploadFilePreview" style="display:none;"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nama Dokumen</label>
+            <input type="text" class="form-input" id="uploadDocName" required
+              placeholder="Masukkan nama dokumen" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Deskripsi (Opsional)</label>
+            <textarea class="textarea-notes" id="uploadDocDesc" placeholder="Deskripsi singkat dokumen"></textarea>
+          </div>
+          <div class="upload-progress" id="uploadProgress">
+            <div class="upload-progress-bar-bg">
+              <div class="upload-progress-bar" id="uploadProgressBar"></div>
+            </div>
+            <div class="upload-progress-text" id="uploadProgressText">Mengunggah...</div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeUploadDocModal()">Batal</button>
+        <button class="btn btn-primary" type="submit" form="formUploadDoc" id="btnSubmitUpload">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17,8 12,3 7,8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          Unggah
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VERIFY/REJECT DOKUMEN -->
+  <div class="modal-overlay" id="modalVerifyDoc">
+    <div class="modal-container" style="max-width:450px;">
+      <div class="modal-header">
+        <div class="modal-title" id="verifyDocTitle">Verifikasi Dokumen</div>
+        <button class="modal-close" onclick="closeVerifyDocModal()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-row">
+          <div class="detail-label">Dokumen</div>
+          <div class="detail-value" id="verifyDocName"></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Diunggah Oleh</div>
+          <div class="detail-value" id="verifyDocUploader"></div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Status</div>
+          <div class="detail-value" id="verifyDocStatus"></div>
+        </div>
+
+        <div id="verifyDecisionSection" style="margin-top:20px; padding-top:20px; border-top:1px dashed var(--slate-200);">
+          <div class="form-group">
+            <label class="form-label">Keputusan Verifikasi</label>
+            <div style="display:flex; gap:10px;">
+              <div id="docChipVerify" class="verif-chip chip-outline-setuju" onclick="selectDocVerif('terverifikasi')">Verifikasi</div>
+              <div id="docChipReject" class="verif-chip chip-outline-tolak" onclick="selectDocVerif('ditolak')">Tolak</div>
+            </div>
+            <input type="hidden" id="docVerifDecision" value="">
+          </div>
+          <div class="form-group" id="docRejectReasonGroup" style="margin-bottom:0; display:none;">
+            <label class="form-label">Alasan Penolakan</label>
+            <textarea class="textarea-notes" id="docRejectReason" placeholder="Tuliskan alasan penolakan..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeVerifyDocModal()">Batal</button>
+        <button class="btn btn-primary" id="btnSubmitVerifyDoc" onclick="submitDocVerification()">Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DELETE DOKUMEN -->
+  <div class="modal-overlay" id="modalDeleteDoc">
+    <div class="modal-container" style="max-width: 400px;">
+      <div class="modal-header">
+        <div class="modal-title">Hapus Dokumen</div>
+        <button class="modal-close" onclick="closeDeleteDocModal()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 14px; color: var(--slate-700); line-height: 1.5;">Apakah Anda yakin ingin menghapus dokumen
+          <strong id="deleteDocName"></strong>? Tindakan ini tidak dapat dibatalkan.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeDeleteDocModal()">Batal</button>
+        <button class="btn btn-primary" style="background: var(--rose); border-color: var(--rose);"
+          id="btnConfirmDeleteDoc" onclick="confirmDeleteDoc()">
+          Hapus
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="/auth.js"></script>
+
   <script>
     // ── STATE ────────────────────────────────────────────────────
     let currentActionPlanId = null;
@@ -2574,6 +2954,13 @@
             ? '<span class="pending-badge" style="background:#FEE2E2;color:#DC2626;">Ditolak</span>'
             : '<span class="pending-badge">Perlu Verifikasi</span>';
 
+        const verifyBtn = doc.status === 'diunggah' ? `
+              <button class="doc-action-btn" title="Verifikasi" onclick="openVerifyDocModal(${doc.document_id})">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </button>` : '';
+
         return `
         <tr>
           <td>
@@ -2588,24 +2975,20 @@
           <td>${statusBadge}</td>
           <td>
             <div class="doc-actions">
-              <button class="doc-action-btn" title="Lihat">
+              <button class="doc-action-btn" title="Lihat" onclick="viewDocument(${doc.document_id})">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                   <circle cx="12" cy="12" r="3"/>
                 </svg>
               </button>
-              <button class="doc-action-btn" title="Unduh">
+              <button class="doc-action-btn" title="Unduh" onclick="downloadDocument(${doc.document_id})">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
               </button>
-              <button class="doc-action-btn" title="Verifikasi">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-              </button>
-              <button class="doc-action-btn danger" title="Hapus">
+              ${verifyBtn}
+              <button class="doc-action-btn danger" title="Hapus" onclick="openDeleteDocModal(${doc.document_id})">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                   <path d="M10 11v6"/><path d="M14 11v6"/>
@@ -2616,6 +2999,7 @@
         </tr>`;
       }).join('');
     }
+
 
     // ── KPI MODAL & CRUD ────────────────────────────────────────
     function openKPIFormModal(id = null) {
@@ -3096,6 +3480,364 @@
         await loadActionPlanDetail(currentActionPlanId);
       } catch (err) {
         alert("Gagal menolak: " + err.message);
+      }
+    }
+
+    // ── DOCUMENT UPLOAD ──────────────────────────────────────────
+    let selectedUploadFile = null;
+
+    function openUploadDocModal() {
+      selectedUploadFile = null;
+      document.getElementById('formUploadDoc').reset();
+      document.getElementById('uploadFilePreview').style.display = 'none';
+      document.getElementById('uploadFilePreview').innerHTML = '';
+      document.getElementById('uploadDropzone').style.display = '';
+      document.getElementById('uploadProgress').style.display = 'none';
+      document.getElementById('uploadProgressBar').style.width = '0%';
+      document.getElementById('modalUploadDoc').classList.add('active');
+
+      // Setup drag-and-drop
+      setupDropzone();
+    }
+
+    function closeUploadDocModal() {
+      document.getElementById('modalUploadDoc').classList.remove('active');
+      selectedUploadFile = null;
+    }
+
+    function setupDropzone() {
+      const dropzone = document.getElementById('uploadDropzone');
+      const fileInput = document.getElementById('uploadFileInput');
+
+      // Click to open file picker
+      dropzone.onclick = () => fileInput.click();
+
+      // File input change
+      fileInput.onchange = (e) => {
+        if (e.target.files.length > 0) {
+          handleFileSelect(e.target.files[0]);
+        }
+      };
+
+      // Drag events
+      dropzone.ondragover = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('dragover');
+      };
+
+      dropzone.ondragleave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+      };
+
+      dropzone.ondrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+          handleFileSelect(e.dataTransfer.files[0]);
+        }
+      };
+    }
+
+    function handleFileSelect(file) {
+      // Validate size
+      if (file.size > 25 * 1024 * 1024) {
+        alert('Ukuran file maksimal 25 MB');
+        return;
+      }
+
+      selectedUploadFile = file;
+
+      // Auto-fill document name if empty
+      const nameInput = document.getElementById('uploadDocName');
+      if (!nameInput.value.trim()) {
+        const nameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+        nameInput.value = nameWithoutExt;
+      }
+
+      // Show preview
+      const ext = getFileExtension(file.name);
+      let iconCSS = 'default';
+      if (ext === 'pdf') iconCSS = 'pdf';
+      else if (['xls', 'xlsx'].includes(ext)) iconCSS = 'xlsx';
+      else if (['doc', 'docx'].includes(ext)) iconCSS = 'docx';
+      else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) iconCSS = 'img';
+
+      const sizeStr = file.size < 1024
+        ? `${file.size} B`
+        : file.size < 1024 * 1024
+          ? `${(file.size / 1024).toFixed(1)} KB`
+          : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+
+      const preview = document.getElementById('uploadFilePreview');
+      preview.innerHTML = `
+        <div class="upload-file-preview">
+          <div class="upload-file-icon ${iconCSS}">${ext.toUpperCase() || 'FILE'}</div>
+          <div class="upload-file-info">
+            <div class="upload-file-name">${escapeHtml(file.name)}</div>
+            <div class="upload-file-size">${sizeStr}</div>
+          </div>
+          <button type="button" class="upload-file-remove" onclick="removeUploadFile()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      `;
+      preview.style.display = 'block';
+      document.getElementById('uploadDropzone').style.display = 'none';
+    }
+
+    function removeUploadFile() {
+      selectedUploadFile = null;
+      document.getElementById('uploadFilePreview').style.display = 'none';
+      document.getElementById('uploadFilePreview').innerHTML = '';
+      document.getElementById('uploadDropzone').style.display = '';
+      document.getElementById('uploadFileInput').value = '';
+    }
+
+    async function submitUploadDoc(e) {
+      e.preventDefault();
+
+      if (!selectedUploadFile) {
+        alert('Pilih file terlebih dahulu.');
+        return;
+      }
+
+      const docName = document.getElementById('uploadDocName').value.trim();
+      if (!docName) {
+        alert('Nama dokumen wajib diisi.');
+        return;
+      }
+
+      const docDesc = document.getElementById('uploadDocDesc').value.trim();
+
+      const btn = document.getElementById('btnSubmitUpload');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<svg width="12" height="12" style="animation:spin .6s linear infinite" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4m-7.07-2.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83"/></svg> Mengunggah...';
+      btn.disabled = true;
+
+      // Show progress
+      const progressDiv = document.getElementById('uploadProgress');
+      const progressBar = document.getElementById('uploadProgressBar');
+      const progressText = document.getElementById('uploadProgressText');
+      progressDiv.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressText.textContent = 'Mengunggah...';
+
+      const formData = new FormData();
+      formData.append('file', selectedUploadFile);
+      formData.append('action_plan_id', currentActionPlanId);
+      formData.append('name', docName);
+      if (docDesc) formData.append('description', docDesc);
+
+      try {
+        const result = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', '/api/documents');
+          xhr.withCredentials = true; // Send httpOnly cookie
+
+          xhr.upload.onprogress = (evt) => {
+            if (evt.lengthComputable) {
+              const pct = Math.round((evt.loaded / evt.total) * 100);
+              progressBar.style.width = pct + '%';
+              progressText.textContent = `Mengunggah... ${pct}%`;
+            }
+          };
+
+          xhr.onload = () => {
+            try {
+              const json = JSON.parse(xhr.responseText);
+              if (xhr.status >= 200 && xhr.status < 300 && json.success) {
+                resolve(json.data);
+              } else {
+                reject(new Error(json.message || 'Gagal mengunggah'));
+              }
+            } catch (parseErr) {
+              reject(new Error('Gagal memproses respons server'));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error('Koneksi gagal'));
+          xhr.send(formData);
+        });
+
+        progressBar.style.width = '100%';
+        progressText.textContent = 'Berhasil diunggah!';
+
+        setTimeout(async () => {
+          closeUploadDocModal();
+          await loadActionPlanDetail(currentActionPlanId);
+        }, 600);
+
+      } catch (err) {
+        alert('Gagal mengunggah dokumen: ' + err.message);
+        progressDiv.style.display = 'none';
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // ── DOCUMENT VIEW & DOWNLOAD ─────────────────────────────────
+    function viewDocument(docId) {
+      // Open the file in a new tab via download endpoint
+      const doc = currentData.dokumen.find(d => d.document_id === docId);
+      if (doc && doc.file_path) {
+        window.open(doc.file_path, '_blank');
+      } else {
+        window.open(`/api/documents/${docId}/download`, '_blank');
+      }
+    }
+
+    function downloadDocument(docId) {
+      // Trigger download via hidden link
+      const link = document.createElement('a');
+      link.href = `/api/documents/${docId}/download`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // ── DOCUMENT VERIFY / REJECT ────────────────────────────────
+    let currentVerifyDocId = null;
+
+    function openVerifyDocModal(docId) {
+      currentVerifyDocId = docId;
+      const doc = currentData.dokumen.find(d => d.document_id === docId);
+      if (!doc) return;
+
+      document.getElementById('verifyDocName').textContent = doc.document_name || doc.original_file_name || 'Dokumen';
+      document.getElementById('verifyDocUploader').textContent = doc.uploaded_by ? doc.uploaded_by.name : '–';
+
+      const statusBadge = doc.status === 'terverifikasi'
+        ? '<span class="verified-badge">Terverifikasi</span>'
+        : doc.status === 'ditolak'
+          ? '<span class="pending-badge" style="background:#FEE2E2;color:#DC2626;">Ditolak</span>'
+          : '<span class="pending-badge">Perlu Verifikasi</span>';
+      document.getElementById('verifyDocStatus').innerHTML = statusBadge;
+
+      // Reset chips
+      document.getElementById('docVerifDecision').value = '';
+      document.getElementById('docChipVerify').classList.remove('selected-setuju');
+      document.getElementById('docChipReject').classList.remove('selected-tolak');
+      document.getElementById('docRejectReason').value = '';
+      document.getElementById('docRejectReasonGroup').style.display = 'none';
+
+      // Show/hide verify section based on status
+      const decisionSection = document.getElementById('verifyDecisionSection');
+      if (doc.status === 'diunggah') {
+        decisionSection.style.display = '';
+        document.getElementById('btnSubmitVerifyDoc').style.display = '';
+      } else {
+        decisionSection.style.display = 'none';
+        document.getElementById('btnSubmitVerifyDoc').style.display = 'none';
+      }
+
+      document.getElementById('modalVerifyDoc').classList.add('active');
+    }
+
+    function closeVerifyDocModal() {
+      document.getElementById('modalVerifyDoc').classList.remove('active');
+      currentVerifyDocId = null;
+    }
+
+    function selectDocVerif(decision) {
+      document.getElementById('docVerifDecision').value = decision;
+      const chipVerify = document.getElementById('docChipVerify');
+      const chipReject = document.getElementById('docChipReject');
+      const reasonGroup = document.getElementById('docRejectReasonGroup');
+
+      chipVerify.classList.remove('selected-setuju');
+      chipReject.classList.remove('selected-tolak');
+
+      if (decision === 'terverifikasi') {
+        chipVerify.classList.add('selected-setuju');
+        reasonGroup.style.display = 'none';
+      }
+      if (decision === 'ditolak') {
+        chipReject.classList.add('selected-tolak');
+        reasonGroup.style.display = '';
+      }
+    }
+
+    async function submitDocVerification() {
+      if (!currentVerifyDocId) return;
+
+      const decision = document.getElementById('docVerifDecision').value;
+      if (!decision) {
+        alert('Pilih keputusan verifikasi terlebih dahulu.');
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmitVerifyDoc');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<svg width="12" height="12" style="animation:spin .6s linear infinite" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4m-7.07-2.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83"/></svg> Memproses...';
+      btn.disabled = true;
+
+      try {
+        if (decision === 'terverifikasi') {
+          await apiFetch(`/api/documents/${currentVerifyDocId}/verify`, { method: 'PUT' });
+        } else {
+          const reason = document.getElementById('docRejectReason').value.trim();
+          if (!reason) {
+            alert('Alasan penolakan wajib diisi.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+          }
+          await apiFetch(`/api/documents/${currentVerifyDocId}/reject`, {
+            method: 'PUT',
+            body: JSON.stringify({ reason })
+          });
+        }
+
+        closeVerifyDocModal();
+        await loadActionPlanDetail(currentActionPlanId);
+      } catch (err) {
+        alert('Gagal: ' + err.message);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // ── DOCUMENT DELETE ──────────────────────────────────────────
+    let docToDelete = null;
+
+    function openDeleteDocModal(docId) {
+      docToDelete = docId;
+      const doc = currentData.dokumen.find(d => d.document_id === docId);
+      document.getElementById('deleteDocName').textContent = doc ? (doc.document_name || doc.original_file_name || 'Dokumen') : 'dokumen ini';
+      document.getElementById('modalDeleteDoc').classList.add('active');
+    }
+
+    function closeDeleteDocModal() {
+      document.getElementById('modalDeleteDoc').classList.remove('active');
+      docToDelete = null;
+    }
+
+    async function confirmDeleteDoc() {
+      if (!docToDelete) return;
+
+      const btn = document.getElementById('btnConfirmDeleteDoc');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<svg width="12" height="12" style="animation:spin .6s linear infinite" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4m-7.07-2.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83"/></svg> Menghapus...';
+      btn.disabled = true;
+
+      try {
+        await apiFetch(`/api/documents/${docToDelete}`, { method: 'DELETE' });
+        closeDeleteDocModal();
+        await loadActionPlanDetail(currentActionPlanId);
+      } catch (err) {
+        alert('Gagal menghapus dokumen: ' + err.message);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
       }
     }
   </script>
