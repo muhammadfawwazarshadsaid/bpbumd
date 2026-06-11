@@ -1,7 +1,7 @@
 "use strict";
 
 const { pool } = require("../config/database");
-const { syncProgressHierarchy } = require("../utils/helpers");
+const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
 
 function isHqUser(user) {
   return user.company_type === "bpbumd";
@@ -36,7 +36,11 @@ async function getActionPlanDetail(user, actionPlanId) {
 
   try {
     // ── 1. Validate action plan exists and user has access ──
-    const actionPlan = await getActionPlan(client, actionPlanId, companyScopeId);
+    const actionPlan = await getActionPlan(
+      client,
+      actionPlanId,
+      companyScopeId,
+    );
 
     if (!actionPlan) {
       const error = new Error("Rencana aksi tidak ditemukan");
@@ -194,10 +198,10 @@ async function getActionPlan(client, actionPlanId, companyScopeId) {
 
     pic_utama: row.pic_user_id
       ? {
-        user_id: Number(row.pic_user_id),
-        name: row.pic_name,
-        role: row.pic_role,
-      }
+          user_id: Number(row.pic_user_id),
+          name: row.pic_name,
+          role: row.pic_role,
+        }
       : null,
   };
 }
@@ -246,7 +250,7 @@ async function getProgressBreakdown(client, actionPlanId) {
   const row = result.rows[0] || {};
   const total = toNumber(row.total);
 
-  const pct = (val) => total > 0 ? Math.round((val / total) * 100) : 0;
+  const pct = (val) => (total > 0 ? Math.round((val / total) * 100) : 0);
 
   const selesai = toNumber(row.selesai);
   const pengajuan = toNumber(row.pengajuan);
@@ -455,15 +459,15 @@ async function getSubRencanaAksi(client, actionPlanId) {
     created_at: row.created_at,
     pic: row.pic_user_id
       ? {
-        user_id: Number(row.pic_user_id),
-        name: row.pic_name,
-      }
+          user_id: Number(row.pic_user_id),
+          name: row.pic_name,
+        }
       : null,
     submitted_by: row.submitted_by_user_id
       ? {
-        user_id: Number(row.submitted_by_user_id),
-        name: row.submitted_by_name,
-      }
+          user_id: Number(row.submitted_by_user_id),
+          name: row.submitted_by_name,
+        }
       : null,
     approvals: approvalMap.get(String(row.sub_action_plan_id)) || [],
   }));
@@ -522,15 +526,15 @@ async function getDokumen(client, actionPlanId) {
     verified_at: row.verified_at,
     uploaded_by: row.uploaded_by_user_id
       ? {
-        user_id: Number(row.uploaded_by_user_id),
-        name: row.uploaded_by_name,
-      }
+          user_id: Number(row.uploaded_by_user_id),
+          name: row.uploaded_by_name,
+        }
       : null,
     verified_by: row.verified_by_user_id
       ? {
-        user_id: Number(row.verified_by_user_id),
-        name: row.verified_by_name,
-      }
+          user_id: Number(row.verified_by_user_id),
+          name: row.verified_by_name,
+        }
       : null,
   }));
 }
@@ -713,9 +717,17 @@ async function createActionPlan(user, payload) {
  *  - is_blocked
  */
 async function updateActionPlan(user, actionPlanId, payload) {
-  const ALLOWED_STATUS = ["belum mulai", "dalam progres", "selesai", "terlambat"];
+  const ALLOWED_STATUS = [
+    "belum mulai",
+    "dalam progres",
+    "selesai",
+    "terlambat",
+  ];
 
-  if (payload.status !== undefined && !ALLOWED_STATUS.includes(payload.status)) {
+  if (
+    payload.status !== undefined &&
+    !ALLOWED_STATUS.includes(payload.status)
+  ) {
     const error = new Error(
       `Status tidak valid. Gunakan: ${ALLOWED_STATUS.join(", ")}`,
     );
@@ -753,10 +765,19 @@ async function updateActionPlan(user, actionPlanId, payload) {
 
     // ── Build SET dynamically ──
     const FIELDS = [
-      "name", "code_order", "pic_user_id", "status", "weight",
-      "progress_percentage", "target_percentage",
-      "start_date", "end_date", "target_end_date",
-      "output", "indicator", "is_blocked",
+      "name",
+      "code_order",
+      "pic_user_id",
+      "status",
+      "weight",
+      "progress_percentage",
+      "target_percentage",
+      "start_date",
+      "end_date",
+      "target_end_date",
+      "output",
+      "indicator",
+      "is_blocked",
     ];
 
     const sets = [];
@@ -800,8 +821,7 @@ async function updateActionPlan(user, actionPlanId, payload) {
 
     // ── Riwayat Aktivitas ──
     if (changes.length > 0) {
-      const description =
-        `Memperbarui rencana aksi "${old.name}": ${changes.join("; ")}`;
+      const description = `Memperbarui rencana aksi "${old.name}": ${changes.join("; ")}`;
 
       await logHistory(client, actionPlanId, user.id, description);
     }
@@ -910,4 +930,3 @@ module.exports = {
   updateActionPlan,
   deleteActionPlan,
 };
-

@@ -1,7 +1,7 @@
 "use strict";
 
 const { pool } = require("../config/database");
-const { syncProgressHierarchy } = require("../utils/helpers");
+const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
 
 function toNumber(value) {
   return Number(value || 0);
@@ -114,7 +114,7 @@ async function createSubActionPlan(user, payload) {
         INSERT INTO history_activities (action_plan_id, user_id, description)
         VALUES ($1, $2, $3)
       `,
-      [action_plan_id, user.id, `Mengajukan sub rencana aksi baru: ${name}`]
+      [action_plan_id, user.id, `Mengajukan sub rencana aksi baru: ${name}`],
     );
 
     await syncProgressHierarchy(client, action_plan_id);
@@ -249,16 +249,17 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
     }
 
     // ── Tambahkan pencatatan riwayat aktivitas ──
-    const actionDesc = sap.status === "ditolak"
-      ? `Mengajukan ulang sub rencana aksi: ${sap.name}`
-      : `Memperbarui sub rencana aksi: ${sap.name}`;
+    const actionDesc =
+      sap.status === "ditolak"
+        ? `Mengajukan ulang sub rencana aksi: ${sap.name}`
+        : `Memperbarui sub rencana aksi: ${sap.name}`;
 
     await client.query(
       `
         INSERT INTO history_activities (action_plan_id, user_id, description)
         VALUES ($1, $2, $3)
       `,
-      [sap.action_plan_id, user.id, actionDesc]
+      [sap.action_plan_id, user.id, actionDesc],
     );
 
     await syncProgressHierarchy(client, sap.action_plan_id);
@@ -329,7 +330,7 @@ async function deleteSubActionPlan(user, subActionPlanId) {
         INSERT INTO history_activities (action_plan_id, user_id, description)
         VALUES ($1, $2, $3)
       `,
-      [sap.action_plan_id, user.id, `Menghapus sub rencana aksi: ${sap.name}`]
+      [sap.action_plan_id, user.id, `Menghapus sub rencana aksi: ${sap.name}`],
     );
 
     await syncProgressHierarchy(client, sap.action_plan_id);
@@ -469,7 +470,11 @@ async function approveSubActionPlan(user, subActionPlanId, payload) {
         INSERT INTO history_activities (action_plan_id, user_id, description)
         VALUES ($1, $2, $3)
       `,
-      [sap.action_plan_id, user.id, `Menyetujui (Approver ${expectedOrder}) sub rencana aksi: ${sap.name}`]
+      [
+        sap.action_plan_id,
+        user.id,
+        `Menyetujui (Approver ${expectedOrder}) sub rencana aksi: ${sap.name}`,
+      ],
     );
 
     await syncProgressHierarchy(client, sap.action_plan_id);
@@ -611,7 +616,11 @@ async function rejectSubActionPlan(user, subActionPlanId, payload) {
         INSERT INTO history_activities (action_plan_id, user_id, description)
         VALUES ($1, $2, $3)
       `,
-      [sap.action_plan_id, user.id, `Menolak sub rencana aksi: ${sap.name}. Alasan: ${notes}`]
+      [
+        sap.action_plan_id,
+        user.id,
+        `Menolak sub rencana aksi: ${sap.name}. Alasan: ${notes}`,
+      ],
     );
 
     await syncProgressHierarchy(client, sap.action_plan_id);
