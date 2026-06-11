@@ -391,7 +391,7 @@
     .kpi-label {
       font-size: 11px;
       font-weight: 700;
-      text-transform: uppercase;
+      text-transform: capitalize;
       letter-spacing: 0.5px;
       color: var(--slate-400);
       margin-bottom: 12px;
@@ -494,7 +494,6 @@
       border-radius: 14px;
       border: 1px solid var(--slate-200);
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-      overflow: hidden;
       margin-bottom: 28px;
     }
 
@@ -617,7 +616,7 @@
       padding: 12px 16px;
       font-size: 11px;
       font-weight: 700;
-      text-transform: uppercase;
+      text-transform: capitalize;
       letter-spacing: 0.5px;
       color: var(--slate-400);
       background: var(--slate-50);
@@ -772,6 +771,164 @@
       font-weight: 500;
     }
 
+    /* MODALS */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 32, 68, 0.55);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-container {
+      background: white;
+      border-radius: 12px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      margin: auto;
+      max-width: 480px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--slate-200);
+    }
+
+    .modal-title {
+      font-weight: 700;
+      color: var(--slate-800);
+      font-size: 16px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--slate-400);
+      font-size: 18px;
+    }
+
+    .modal-body {
+      padding: 20px 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--slate-200);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-700);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--slate-900);
+      background: white;
+    }
+
+    .btn-primary {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 8px;
+      background: var(--navy);
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      padding: 9px 18px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      background: white;
+      color: var(--slate-600);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* DROPDOWNS */
+    .dropdown-more {
+      position: relative;
+    }
+
+    .action-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--slate-200);
+      background: white;
+      color: var(--slate-500);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 4px;
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      min-width: 160px;
+      z-index: 100;
+      display: none;
+      padding: 4px 0;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--slate-700);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dropdown-item:hover {
+      background: var(--slate-50);
+    }
+
+    .dropdown-item.delete {
+      color: var(--rose);
+    }
+
     /* Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
@@ -847,6 +1004,7 @@
       <a class="nav-tab active" href="/dashboard-aspek.html">Dashboard</a>
       <a class="nav-tab" href="/aspek.html">Aspek</a>
       <a class="nav-tab" href="/rencana-aksi.html">Rencana Aksi</a>
+      <a class="nav-tab" href="/bumd.html">BUMD</a>
     </div>
 
     <div class="nav-right">
@@ -971,7 +1129,18 @@
       </div>
 
       <!-- PROGRESS PER ASPEK -->
-      <div class="section-title">PROGRESS PER ASPEK</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div class="section-title" style="margin-bottom:0;">PROGRESS PER ASPEK</div>
+        <button class="btn-primary"
+          style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px;"
+          onclick="openAddAspectModal()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Tambah Aspek
+        </button>
+      </div>
 
       <div class="company-selector" id="companySelector">
         <div class="company-tabs">
@@ -1031,6 +1200,64 @@
 
     </main>
   </div><!-- /body-wrap -->
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="modalAddAspect">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title" id="aspectModalTitle">Tambah Aspek</div>
+        <button class="modal-close" onclick="closeAddAspectModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="formAddAspect" onsubmit="submitAddAspect(event)">
+          <input type="hidden" id="editAspectId" />
+          <div class="form-group">
+            <label class="form-label">Nama Aspek *</label>
+            <input type="text" id="addAspectName" required class="form-input" placeholder="Masukkan nama aspek" />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Target Persentase (%)</label>
+              <input type="number" id="addAspectTarget" min="0" max="100" class="form-input" placeholder="0-100" />
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Bobot (%)</label>
+              <input type="number" id="addAspectWeight" min="0" max="100" class="form-input" placeholder="Opsional" />
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeAddAspectModal()" type="button">Batal</button>
+        <button class="btn-primary" type="submit" form="formAddAspect">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div class="modal-overlay" id="modalDeleteConfirm">
+    <div class="modal-container" style="max-width: 400px; text-align: center;">
+      <div class="modal-body" style="padding: 32px 24px 24px;">
+        <div
+          style="width: 56px; height: 56px; border-radius: 50%; background: #FEE2E2; color: var(--rose); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--slate-900); margin-bottom: 8px;">Konfirmasi Hapus
+        </h3>
+        <p id="deleteConfirmText" style="font-size: 14px; color: var(--slate-600); line-height: 1.5;">Apakah Anda yakin
+          ingin menghapus Aspek ini?</p>
+      </div>
+      <div class="modal-footer"
+        style="justify-content: center; border-top: none; padding-top: 0; padding-bottom: 24px; gap: 12px;">
+        <button class="btn-secondary" onclick="closeDeleteModal()" style="min-width: 120px;">Batal</button>
+        <button class="btn-primary" id="btnConfirmDelete" onclick="executeDeleteAspect()"
+          style="background: var(--rose); min-width: 120px;">Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
 
   <script src="/auth.js"></script>
   <script>
@@ -1171,8 +1398,8 @@
       table.style.display = '';
 
       tbody.innerHTML = aspects.map((asp, i) => {
-        const pct = Math.round(asp.progress_percentage);
-        const target = Math.round(asp.target_percentage);
+        const pct = Math.round(asp.progress_percentage || 0);
+        const target = Math.round(asp.target_percentage || 0);
         const barColor = getBarColor(pct, target);
 
         return `
@@ -1191,16 +1418,154 @@
                 <div class="aspect-prog-target">Target: ${target}%</div>
               </div>
             </td>
-            <td class="td-num">${asp.total}</td>
-            <td class="td-num">${asp.selesai}</td>
-            <td class="td-num">${asp.dalam_progres}</td>
-            <td class="td-num">${asp.terlambat}</td>
-            <td class="td-num">${asp.belum_mulai}</td>
+            <td class="td-num">${asp.total || 0}</td>
+            <td class="td-num">${asp.selesai || 0}</td>
+            <td class="td-num">${asp.dalam_progres || 0}</td>
+            <td class="td-num">${asp.terlambat || 0}</td>
+            <td class="td-num">${asp.belum_mulai || 0}</td>
             <td>
-              <button class="btn-lihat-detail" onclick="goToAspekDetail(${asp.aspect_id}, '${encodeURIComponent(asp.aspect_name)}')">Lihat Detail</button>
+              <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+                ${renderDropdown(asp.aspect_id)}
+                <button class="btn-lihat-detail" onclick="goToAspekDetail(${asp.aspect_id}, '${encodeURIComponent(asp.aspect_name)}')">Lihat Detail</button>
+              </div>
             </td>
           </tr>`;
       }).join('');
+    }
+
+    // ── DROPDOWN & CRUD ACTIONS ─────────────────────────────
+    function renderDropdown(id) {
+      return `
+        <div class="dropdown-more">
+          <button class="action-icon-btn" onclick="event.stopPropagation();toggleDropdown(this)" title="Lainnya">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg>
+          </button>
+          <div class="dropdown-menu">
+            <div class="dropdown-item" onclick="event.stopPropagation();openEditAspect(${id})">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Ubah
+            </div>
+            <div class="dropdown-item delete" onclick="event.stopPropagation();openDeleteAspect(${id})">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Hapus
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleDropdown(btn) {
+      const menu = btn.nextElementSibling;
+      const isShowing = menu.classList.contains('show');
+
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+        m.classList.remove('show');
+      });
+
+      if (!isShowing) {
+        menu.classList.add('show');
+      }
+    }
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.dropdown-more')) {
+        document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+      }
+    });
+
+    function openAddAspectModal() {
+      document.getElementById('editAspectId').value = '';
+      document.getElementById('aspectModalTitle').textContent = 'Tambah Aspek';
+      document.getElementById('formAddAspect').reset();
+      document.getElementById('modalAddAspect').classList.add('open');
+    }
+
+    function closeAddAspectModal() {
+      document.getElementById('modalAddAspect').classList.remove('open');
+    }
+
+    async function submitAddAspect(e) {
+      e.preventDefault();
+      const editId = document.getElementById('editAspectId').value;
+      const payload = {
+        name: document.getElementById('addAspectName').value,
+        target_percentage: Number(document.getElementById('addAspectTarget').value) || 0,
+        weight: Number(document.getElementById('addAspectWeight').value) || 0
+      };
+
+      if (!editId && selectedCompanyId) {
+        payload.company_id = selectedCompanyId;
+      }
+
+      try {
+        const url = editId ? `/api/aspects/${editId}` : '/api/aspects';
+        const method = editId ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+        if (!res.success) throw new Error(res.message);
+
+        closeAddAspectModal();
+        await loadDashboardData();
+      } catch (err) {
+        alert('Gagal menyimpan aspek: ' + err.message);
+      }
+    }
+
+    function openEditAspect(id) {
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+
+      const company = dashboardData.companies.find(c => c.company_id === selectedCompanyId);
+      if (!company) return;
+
+      const aspect = company.progress_per_aspect.find(a => a.aspect_id === id);
+      if (!aspect) return;
+
+      document.getElementById('editAspectId').value = id;
+      document.getElementById('aspectModalTitle').textContent = 'Ubah Aspek';
+      document.getElementById('addAspectName').value = aspect.aspect_name;
+      document.getElementById('addAspectTarget').value = Math.round(aspect.target_percentage || 0);
+      document.getElementById('addAspectWeight').value = Math.round(aspect.weight || 0);
+
+      document.getElementById('modalAddAspect').classList.add('open');
+    }
+
+    let aspectToDelete = null;
+
+    function openDeleteAspect(id) {
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+      aspectToDelete = id;
+      document.getElementById('modalDeleteConfirm').classList.add('open');
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('modalDeleteConfirm').classList.remove('open');
+      aspectToDelete = null;
+    }
+
+    async function executeDeleteAspect() {
+      if (!aspectToDelete) return;
+      const btn = document.getElementById('btnConfirmDelete');
+      btn.disabled = true;
+      btn.textContent = 'Menghapus...';
+
+      try {
+        const response = await fetch(`/api/aspects/${aspectToDelete}`, {
+          method: 'DELETE'
+        });
+        const res = await response.json();
+        if (!res.success) throw new Error(res.message);
+
+        closeDeleteModal();
+        await loadDashboardData();
+      } catch (err) {
+        alert('Gagal menghapus aspek: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Ya, Hapus';
+      }
     }
 
     // ── HELPERS ────────────────────────────────────────────

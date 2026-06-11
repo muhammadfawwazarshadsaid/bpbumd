@@ -339,7 +339,7 @@
 
     .bc-sub {
       font-size: 10px;
-      text-transform: uppercase;
+      text-transform: capitalize;
       letter-spacing: 0.8px;
       font-weight: 700;
       color: var(--slate-400);
@@ -356,19 +356,63 @@
 
     .sum-card {
       background: white;
-      border-radius: 14px;
-      padding: 18px 20px;
+      border-radius: 16px;
+      padding: 22px 20px;
       border: 1px solid var(--slate-200);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sum-card-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .sum-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .sum-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .sum-card.blue::before {
+      background: linear-gradient(90deg, #0EA5E9, #38BDF8);
+    }
+
+    .sum-card.green::before {
+      background: linear-gradient(90deg, #10B981, #34D399);
+    }
+
+    .sum-card.amber::before {
+      background: linear-gradient(90deg, #F59E0B, #FCD34D);
+    }
+
+    .sum-card.rose::before {
+      background: linear-gradient(90deg, #EF4444, #F87171);
+    }
+
+    .sum-card.navy::before {
+      background: linear-gradient(90deg, #0F2044, #1B3A6B);
     }
 
     .sum-card-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .5px;
+      font-size: 12px;
+      font-weight: 500;
       color: var(--slate-400);
-      margin-bottom: 10px;
+      margin-bottom: 14px;
     }
 
     .status-big {
@@ -579,9 +623,9 @@
     /* ── CARD SECTION ── */
     .section-card {
       background: white;
-      border-radius: 14px;
+      border-radius: 16px;
       border: 1px solid var(--slate-200);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
       margin-bottom: 18px;
       overflow: hidden;
     }
@@ -662,7 +706,7 @@
       padding: 10px 12px;
       font-size: 11px;
       font-weight: 700;
-      text-transform: uppercase;
+      text-transform: capitalize;
       letter-spacing: .5px;
       color: var(--slate-400);
       background: var(--slate-50);
@@ -1067,7 +1111,7 @@
       padding: 10px 12px;
       font-size: 11px;
       font-weight: 700;
-      text-transform: uppercase;
+      text-transform: capitalize;
       letter-spacing: .5px;
       color: var(--slate-400);
       background: var(--slate-50);
@@ -1198,7 +1242,7 @@
       padding: 9px 12px;
       font-size: 11px;
       font-weight: 700;
-      text-transform: uppercase;
+      text-transform: capitalize;
       letter-spacing: .5px;
       color: var(--slate-400);
       background: var(--slate-50);
@@ -1640,83 +1684,94 @@
       <!-- SUMMARY ROW -->
       <div class="summary-row">
         <!-- Status -->
-        <div class="sum-card">
+        <div class="sum-card amber">
           <div class="sum-card-label">Status Rencana Aksi</div>
-          <div id="statusBadge"><span class="status-big terlambat">Terlambat</span></div>
-          <div class="sum-updated" id="lastUpdated">Terakhir diperbarui<br>10 Mei 2024, 10:30</div>
+          <div class="sum-card-body">
+            <div id="statusBadge"><span class="status-big terlambat">Terlambat</span></div>
+            <div class="sum-updated" id="lastUpdated">Terakhir diperbarui<br>10 Mei 2024, 10:30</div>
+          </div>
         </div>
         <!-- Progres Donut -->
-        <div class="sum-card">
+        <div class="sum-card blue">
           <div class="sum-card-label">Progres</div>
-          <div class="donut-wrap">
-            <div class="donut-svg" style="position:relative;width:72px;height:72px;">
-              <svg width="72" height="72" viewBox="0 0 72 72">
-                <circle cx="36" cy="36" r="28" fill="none" stroke="#F1F5F9" stroke-width="9" />
-                <circle id="donutSelesai" cx="36" cy="36" r="28" fill="none" stroke="#10B981" stroke-width="9"
-                  stroke-dasharray="175.9 175.9" stroke-dashoffset="87.96" stroke-linecap="round" />
-                <circle id="donutProgress" cx="36" cy="36" r="28" fill="none" stroke="#0EA5E9" stroke-width="9"
-                  stroke-dasharray="0 175.9" stroke-dashoffset="0" stroke-linecap="round" />
-              </svg>
-              <div class="donut-label" id="donutLabel">50%</div>
-            </div>
-            <div class="donut-legend">
-              <div class="dl-row">
-                <div class="dl-dot" style="background:#10B981"></div>Selesai<div class="dl-val" id="legSelesai">50%
-                </div>
+          <div class="sum-card-body">
+            <div class="donut-wrap">
+              <div class="donut-svg" style="position:relative;width:72px;height:72px;">
+                <svg width="72" height="72" viewBox="0 0 72 72">
+                  <circle cx="36" cy="36" r="28" fill="none" stroke="#F1F5F9" stroke-width="9" />
+                  <circle id="donutSelesai" cx="36" cy="36" r="28" fill="none" stroke="#10B981" stroke-width="9"
+                    stroke-dasharray="175.9 175.9" stroke-dashoffset="87.96" stroke-linecap="round" />
+                  <circle id="donutProgress" cx="36" cy="36" r="28" fill="none" stroke="#0EA5E9" stroke-width="9"
+                    stroke-dasharray="0 175.9" stroke-dashoffset="0" stroke-linecap="round" />
+                </svg>
+                <div class="donut-label" id="donutLabel">50%</div>
               </div>
-              <div class="dl-row">
-                <div class="dl-dot" style="background:#0EA5E9"></div>Dalam Proses<div class="dl-val" id="legProgress">0%
+              <div class="donut-legend">
+                <div class="dl-row">
+                  <div class="dl-dot" style="background:#10B981"></div>Selesai<div class="dl-val" id="legSelesai">50%
+                  </div>
                 </div>
-              </div>
-              <div class="dl-row">
-                <div class="dl-dot" style="background:#F1F5F9;border:1px solid #CBD5E1"></div>Belum Mulai<div
-                  class="dl-val" id="legBelum">25%</div>
+                <div class="dl-row">
+                  <div class="dl-dot" style="background:#0EA5E9"></div>Dalam Proses<div class="dl-val" id="legProgress">
+                    0%
+                  </div>
+                </div>
+                <div class="dl-row">
+                  <div class="dl-dot" style="background:#F1F5F9;border:1px solid #CBD5E1"></div>Belum Mulai<div
+                    class="dl-val" id="legBelum">25%</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
         <!-- PIC -->
-        <div class="sum-card">
+        <div class="sum-card navy">
           <div class="sum-card-label">PIC Utama</div>
-          <div class="pic-wrap">
-            <div class="pic-avatar" id="picAvatar">RH</div>
-            <div>
-              <div class="pic-name" id="picName">Rudi Hermawan</div>
-              <div class="pic-role" id="picRole">Kepala Strategi dan Perencanaan</div>
+          <div class="sum-card-body">
+            <div class="pic-wrap">
+              <div class="pic-avatar" id="picAvatar">RH</div>
+              <div>
+                <div class="pic-name" id="picName">Rudi Hermawan</div>
+                <div class="pic-role" id="picRole">Kepala Strategi dan Perencanaan</div>
+              </div>
             </div>
           </div>
         </div>
         <!-- Target Selesai -->
-        <div class="sum-card">
+        <div class="sum-card rose">
           <div class="sum-card-label">Target Selesai</div>
-          <div class="target-wrap">
-            <div class="target-icon">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-            </div>
-            <div>
-              <div class="target-date" id="targetDate">30 April 2026</div>
-              <div class="target-late" id="targetNote">Lewat 30 hari</div>
+          <div class="sum-card-body">
+            <div class="target-wrap">
+              <div class="target-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </div>
+              <div>
+                <div class="target-date" id="targetDate">30 April 2026</div>
+                <div class="target-late" id="targetNote">Lewat 30 hari</div>
+              </div>
             </div>
           </div>
         </div>
         <!-- Bukti -->
-        <div class="sum-card">
+        <div class="sum-card green">
           <div class="sum-card-label">Bukti</div>
-          <div class="bukti-wrap">
-            <div class="bukti-icon">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-              </svg>
-            </div>
-            <div>
-              <div class="bukti-count">3 Dokumen</div>
-              <div class="bukti-note">2 perlu verifikasi</div>
+          <div class="sum-card-body">
+            <div class="bukti-wrap">
+              <div class="bukti-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14,2 14,8 20,8" />
+                </svg>
+              </div>
+              <div>
+                <div class="bukti-count">3 Dokumen</div>
+                <div class="bukti-note">2 perlu verifikasi</div>
+              </div>
             </div>
           </div>
         </div>
