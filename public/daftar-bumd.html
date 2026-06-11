@@ -19,7 +19,7 @@
     }
 
     :root {
-      --sidebar-w: 260px;
+      --sidebar-icon-w: 64px;
       --navy: #0F2044;
       --navy-mid: #1B3A6B;
       --sky: #0EA5E9;
@@ -30,7 +30,9 @@
       --slate-50: #F8FAFC;
       --slate-100: #F1F5F9;
       --slate-200: #E2E8F0;
+      --slate-300: #CBD5E1;
       --slate-400: #94A3B8;
+      --slate-500: #64748B;
       --slate-600: #475569;
       --slate-700: #334155;
       --slate-900: #0F172A;
@@ -43,227 +45,280 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background: var(--slate-100);
+      background: #F0F4FA;
       color: var(--slate-900);
       display: flex;
+      flex-direction: column;
       min-height: 100vh;
     }
 
-    /* ── SIDEBAR ───────────────────────────────── */
-    .sidebar {
-      width: var(--sidebar-w);
-      background: var(--navy);
+    /* ── TOP NAVBAR ─────────────────────────────── */
+    .topnav {
+      background: white;
+      border-bottom: 1px solid var(--slate-200);
+      height: 60px;
       display: flex;
-      flex-direction: column;
-      position: fixed;
+      align-items: center;
+      padding: 0 20px;
+      gap: 20px;
+      position: sticky;
       top: 0;
-      left: 0;
-      bottom: 0;
       z-index: 100;
-      overflow-y: auto;
-      transition: transform 0.3s;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     }
 
-    .sidebar-logo {
-      padding: 24px 20px 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .sidebar-logo .logo-row {
+    .brand {
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-shrink: 0;
+      margin-right: 8px;
     }
 
-    .logo-icon-sm {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, #0EA5E9, #38BDF8);
-      border-radius: 10px;
+    .brand-logo {
+      width: 44px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
     }
 
-    .logo-icon-sm svg {
-      width: 22px;
-      height: 22px;
-      fill: white;
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
-    .logo-text .t1 {
+    .brand-text .t1 {
       font-size: 14px;
-      font-weight: 700;
-      color: white;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: 0.3px;
     }
 
-    .logo-text .t2 {
+    .brand-text .t2 {
       font-size: 10px;
-      color: rgba(255, 255, 255, 0.5);
+      color: var(--slate-400);
+      margin-top: 1px;
+      font-weight: 500;
+    }
+
+    .brand-divider {
+      width: 1px;
+      height: 32px;
+      background: var(--slate-200);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--slate-700);
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      color: var(--slate-400);
       margin-top: 1px;
     }
 
-    .nav-section {
-      padding: 12px 0;
-    }
-
-    .nav-label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: capitalize;
-      letter-spacing: 1px;
-      color: rgba(255, 255, 255, 0.3);
-      padding: 8px 20px 4px;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 20px;
-      color: rgba(255, 255, 255, 0.6);
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.2s;
-      cursor: pointer;
-      border-left: 3px solid transparent;
-    }
-
-    .nav-item:hover {
-      background: rgba(255, 255, 255, 0.07);
-      color: white;
-    }
-
-    .nav-item.active {
-      background: rgba(14, 165, 233, 0.15);
-      color: var(--sky);
-      border-left-color: var(--sky);
-    }
-
-    .nav-item svg {
-      width: 18px;
-      height: 18px;
-      flex-shrink: 0;
-    }
-
-    .nav-badge {
+    .nav-search {
+      flex: 1;
+      max-width: 280px;
       margin-left: auto;
-      background: var(--rose);
+      position: relative;
+    }
+
+    .nav-search input {
+      width: 100%;
+      padding: 7px 12px 7px 34px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--slate-50);
+      outline: none;
+      color: var(--slate-700);
+    }
+
+    .nav-search input:focus {
+      border-color: var(--sky);
+      background: white;
+    }
+
+    .nav-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--slate-400);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      margin-left: 12px;
+    }
+
+    .nav-tab {
+      padding: 7px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--slate-500);
+      transition: all 0.18s;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .nav-tab:hover {
+      background: var(--slate-100);
+      color: var(--slate-700);
+    }
+
+    .nav-tab.active {
+      background: var(--navy);
       color: white;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 10px;
     }
 
-    .sidebar-bottom {
-      margin-top: auto;
-      padding: 16px 20px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .user-card {
+    .nav-right {
       display: flex;
       align-items: center;
       gap: 10px;
+      margin-left: 12px;
+      flex-shrink: 0;
     }
 
-    .user-avatar {
+    .notif-btn {
       width: 36px;
       height: 36px;
-      background: linear-gradient(135deg, #0EA5E9, #38BDF8);
+      border-radius: 8px;
+      border: 1.5px solid var(--slate-200);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--slate-500);
+      position: relative;
+    }
+
+    .notif-btn .badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--rose);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      border: 2px solid white;
+    }
+
+    .user-avatar-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0EA5E9, #0F2044);
+      color: white;
       font-size: 13px;
       font-weight: 700;
-      color: white;
-      flex-shrink: 0;
-    }
-
-    .user-info .name {
-      font-size: 13px;
-      font-weight: 600;
-      color: white;
-    }
-
-    .user-info .role {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.4);
-    }
-
-    .logout-btn {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: rgba(255, 255, 255, 0.4);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 6px;
-      transition: color 0.2s;
-    }
-
-    .logout-btn:hover {
-      color: var(--rose);
-    }
-
-    /* ── MAIN ─────────────────────────────────── */
-    .main {
-      margin-left: var(--sidebar-w);
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .topbar {
-      background: white;
-      border-bottom: 1px solid var(--slate-200);
-      padding: 0 28px;
-      height: 64px;
       display: flex;
       align-items: center;
-      gap: 16px;
-      position: sticky;
-      top: 0;
-      z-index: 50;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
     }
 
-    .topbar-left {
+    /* ── BODY LAYOUT ─────────────────────────────── */
+    .body-wrap {
+      display: flex;
       flex: 1;
+      min-height: 0;
     }
 
-    .page-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--slate-900);
+    /* ── ICON SIDEBAR ────────────────────────────── */
+    .icon-sidebar {
+      width: var(--sidebar-icon-w);
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      gap: 4px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
     }
 
-    .page-sub {
-      font-size: 12px;
-      color: var(--slate-400);
-      margin-top: 1px;
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.45);
+      transition: all 0.18s;
+      text-decoration: none;
+      border: none;
+      background: none;
     }
 
-    .topbar-right {
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .icon-btn.active {
+      background: rgba(14, 165, 233, 0.2);
+      color: var(--sky);
+    }
+
+    .icon-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .icon-sidebar-bottom {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      padding-bottom: 8px;
+    }
+
+    /* ── MAIN AREA ───────────────────────────────── */
+    .main-area {
+      flex: 1;
+      min-width: 0;
+      padding: 24px 28px;
+      overflow-y: auto;
+    }
+
+    /* PAGE HEADING */
+    .page-heading {
       display: flex;
       align-items: center;
       gap: 12px;
+      margin-bottom: 24px;
     }
 
-    .topbar-date {
-      font-size: 12px;
-      color: var(--slate-400);
-      background: var(--slate-100);
-      padding: 6px 12px;
-      border-radius: 8px;
-    }
-
-    .content {
-      padding: 24px 28px;
+    .page-heading-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.3px;
     }
 
     /* ── KPI SUMMARY ────────────────────────────── */
@@ -1208,106 +1263,98 @@
 </head>
 
 <body>
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-row">
-        <div class="logo-icon-sm">
-          <svg viewBox="0 0 24 24">
-            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
-          </svg>
-        </div>
-        <div class="logo-text">
-          <div class="t1">BPBUMD</div>
-          <div class="t2">Control Tower v2.4</div>
-        </div>
+
+  <!-- TOP NAVBAR -->
+  <nav class="topnav" id="topnav">
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="/logo.png" alt="Logo" />
+      </div>
+      <div class="brand-text">
+        <div class="t1">BPBUMD</div>
+        <div class="t2">Control Tower</div>
       </div>
     </div>
+    <div class="brand-divider"></div>
+    <div>
+      <div class="brand-title">CONTROL TOWER</div>
+      <div class="brand-sub">Platform Pemantauan Rencana Aksi</div>
+    </div>
 
-    <div class="nav-section">
-      <div class="nav-label">Utama</div>
-      <a class="nav-item" href="/dashboard.html">
+    <div class="nav-search">
+      <span class="nav-search-icon">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </span>
+      <input type="text" placeholder="Search" />
+    </div>
+
+    <div class="nav-tabs">
+      <a class="nav-tab" href="/dashboard-aspek.html">Dashboard</a>
+      <a class="nav-tab active" href="/daftar-bumd.html">BUMD</a>
+    </div>
+
+    <div class="nav-right">
+      <button class="notif-btn" id="notifBtn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        <span class="badge">2</span>
+      </button>
+      <button class="user-avatar-btn" id="userAvatarBtn">A</button>
+    </div>
+  </nav>
+
+  <div class="body-wrap">
+    <!-- ICON SIDEBAR -->
+    <aside class="icon-sidebar">
+      <a class="icon-btn" href="/dashboard-aspek.html" title="Dashboard">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
           <rect x="3" y="14" width="7" height="7" rx="1" />
           <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
-        Dashboard
       </a>
-      <a class="nav-item active" href="/daftar-bumd.html">
+      <a class="icon-btn active" href="/daftar-bumd.html" title="Daftar BUMD">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9,22 9,12 15,12 15,22" />
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14,2 14,8 20,8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <polyline points="10,9 9,9 8,9" />
         </svg>
-        Daftar BUMD
       </a>
-      <a class="nav-item" href="/dashboard-aspek.html">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
-        </svg>
-        Kinerja & KPI
-      </a>
-      <a class="nav-item" href="/rencana-aksi.html">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M9 11l3 3L22 4" />
-          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-        </svg>
-        Rencana Aksi
-      </a>
-    </div>
 
-    <div class="nav-section">
-      <div class="nav-label">Administrasi</div>
-      <a class="nav-item">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
-        </svg>
-        Pengaturan
-      </a>
-      <a class="nav-item">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-        Manajemen Pengguna
-      </a>
-    </div>
-
-    <div class="sidebar-bottom">
-      <div class="user-card">
-        <div class="user-avatar" id="sidebarAvatar">A</div>
-        <div class="user-info">
-          <div class="name" id="sidebarName">Administrator</div>
-          <div class="role" id="sidebarRole">Pengawas BUMD</div>
-        </div>
-        <button class="logout-btn" onclick="BPBUMDAuth.logout()" title="Keluar">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <div class="icon-sidebar-bottom">
+        <a class="icon-btn" title="Bantuan">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </a>
+        <a class="icon-btn" title="Keluar" onclick="BPBUMDAuth.logout()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16,17 21,12 16,7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-        </button>
+        </a>
       </div>
-    </div>
-  </aside>
+    </aside>
 
-  <!-- MAIN -->
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar-left">
-        <div class="page-title">Daftar BUMD</div>
-        <div class="page-sub">Kelola data Badan Usaha Milik Daerah</div>
-      </div>
-      <div class="topbar-right">
-        <div class="topbar-date" id="topbarDate"></div>
-      </div>
-    </header>
+    <!-- MAIN AREA -->
+    <main class="main-area">
 
-    <div class="content">
+      <!-- PAGE HEADING -->
+      <div class="page-heading">
+        <div class="page-heading-title">DAFTAR BUMD</div>
+      </div>
+
       <!-- KPI SUMMARY -->
       <div class="kpi-grid">
         <div class="kpi-card blue">
@@ -1390,7 +1437,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </main>
   </div>
 
   <!-- MODAL: CREATE/EDIT -->
@@ -1556,15 +1603,12 @@
     function initUserInfo(user) {
       if (!user) return;
       const avatar = user.name ? user.name.charAt(0).toUpperCase() : 'U';
-      document.getElementById('sidebarAvatar').textContent = avatar;
-      document.getElementById('sidebarName').textContent = user.name || user.username;
-      document.getElementById('sidebarRole').textContent = user.role === 'admin' ? 'Administrator' : 'User';
+      const avatarBtn = document.getElementById('userAvatarBtn');
+      if (avatarBtn) avatarBtn.textContent = avatar;
     }
 
     function initDate() {
-      const now = new Date();
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      document.getElementById('topbarDate').textContent = now.toLocaleDateString('id-ID', options);
+      // Date display handled by topnav
     }
 
     function initEventListeners() {
