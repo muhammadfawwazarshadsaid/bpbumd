@@ -9,21 +9,30 @@ if (!JWT_SECRET) {
 }
 
 function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization;
+  let token = null;
 
-  if (!authHeader) {
-    return res.status(401).json({
-      success: false,
-      message: "Authorization header wajib diisi",
-    });
+  // 1. Check httpOnly cookie first
+  if (req.cookies && req.cookies.bpbumd_token) {
+    token = req.cookies.bpbumd_token;
   }
 
-  const [type, token] = authHeader.split(" ");
+  // 2. Fallback to Authorization header (for API clients / Postman)
+  if (!token) {
+    const authHeader = req.headers.authorization;
 
-  if (type !== "Bearer" || !token) {
+    if (authHeader) {
+      const [type, headerToken] = authHeader.split(" ");
+
+      if (type === "Bearer" && headerToken) {
+        token = headerToken;
+      }
+    }
+  }
+
+  if (!token) {
     return res.status(401).json({
       success: false,
-      message: "Format authorization harus Bearer token",
+      message: "Authorization wajib diisi",
     });
   }
 

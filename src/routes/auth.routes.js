@@ -36,10 +36,22 @@ router.post("/login", async (req, res) => {
   try {
     const data = await authService.loginUser(req.body);
 
+    // Set JWT as httpOnly cookie — not accessible by JavaScript
+    res.cookie("bpbumd_token", data.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      path: "/",
+    });
+
+    // Return user data (without token in body for security)
     res.json({
       success: true,
       message: "Login berhasil",
-      data,
+      data: {
+        user: data.user,
+      },
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -49,6 +61,20 @@ router.post("/login", async (req, res) => {
       message: error.message || "Login gagal",
     });
   }
+});
+
+router.post("/logout", (req, res) => {
+  res.clearCookie("bpbumd_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
+
+  res.json({
+    success: true,
+    message: "Logout berhasil",
+  });
 });
 
 router.get("/me", authMiddleware, async (req, res) => {

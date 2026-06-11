@@ -2,6 +2,7 @@
 
 const express = require("express");
 const path = require("path");
+const cookieParser = require("cookie-parser");
 const authRoutes = require("./src/routes/auth.routes");
 const dashboardRoutes = require("./src/routes/dashboard.routes");
 const aspectRoutes = require("./src/routes/aspect.routes");
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Serve static files
 app.use(

@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BPBUMD Control Tower — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     :root {
       --sidebar-w: 260px;
       --navy: #0F2044;
@@ -26,7 +35,12 @@
       --slate-700: #334155;
       --slate-900: #0F172A;
     }
-    html { font-size: 14px; scroll-behavior: smooth; }
+
+    html {
+      font-size: 14px;
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: var(--slate-100);
@@ -42,45 +56,73 @@
       display: flex;
       flex-direction: column;
       position: fixed;
-      top: 0; left: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      bottom: 0;
       z-index: 100;
       overflow-y: auto;
       transition: transform 0.3s;
     }
+
     .sidebar-logo {
       padding: 24px 20px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
+
     .sidebar-logo .logo-row {
       display: flex;
       align-items: center;
       gap: 12px;
     }
+
     .logo-icon-sm {
-      width: 40px; height: 40px;
+      width: 40px;
+      height: 40px;
       background: linear-gradient(135deg, #0EA5E9, #38BDF8);
       border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
     }
-    .logo-icon-sm svg { width: 22px; height: 22px; fill: white; }
-    .logo-text .t1 { font-size: 14px; font-weight: 700; color: white; }
-    .logo-text .t2 { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 1px; }
-    .nav-section { padding: 12px 0; }
+
+    .logo-icon-sm svg {
+      width: 22px;
+      height: 22px;
+      fill: white;
+    }
+
+    .logo-text .t1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .logo-text .t2 {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-top: 1px;
+    }
+
+    .nav-section {
+      padding: 12px 0;
+    }
+
     .nav-label {
       font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255, 255, 255, 0.3);
       padding: 8px 20px 4px;
     }
+
     .nav-item {
       display: flex;
       align-items: center;
       gap: 12px;
       padding: 10px 20px;
-      color: rgba(255,255,255,0.6);
+      color: rgba(255, 255, 255, 0.6);
       text-decoration: none;
       font-size: 13px;
       font-weight: 500;
@@ -88,16 +130,24 @@
       cursor: pointer;
       border-left: 3px solid transparent;
     }
+
     .nav-item:hover {
-      background: rgba(255,255,255,0.07);
+      background: rgba(255, 255, 255, 0.07);
       color: white;
     }
+
     .nav-item.active {
-      background: rgba(14,165,233,0.15);
+      background: rgba(14, 165, 233, 0.15);
       color: var(--sky);
       border-left-color: var(--sky);
     }
-    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .nav-item svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
     .nav-badge {
       margin-left: auto;
       background: var(--rose);
@@ -107,37 +157,58 @@
       padding: 2px 6px;
       border-radius: 10px;
     }
+
     .sidebar-bottom {
       margin-top: auto;
       padding: 16px 20px;
-      border-top: 1px solid rgba(255,255,255,0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
+
     .user-card {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
     .user-avatar {
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       background: linear-gradient(135deg, #0EA5E9, #38BDF8);
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
       flex-shrink: 0;
     }
-    .user-info .name { font-size: 13px; font-weight: 600; color: white; }
-    .user-info .role { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    .user-info .name {
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .user-info .role {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
     .logout-btn {
       margin-left: auto;
       background: none;
       border: none;
-      color: rgba(255,255,255,0.4);
+      color: rgba(255, 255, 255, 0.4);
       cursor: pointer;
       padding: 4px;
       border-radius: 6px;
       transition: color 0.2s;
     }
-    .logout-btn:hover { color: var(--rose); }
+
+    .logout-btn:hover {
+      color: var(--rose);
+    }
 
     /* ── MAIN ─────────────────────────────────── */
     .main {
@@ -161,10 +232,29 @@
       top: 0;
       z-index: 50;
     }
-    .topbar-left { flex: 1; }
-    .page-title { font-size: 18px; font-weight: 700; color: var(--slate-900); }
-    .page-sub { font-size: 12px; color: var(--slate-400); margin-top: 1px; }
-    .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+    .topbar-left {
+      flex: 1;
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .page-sub {
+      font-size: 12px;
+      color: var(--slate-400);
+      margin-top: 1px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .topbar-date {
       font-size: 12px;
       color: var(--slate-400);
@@ -172,26 +262,36 @@
       padding: 6px 12px;
       border-radius: 8px;
     }
+
     .notif-btn {
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       background: var(--slate-100);
       border: none;
       border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       position: relative;
       color: var(--slate-600);
     }
+
     .notif-btn .dot {
       position: absolute;
-      top: 6px; right: 6px;
-      width: 8px; height: 8px;
+      top: 6px;
+      right: 6px;
+      width: 8px;
+      height: 8px;
       background: var(--rose);
       border-radius: 50%;
       border: 2px solid white;
     }
+
     .refresh-btn {
-      display: flex; align-items: center; gap: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       padding: 8px 14px;
       background: linear-gradient(135deg, var(--navy), var(--navy-mid));
       color: white;
@@ -203,10 +303,15 @@
       cursor: pointer;
       transition: opacity 0.2s;
     }
-    .refresh-btn:hover { opacity: 0.9; }
+
+    .refresh-btn:hover {
+      opacity: 0.9;
+    }
 
     /* CONTENT */
-    .content { padding: 24px 28px; }
+    .content {
+      padding: 24px 28px;
+    }
 
     /* ALERT BANNER */
     .alert-banner {
@@ -221,7 +326,13 @@
       font-size: 13px;
       color: #92400E;
     }
-    .alert-banner svg { width: 18px; height: 18px; color: #D97706; flex-shrink: 0; }
+
+    .alert-banner svg {
+      width: 18px;
+      height: 18px;
+      color: #D97706;
+      flex-shrink: 0;
+    }
 
     /* KPI CARDS */
     .kpi-grid {
@@ -230,54 +341,123 @@
       gap: 18px;
       margin-bottom: 24px;
     }
+
     .kpi-card {
       background: white;
       border-radius: 16px;
       padding: 22px 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
       border: 1px solid var(--slate-200);
       position: relative;
       overflow: hidden;
       transition: transform 0.2s, box-shadow 0.2s;
     }
-    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
     .kpi-card::before {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0;
+      top: 0;
+      left: 0;
+      right: 0;
       height: 3px;
     }
-    .kpi-card.blue::before { background: linear-gradient(90deg, #0EA5E9, #38BDF8); }
-    .kpi-card.green::before { background: linear-gradient(90deg, #10B981, #34D399); }
-    .kpi-card.amber::before { background: linear-gradient(90deg, #F59E0B, #FCD34D); }
-    .kpi-card.rose::before { background: linear-gradient(90deg, #EF4444, #F87171); }
-    .kpi-card.navy::before { background: linear-gradient(90deg, #0F2044, #1B3A6B); }
+
+    .kpi-card.blue::before {
+      background: linear-gradient(90deg, #0EA5E9, #38BDF8);
+    }
+
+    .kpi-card.green::before {
+      background: linear-gradient(90deg, #10B981, #34D399);
+    }
+
+    .kpi-card.amber::before {
+      background: linear-gradient(90deg, #F59E0B, #FCD34D);
+    }
+
+    .kpi-card.rose::before {
+      background: linear-gradient(90deg, #EF4444, #F87171);
+    }
+
+    .kpi-card.navy::before {
+      background: linear-gradient(90deg, #0F2044, #1B3A6B);
+    }
+
     .kpi-top {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       margin-bottom: 14px;
     }
+
     .kpi-icon {
-      width: 44px; height: 44px;
+      width: 44px;
+      height: 44px;
       border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .kpi-icon.blue { background: #E0F2FE; color: #0284C7; }
-    .kpi-icon.green { background: #D1FAE5; color: #059669; }
-    .kpi-icon.amber { background: #FEF3C7; color: #D97706; }
-    .kpi-icon.rose { background: #FEE2E2; color: #DC2626; }
-    .kpi-icon.navy { background: #E0E7FF; color: #3730A3; }
-    .kpi-icon svg { width: 22px; height: 22px; }
+
+    .kpi-icon.blue {
+      background: #E0F2FE;
+      color: #0284C7;
+    }
+
+    .kpi-icon.green {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .kpi-icon.amber {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .kpi-icon.rose {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .kpi-icon.navy {
+      background: #E0E7FF;
+      color: #3730A3;
+    }
+
+    .kpi-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
     .kpi-trend {
-      display: flex; align-items: center; gap: 3px;
-      font-size: 11px; font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
       padding: 3px 8px;
       border-radius: 20px;
     }
-    .kpi-trend.up { background: #D1FAE5; color: #059669; }
-    .kpi-trend.down { background: #FEE2E2; color: #DC2626; }
-    .kpi-trend.neutral { background: #F1F5F9; color: #64748B; }
+
+    .kpi-trend.up {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .kpi-trend.down {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .kpi-trend.neutral {
+      background: #F1F5F9;
+      color: #64748B;
+    }
+
     .kpi-value {
       font-size: 24px;
       font-weight: 800;
@@ -285,11 +465,13 @@
       letter-spacing: -0.5px;
       margin-bottom: 4px;
     }
+
     .kpi-label {
       font-size: 12px;
       color: var(--slate-400);
       font-weight: 500;
     }
+
     .kpi-sub {
       font-size: 11px;
       color: var(--slate-400);
@@ -305,22 +487,39 @@
       gap: 18px;
       margin-bottom: 24px;
     }
+
     .chart-card {
       background: white;
       border-radius: 16px;
       padding: 22px;
       border: 1px solid var(--slate-200);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
     }
+
     .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 20px;
     }
-    .card-title { font-size: 14px; font-weight: 700; color: var(--slate-900); }
-    .card-sub { font-size: 12px; color: var(--slate-400); margin-top: 2px; }
-    .card-actions { display: flex; gap: 6px; }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .card-sub {
+      font-size: 12px;
+      color: var(--slate-400);
+      margin-top: 2px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 6px;
+    }
+
     .pill {
       padding: 4px 12px;
       border-radius: 20px;
@@ -332,12 +531,16 @@
       color: var(--slate-600);
       transition: all 0.2s;
     }
+
     .pill.active {
       background: var(--navy);
       border-color: var(--navy);
       color: white;
     }
-    .chart-container { position: relative; }
+
+    .chart-container {
+      position: relative;
+    }
 
     /* BOTTOM GRID */
     .bottom-grid {
@@ -353,15 +556,17 @@
       border-radius: 16px;
       padding: 22px;
       border: 1px solid var(--slate-200);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
       margin-bottom: 24px;
     }
+
     .table-toolbar {
       display: flex;
       align-items: center;
       gap: 12px;
       margin-bottom: 18px;
     }
+
     .search-input {
       flex: 1;
       max-width: 280px;
@@ -374,9 +579,26 @@
       background: var(--slate-50);
       position: relative;
     }
-    .search-wrap { position: relative; flex: 1; max-width: 280px; }
-    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--slate-400); }
-    .search-input:focus { border-color: var(--sky); background: white; }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 280px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--slate-400);
+    }
+
+    .search-input:focus {
+      border-color: var(--sky);
+      background: white;
+    }
+
     .filter-select {
       padding: 8px 12px;
       border: 1.5px solid var(--slate-200);
@@ -388,6 +610,7 @@
       color: var(--slate-700);
       cursor: pointer;
     }
+
     .btn-export {
       padding: 8px 14px;
       background: var(--slate-100);
@@ -398,12 +621,22 @@
       color: var(--slate-600);
       font-family: inherit;
       cursor: pointer;
-      display: flex; align-items: center; gap: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       transition: all 0.2s;
       margin-left: auto;
     }
-    .btn-export:hover { background: var(--slate-200); }
-    table { width: 100%; border-collapse: collapse; }
+
+    .btn-export:hover {
+      background: var(--slate-200);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
     thead th {
       text-align: left;
       padding: 10px 14px;
@@ -415,21 +648,45 @@
       background: var(--slate-50);
       border-bottom: 1px solid var(--slate-200);
     }
-    thead th:first-child { border-radius: 8px 0 0 8px; }
-    thead th:last-child { border-radius: 0 8px 8px 0; }
+
+    thead th:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    thead th:last-child {
+      border-radius: 0 8px 8px 0;
+    }
+
     tbody tr {
       border-bottom: 1px solid var(--slate-100);
       transition: background 0.15s;
     }
-    tbody tr:hover { background: var(--slate-50); }
-    tbody tr:last-child { border-bottom: none; }
-    tbody td { padding: 12px 14px; font-size: 13px; color: var(--slate-700); }
-    .bumd-name { font-weight: 600; color: var(--slate-900); }
+
+    tbody tr:hover {
+      background: var(--slate-50);
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--slate-700);
+    }
+
+    .bumd-name {
+      font-weight: 600;
+      color: var(--slate-900);
+    }
+
     .bumd-sector {
       font-size: 11px;
       color: var(--slate-400);
       margin-top: 2px;
     }
+
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -439,17 +696,41 @@
       font-size: 11px;
       font-weight: 600;
     }
-    .status-badge.sehat { background: #D1FAE5; color: #059669; }
-    .status-badge.kurang-sehat { background: #FEF3C7; color: #D97706; }
-    .status-badge.tidak-sehat { background: #FEE2E2; color: #DC2626; }
+
+    .status-badge.sehat {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .status-badge.kurang-sehat {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .status-badge.tidak-sehat {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
     .status-badge::before {
       content: '';
-      width: 6px; height: 6px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
     }
-    .status-badge.sehat::before { background: #059669; }
-    .status-badge.kurang-sehat::before { background: #D97706; }
-    .status-badge.tidak-sehat::before { background: #DC2626; }
+
+    .status-badge.sehat::before {
+      background: #059669;
+    }
+
+    .status-badge.kurang-sehat::before {
+      background: #D97706;
+    }
+
+    .status-badge.tidak-sehat::before {
+      background: #DC2626;
+    }
+
     .action-btn {
       padding: 4px 10px;
       border-radius: 6px;
@@ -462,7 +743,12 @@
       font-family: inherit;
       transition: all 0.2s;
     }
-    .action-btn:hover { border-color: var(--sky); color: var(--sky); }
+
+    .action-btn:hover {
+      border-color: var(--sky);
+      color: var(--sky);
+    }
+
     .pagination {
       display: flex;
       align-items: center;
@@ -471,11 +757,23 @@
       padding-top: 16px;
       border-top: 1px solid var(--slate-200);
     }
-    .page-info { font-size: 12px; color: var(--slate-400); }
-    .page-btns { display: flex; gap: 4px; }
+
+    .page-info {
+      font-size: 12px;
+      color: var(--slate-400);
+    }
+
+    .page-btns {
+      display: flex;
+      gap: 4px;
+    }
+
     .page-btn {
-      width: 32px; height: 32px;
-      display: flex; align-items: center; justify-content: center;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 8px;
       border: 1.5px solid var(--slate-200);
       background: white;
@@ -486,8 +784,17 @@
       font-family: inherit;
       transition: all 0.2s;
     }
-    .page-btn.active { background: var(--navy); border-color: var(--navy); color: white; }
-    .page-btn:hover:not(.active) { border-color: var(--sky); color: var(--sky); }
+
+    .page-btn.active {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: white;
+    }
+
+    .page-btn:hover:not(.active) {
+      border-color: var(--sky);
+      color: var(--sky);
+    }
 
     /* ALERTS PANEL */
     .alerts-panel {
@@ -495,26 +802,51 @@
       border-radius: 16px;
       padding: 22px;
       border: 1px solid var(--slate-200);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
     }
+
     .alert-item {
       display: flex;
       gap: 12px;
       padding: 12px 0;
       border-bottom: 1px solid var(--slate-100);
     }
-    .alert-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .alert-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
     .alert-dot {
-      width: 10px; height: 10px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       margin-top: 4px;
       flex-shrink: 0;
     }
-    .alert-dot.high { background: var(--rose); }
-    .alert-dot.medium { background: var(--amber); }
-    .alert-dot.low { background: var(--emerald); }
-    .alert-text { font-size: 12px; color: var(--slate-700); }
-    .alert-time { font-size: 11px; color: var(--slate-400); margin-top: 2px; }
+
+    .alert-dot.high {
+      background: var(--rose);
+    }
+
+    .alert-dot.medium {
+      background: var(--amber);
+    }
+
+    .alert-dot.low {
+      background: var(--emerald);
+    }
+
+    .alert-text {
+      font-size: 12px;
+      color: var(--slate-700);
+    }
+
+    .alert-time {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 2px;
+    }
 
     /* MINI STATS */
     .mini-stat {
@@ -524,8 +856,17 @@
       padding: 10px 0;
       border-bottom: 1px solid var(--slate-100);
     }
-    .mini-stat:last-child { border-bottom: none; }
-    .mini-stat-label { font-size: 12px; color: var(--slate-600); font-weight: 500; }
+
+    .mini-stat:last-child {
+      border-bottom: none;
+    }
+
+    .mini-stat-label {
+      font-size: 12px;
+      color: var(--slate-600);
+      font-weight: 500;
+    }
+
     .mini-stat-bar-wrap {
       flex: 1;
       margin: 0 12px;
@@ -534,29 +875,64 @@
       border-radius: 3px;
       overflow: hidden;
     }
-    .mini-stat-bar { height: 100%; border-radius: 3px; }
-    .mini-stat-val { font-size: 12px; font-weight: 700; color: var(--slate-900); min-width: 40px; text-align: right; }
+
+    .mini-stat-bar {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .mini-stat-val {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--slate-900);
+      min-width: 40px;
+      text-align: right;
+    }
 
     /* SCROLLBAR */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--slate-200); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--slate-400); }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--slate-200);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--slate-400);
+    }
 
     @media (max-width: 1200px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .charts-grid { grid-template-columns: 1fr; }
-      .bottom-grid { grid-template-columns: 1fr 1fr; }
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bottom-grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-row">
         <div class="logo-icon-sm">
-          <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+          <svg viewBox="0 0 24 24">
+            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+          </svg>
         </div>
         <div class="logo-text">
           <div class="t1">BPBUMD</div>
@@ -569,27 +945,30 @@
       <div class="nav-label">Utama</div>
       <a class="nav-item active" onclick="setPage('dashboard')">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
         Dashboard
       </a>
       <a class="nav-item" onclick="setPage('bumd')">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9,22 9,12 15,12 15,22"/>
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9,22 9,12 15,12 15,22" />
         </svg>
         Daftar BUMD
       </a>
       <a class="nav-item" onclick="setPage('keuangan')">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
         Keuangan
       </a>
       <a class="nav-item" onclick="setPage('kinerja')">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+          <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
         </svg>
         Kinerja & KPI
       </a>
@@ -599,23 +978,24 @@
       <div class="nav-label">Monitoring</div>
       <a class="nav-item" onclick="setPage('alerts')">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         Notifikasi & Alert
         <span class="nav-badge">5</span>
       </a>
       <a class="nav-item">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14,2 14,8 20,8"/>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14,2 14,8 20,8" />
         </svg>
         Laporan
       </a>
       <a class="nav-item">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          <circle cx="12" cy="12" r="10" />
+          <line x1="2" y1="12" x2="22" y2="12" />
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
         </svg>
         Peta Sebaran
       </a>
@@ -625,15 +1005,17 @@
       <div class="nav-label">Administrasi</div>
       <a class="nav-item">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
         </svg>
         Pengaturan
       </a>
       <a class="nav-item">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
         Manajemen Pengguna
       </a>
@@ -648,8 +1030,9 @@
         </div>
         <button class="logout-btn" onclick="logout()" title="Keluar">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16,17 21,12 16,7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
         </button>
       </div>
@@ -667,14 +1050,15 @@
         <div class="topbar-date" id="topbarDate"></div>
         <button class="notif-btn">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
           <span class="dot"></span>
         </button>
         <button class="refresh-btn" onclick="refreshData()">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 .49-3.11"/>
+            <polyline points="1,4 1,10 7,10" />
+            <path d="M3.51 15a9 9 0 1 0 .49-3.11" />
           </svg>
           Perbarui Data
         </button>
@@ -685,10 +1069,12 @@
       <!-- ALERT BANNER -->
       <div class="alert-banner">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
-        <span><strong>Perhatian:</strong> 3 BUMD belum menyampaikan laporan keuangan triwulan I 2026. Batas waktu: 30 Juni 2026.</span>
+        <span><strong>Perhatian:</strong> 3 BUMD belum menyampaikan laporan keuangan triwulan I 2026. Batas waktu: 30
+          Juni 2026.</span>
       </div>
 
       <!-- KPI CARDS -->
@@ -697,8 +1083,8 @@
           <div class="kpi-top">
             <div class="kpi-icon blue">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                <polyline points="9,22 9,12 15,12 15,22"/>
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9,22 9,12 15,12 15,22" />
               </svg>
             </div>
             <span class="kpi-trend neutral">— Tetap</span>
@@ -712,8 +1098,8 @@
           <div class="kpi-top">
             <div class="kpi-icon green">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
               </svg>
             </div>
             <span class="kpi-trend up">↑ 7.2%</span>
@@ -727,7 +1113,8 @@
           <div class="kpi-top">
             <div class="kpi-icon amber">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
               </svg>
             </div>
             <span class="kpi-trend up">↑ 12.1%</span>
@@ -741,7 +1128,7 @@
           <div class="kpi-top">
             <div class="kpi-icon rose">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
               </svg>
             </div>
             <span class="kpi-trend down">↓ 3.4%</span>
@@ -865,7 +1252,8 @@
           <div class="alert-item">
             <div class="alert-dot low"></div>
             <div>
-              <div class="alert-text"><strong>PT Transportasi Regional</strong> – Laporan diterima, perlu verifikasi</div>
+              <div class="alert-text"><strong>PT Transportasi Regional</strong> – Laporan diterima, perlu verifikasi
+              </div>
               <div class="alert-time">3 hari lalu · Rendah</div>
             </div>
           </div>
@@ -884,7 +1272,8 @@
           <div class="search-wrap">
             <span class="search-icon">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </span>
             <input class="search-input" type="text" placeholder="Cari nama BUMD..." oninput="filterTable(this.value)" />
@@ -906,8 +1295,9 @@
           </select>
           <button class="btn-export">
             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7,10 12,15 17,10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             Ekspor Excel
           </button>
@@ -955,18 +1345,21 @@
     </div>
   </div>
 
+  <script src="/auth.js"></script>
   <script>
     // ── INIT ─────────────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', function() {
-      // Load user info
-      const user = JSON.parse(sessionStorage.getItem('bpbumd_user') || '{"name":"Administrator","role":"Pengawas BUMD"}');
+    document.addEventListener('DOMContentLoaded', async function () {
+      // Auth guard — redirect to login if not authenticated
+      const user = await BPBUMDAuth.requireAuth();
+
+      // Display user info
       document.getElementById('sidebarName').textContent = user.name;
-      document.getElementById('sidebarRole').textContent = user.role;
+      document.getElementById('sidebarRole').textContent = user.role || 'User';
       document.getElementById('sidebarAvatar').textContent = user.name.charAt(0).toUpperCase();
 
       // Date
       const now = new Date();
-      document.getElementById('topbarDate').textContent = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+      document.getElementById('topbarDate').textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
       // Build table
       buildTable(bumdData);
@@ -980,8 +1373,7 @@
     });
 
     function logout() {
-      sessionStorage.removeItem('bpbumd_user');
-      window.location.href = '/login.html';
+      BPBUMDAuth.logout();
     }
 
     function setPage(page) {
@@ -1028,14 +1420,14 @@
           <td>
             <div style="display:flex;align-items:center;gap:6px;">
               <div style="width:60px;height:6px;background:var(--slate-100);border-radius:3px;overflow:hidden;">
-                <div style="width:${row.kepatuhan};height:100%;background:${parseInt(row.kepatuhan)>=90?'var(--emerald)':parseInt(row.kepatuhan)>=75?'var(--amber)':'var(--rose)'};border-radius:3px;"></div>
+                <div style="width:${row.kepatuhan};height:100%;background:${parseInt(row.kepatuhan) >= 90 ? 'var(--emerald)' : parseInt(row.kepatuhan) >= 75 ? 'var(--amber)' : 'var(--rose)'};border-radius:3px;"></div>
               </div>
               <span style="font-size:11px;font-weight:600;color:var(--slate-600);">${row.kepatuhan}</span>
             </div>
           </td>
           <td><span class="status-badge ${row.status}">${row.status === 'sehat' ? 'Sehat' : row.status === 'kurang-sehat' ? 'Kurang Sehat' : 'Tidak Sehat'}</span></td>
           <td>
-            <button class="action-btn" onclick="window.location.href='/aspek.html?id=${i+1}&name=${encodeURIComponent(row.name)}'">Detail</button>
+            <button class="action-btn" onclick="window.location.href='/aspek.html?id=${i + 1}&name=${encodeURIComponent(row.name)}'">Detail</button>
           </td>
         </tr>
       `).join('');
@@ -1064,7 +1456,7 @@
       plugins: { legend: { labels: { font: { family: 'Inter', size: 12 }, boxWidth: 12, padding: 16 } } },
       scales: {
         x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11 }, color: '#94A3B8' } },
-        y: { grid: { color: '#F1F5F9', borderDash: [4,4] }, ticks: { font: { family: 'Inter', size: 11 }, color: '#94A3B8' } }
+        y: { grid: { color: '#F1F5F9', borderDash: [4, 4] }, ticks: { font: { family: 'Inter', size: 11 }, color: '#94A3B8' } }
       }
     };
 
@@ -1146,7 +1538,7 @@
           datasets: [{
             label: 'Pendapatan (M)',
             data: [680, 520, 430, 320, 210],
-            backgroundColor: ['#0EA5E9','#38BDF8','#7DD3FC','#BAE6FD','#E0F2FE'],
+            backgroundColor: ['#0EA5E9', '#38BDF8', '#7DD3FC', '#BAE6FD', '#E0F2FE'],
             borderRadius: 6, borderSkipped: false
           }]
         },
@@ -1173,7 +1565,7 @@
           labels: ['Perbankan', 'Energi', 'Air Minum', 'Properti', 'Transportasi', 'Lainnya'],
           datasets: [{
             data: [52, 19, 22, 9, 8, 6],
-            backgroundColor: ['#0F2044','#0EA5E9','#10B981','#F59E0B','#EF4444','#8B5CF6'],
+            backgroundColor: ['#0F2044', '#0EA5E9', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
             borderWidth: 2,
             borderColor: 'white'
           }]
@@ -1193,7 +1585,7 @@
       new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['Perbankan','Air Minum','Energi','Properti','Transportasi','Perdagangan','Pariwisata','Konstruksi'],
+          labels: ['Perbankan', 'Air Minum', 'Energi', 'Properti', 'Transportasi', 'Perdagangan', 'Pariwisata', 'Konstruksi'],
           datasets: [
             { label: 'Realisasi', data: [1200, 515, 430, 210, 165, 95, 72, 145], backgroundColor: '#0EA5E9', borderRadius: 4 },
             { label: 'Target', data: [1100, 480, 500, 280, 170, 130, 100, 140], backgroundColor: '#E2E8F0', borderRadius: 4 }
@@ -1215,7 +1607,12 @@
     }
   </script>
   <style>
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 </body>
+
 </html>

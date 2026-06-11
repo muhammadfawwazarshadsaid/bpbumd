@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BPBUMD Control Tower — Login</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #0F2044 0%, #1B3A6B 40%, #0EA5E9 100%);
@@ -18,34 +27,67 @@
       position: relative;
       overflow: hidden;
     }
+
     /* Animated background circles */
     .bg-circle {
       position: absolute;
       border-radius: 50%;
-      background: rgba(255,255,255,0.04);
+      background: rgba(255, 255, 255, 0.04);
       animation: float 8s ease-in-out infinite;
     }
-    .bg-circle:nth-child(1) { width: 400px; height: 400px; top: -100px; right: -100px; animation-delay: 0s; }
-    .bg-circle:nth-child(2) { width: 250px; height: 250px; bottom: -80px; left: -80px; animation-delay: 3s; }
-    .bg-circle:nth-child(3) { width: 180px; height: 180px; top: 50%; left: 10%; animation-delay: 5s; }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-20px); }
+
+    .bg-circle:nth-child(1) {
+      width: 400px;
+      height: 400px;
+      top: -100px;
+      right: -100px;
+      animation-delay: 0s;
     }
+
+    .bg-circle:nth-child(2) {
+      width: 250px;
+      height: 250px;
+      bottom: -80px;
+      left: -80px;
+      animation-delay: 3s;
+    }
+
+    .bg-circle:nth-child(3) {
+      width: 180px;
+      height: 180px;
+      top: 50%;
+      left: 10%;
+      animation-delay: 5s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-20px);
+      }
+    }
+
     .login-card {
       background: white;
       border-radius: 20px;
       padding: 48px 44px;
       width: 100%;
       max-width: 440px;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
       position: relative;
       z-index: 10;
     }
+
     .logo-wrap {
       text-align: center;
       margin-bottom: 32px;
     }
+
     .logo-icon {
       width: 72px;
       height: 72px;
@@ -56,13 +98,20 @@
       justify-content: center;
       margin-bottom: 16px;
     }
-    .logo-icon svg { width: 40px; height: 40px; fill: white; }
+
+    .logo-icon svg {
+      width: 40px;
+      height: 40px;
+      fill: white;
+    }
+
     .logo-title {
       font-size: 22px;
       font-weight: 800;
       color: #0F2044;
       letter-spacing: -0.5px;
     }
+
     .logo-subtitle {
       font-size: 12px;
       color: #64748B;
@@ -71,7 +120,11 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .form-group { margin-bottom: 20px; }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
     label {
       display: block;
       font-size: 13px;
@@ -79,9 +132,11 @@
       color: #374151;
       margin-bottom: 8px;
     }
+
     .input-wrap {
       position: relative;
     }
+
     .input-icon {
       position: absolute;
       left: 14px;
@@ -89,6 +144,7 @@
       transform: translateY(-50%);
       color: #94A3B8;
     }
+
     input {
       width: 100%;
       padding: 12px 14px 12px 42px;
@@ -101,17 +157,20 @@
       outline: none;
       background: #F8FAFC;
     }
+
     input:focus {
       border-color: #0EA5E9;
-      box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
       background: white;
     }
+
     .remember-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 24px;
     }
+
     .remember-label {
       display: flex;
       align-items: center;
@@ -120,6 +179,7 @@
       color: #64748B;
       cursor: pointer;
     }
+
     .remember-label input[type=checkbox] {
       width: 16px;
       height: 16px;
@@ -127,12 +187,14 @@
       cursor: pointer;
       accent-color: #0EA5E9;
     }
+
     .forgot-link {
       font-size: 13px;
       color: #0EA5E9;
       text-decoration: none;
       font-weight: 500;
     }
+
     .btn-login {
       width: 100%;
       padding: 14px;
@@ -147,12 +209,17 @@
       transition: all 0.2s;
       letter-spacing: 0.2px;
     }
+
     .btn-login:hover {
       background: linear-gradient(135deg, #1B3A6B, #0EA5E9);
       transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(14,165,233,0.4);
+      box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
     }
-    .btn-login:active { transform: translateY(0); }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
     .divider {
       text-align: center;
       color: #94A3B8;
@@ -160,7 +227,9 @@
       margin: 20px 0;
       position: relative;
     }
-    .divider::before, .divider::after {
+
+    .divider::before,
+    .divider::after {
       content: '';
       position: absolute;
       top: 50%;
@@ -168,8 +237,15 @@
       height: 1px;
       background: #E2E8F0;
     }
-    .divider::before { left: 0; }
-    .divider::after { right: 0; }
+
+    .divider::before {
+      left: 0;
+    }
+
+    .divider::after {
+      right: 0;
+    }
+
     .error-msg {
       background: #FEF2F2;
       border: 1px solid #FECACA;
@@ -180,17 +256,24 @@
       margin-bottom: 16px;
       display: none;
     }
+
     .loading-spinner {
       display: none;
       width: 20px;
       height: 20px;
-      border: 2px solid rgba(255,255,255,0.4);
+      border: 2px solid rgba(255, 255, 255, 0.4);
       border-top-color: white;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
       margin: 0 auto;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     .footer-note {
       text-align: center;
       font-size: 12px;
@@ -199,6 +282,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="bg-circle"></div>
   <div class="bg-circle"></div>
@@ -208,7 +292,7 @@
     <div class="logo-wrap">
       <div class="logo-icon">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+          <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
         </svg>
       </div>
       <div class="logo-title">BPBUMD Control Tower</div>
@@ -225,11 +309,12 @@
         <div class="input-wrap">
           <span class="input-icon">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
             </svg>
           </span>
-          <input type="text" id="username" name="username" placeholder="Masukkan username" autocomplete="username" required />
+          <input type="text" id="username" name="username" placeholder="Masukkan username" autocomplete="username"
+            required />
         </div>
       </div>
       <div class="form-group">
@@ -237,11 +322,12 @@
         <div class="input-wrap">
           <span class="input-icon">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
           </span>
-          <input type="password" id="password" name="password" placeholder="Masukkan password" autocomplete="current-password" required />
+          <input type="password" id="password" name="password" placeholder="Masukkan password"
+            autocomplete="current-password" required />
         </div>
       </div>
       <div class="remember-row">
@@ -258,8 +344,24 @@
     <div class="footer-note">© 2026 BPBUMD — Pemerintah Daerah · v2.4.1</div>
   </div>
 
+  <script src="/auth.js"></script>
   <script>
-    function handleLogin(e) {
+    // If already authenticated, redirect to dashboard
+    (async function () {
+      if (BPBUMDAuth.isAuthenticated()) {
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+          if (res.ok) {
+            window.location.href = '/dashboard.html';
+            return;
+          }
+        } catch { }
+        // Token expired or invalid — stay on login
+        BPBUMDAuth.clearUser();
+      }
+    })();
+
+    async function handleLogin(e) {
       e.preventDefault();
       const u = document.getElementById('username').value.trim();
       const p = document.getElementById('password').value;
@@ -273,19 +375,37 @@
       btnText.style.display = 'none';
       spinner.style.display = 'block';
 
-      setTimeout(() => {
-        // Demo: any non-empty credentials work
-        if (u && p) {
-          sessionStorage.setItem('bpbumd_user', JSON.stringify({ name: u === 'admin' ? 'Administrator' : u, role: 'Pengawas BUMD' }));
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u, password: p }),
+          credentials: 'same-origin'
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          // Cookie sudah di-set oleh server (httpOnly)
+          // Simpan user display data saja (non-sensitive)
+          BPBUMDAuth.setUser(result.data.user);
           window.location.href = '/dashboard.html';
         } else {
+          errorMsg.textContent = result.message || 'Login gagal. Silakan coba kembali.';
           errorMsg.style.display = 'block';
           btn.disabled = false;
           btnText.style.display = 'block';
           spinner.style.display = 'none';
         }
-      }, 1200);
+      } catch (err) {
+        errorMsg.textContent = 'Tidak dapat terhubung ke server. Periksa koneksi Anda.';
+        errorMsg.style.display = 'block';
+        btn.disabled = false;
+        btnText.style.display = 'block';
+        spinner.style.display = 'none';
+      }
     }
   </script>
 </body>
+
 </html>
