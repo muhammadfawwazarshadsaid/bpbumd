@@ -193,10 +193,10 @@ async function getActionPlan(client, actionPlanId, companyScopeId) {
 
     pic_utama: row.pic_user_id
       ? {
-          user_id: Number(row.pic_user_id),
-          name: row.pic_name,
-          role: row.pic_role,
-        }
+        user_id: Number(row.pic_user_id),
+        name: row.pic_name,
+        role: row.pic_role,
+      }
       : null,
   };
 }
@@ -454,15 +454,15 @@ async function getSubRencanaAksi(client, actionPlanId) {
     created_at: row.created_at,
     pic: row.pic_user_id
       ? {
-          user_id: Number(row.pic_user_id),
-          name: row.pic_name,
-        }
+        user_id: Number(row.pic_user_id),
+        name: row.pic_name,
+      }
       : null,
     submitted_by: row.submitted_by_user_id
       ? {
-          user_id: Number(row.submitted_by_user_id),
-          name: row.submitted_by_name,
-        }
+        user_id: Number(row.submitted_by_user_id),
+        name: row.submitted_by_name,
+      }
       : null,
     approvals: approvalMap.get(String(row.sub_action_plan_id)) || [],
   }));
@@ -521,15 +521,15 @@ async function getDokumen(client, actionPlanId) {
     verified_at: row.verified_at,
     uploaded_by: row.uploaded_by_user_id
       ? {
-          user_id: Number(row.uploaded_by_user_id),
-          name: row.uploaded_by_name,
-        }
+        user_id: Number(row.uploaded_by_user_id),
+        name: row.uploaded_by_name,
+      }
       : null,
     verified_by: row.verified_by_user_id
       ? {
-          user_id: Number(row.verified_by_user_id),
-          name: row.verified_by_name,
-        }
+        user_id: Number(row.verified_by_user_id),
+        name: row.verified_by_name,
+      }
       : null,
   }));
 }
@@ -549,10 +549,361 @@ function calculateOverdueDays(targetEndDate, actualEndDate) {
   const diffMs = compareDate.getTime() - target.getTime();
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
-  // Positive = overdue, Negative = days remaining, 0 = on time
   return diffDays;
+}
+
+async function logHistory(client, actionPlanId, userId, description) {
+  await client.query(
+    `
+      INSERT INTO history_activities (action_plan_id, user_id, description)
+      VALUES ($1, $2, $3)
+    `,
+    [actionPlanId, userId, description],
+  );
+}
+
+function formatActionPlanRow(row) {
+  return {
+    action_plan_id: Number(row.id),
+    activity_group_id: Number(row.activity_group_id),
+    pic_user_id: row.pic_user_id ? Number(row.pic_user_id) : null,
+    name: row.name,
+    code_order: row.code_order,
+    status: row.status,
+    weight: toNumber(row.weight),
+    progress_percentage: toNumber(row.progress_percentage),
+    target_percentage: toNumber(row.target_percentage),
+    start_date: row.start_date,
+    end_date: row.end_date,
+    target_end_date: row.target_end_date,
+    output: row.output,
+    indicator: row.indicator,
+    is_blocked: row.is_blocked,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
+// ═════════════════════════════════════════════
+//  CREATE ACTION PLAN
+// ═════════════════════════════════════════════
+
+/**
+ * POST /api/action-plans
+ *
+ * Body:
+ *  - activity_group_id    (required)
+ *  - name                 (required)
+ *  - code_order           (optional)
+ *  - pic_user_id          (optional)
+ *  - target_percentage    (optional)
+ *  - start_date           (optional)
+ *  - target_end_date      (optional)
+ *  - output               (optional)
+ *  - indicator            (optional)
+ */
+async function createActionPlan(user, payload) {
+  const {
+    activity_group_id,
+    name,
+    code_order,
+    pic_user_id,
+    target_percentage,
+    start_date,
+    target_end_date,
+    output,
+    indicator,
+  } = payload;
+
+  if (!activity_group_id || !name) {
+    const error = new Error("activity_group_id dan name wajib diisi");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // Verify activity group exists
+    const agCheck = await client.query(
+      "SELECT id FROM activity_groups WHERE id = $1",
+      [activity_group_id],
+    );
+
+    if (agCheck.rowCount === 0) {
+      const error = new Error("Activity group tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const result = await client.query(
+      `
+        INSERT INTO action_plans (
+          activity_group_id, pic_user_id, name, code_order,
+          status, weight, progress_percentage, target_percentage,
+          start_date, end_date, target_end_date,
+          output, indicator, is_blocked
+        )
+        VALUES (
+          $1, $2, $3, $4,
+          'belum mulai', 0, 0, $5,
+          $6, NULL, $7,
+          $8, $9, FALSE
+        )
+        RETURNING *
+      `,
+      [
+        activity_group_id,
+        pic_user_id || null,
+        name,
+        code_order || null,
+        target_percentage || null,
+        start_date || null,
+        target_end_date || null,
+        output || null,
+        indicator || null,
+      ],
+    );
+
+    const ap = result.rows[0];
+
+    // ── Riwayat Aktivitas ──
+    await logHistory(
+      client,
+      ap.id,
+      user.id,
+      `Membuat rencana aksi baru: ${name}`,
+    );
+
+    await client.query("COMMIT");
+
+    return formatActionPlanRow(ap);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+// ═════════════════════════════════════════════
+//  UPDATE ACTION PLAN
+// ═════════════════════════════════════════════
+
+/**
+ * PUT /api/action-plans/:actionPlanId
+ *
+ * Body (all optional):
+ *  - name
+ *  - code_order
+ *  - pic_user_id
+ *  - status
+ *  - weight
+ *  - progress_percentage
+ *  - target_percentage
+ *  - start_date
+ *  - end_date
+ *  - target_end_date
+ *  - output
+ *  - indicator
+ *  - is_blocked
+ */
+async function updateActionPlan(user, actionPlanId, payload) {
+  const ALLOWED_STATUS = ["belum mulai", "dalam progres", "selesai", "terlambat"];
+
+  if (payload.status !== undefined && !ALLOWED_STATUS.includes(payload.status)) {
+    const error = new Error(
+      `Status tidak valid. Gunakan: ${ALLOWED_STATUS.join(", ")}`,
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // Lock & verify
+    const existing = await client.query(
+      `
+        SELECT ap.*
+        FROM action_plans ap
+        JOIN activity_groups ag ON ag.id = ap.activity_group_id
+        JOIN strategies s ON s.id = ag.strategy_id
+        JOIN aspects a ON a.id = s.aspect_id
+        JOIN companies c ON c.id = a.company_id
+        WHERE ap.id = $1 AND c.company_type = 'bumd'
+        FOR UPDATE
+      `,
+      [actionPlanId],
+    );
+
+    if (existing.rowCount === 0) {
+      const error = new Error("Rencana aksi tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const old = existing.rows[0];
+
+    // ── Build SET dynamically ──
+    const FIELDS = [
+      "name", "code_order", "pic_user_id", "status", "weight",
+      "progress_percentage", "target_percentage",
+      "start_date", "end_date", "target_end_date",
+      "output", "indicator", "is_blocked",
+    ];
+
+    const sets = [];
+    const values = [];
+    const changes = [];
+    let paramIndex = 1;
+
+    for (const field of FIELDS) {
+      if (payload[field] !== undefined) {
+        sets.push(`${field} = $${paramIndex++}`);
+        values.push(payload[field]);
+
+        // Track what changed for history
+        const oldVal = old[field];
+        const newVal = payload[field];
+
+        if (String(oldVal) !== String(newVal)) {
+          changes.push(`${field}: "${oldVal ?? "-"}" → "${newVal}"`);
+        }
+      }
+    }
+
+    if (sets.length === 0) {
+      const error = new Error("Tidak ada data yang diubah");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    sets.push("updated_at = CURRENT_TIMESTAMP");
+    values.push(actionPlanId);
+
+    const result = await client.query(
+      `
+        UPDATE action_plans
+        SET ${sets.join(", ")}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `,
+      values,
+    );
+
+    // ── Riwayat Aktivitas ──
+    if (changes.length > 0) {
+      const description =
+        `Memperbarui rencana aksi "${old.name}": ${changes.join("; ")}`;
+
+      await logHistory(client, actionPlanId, user.id, description);
+    }
+
+    await client.query("COMMIT");
+
+    return formatActionPlanRow(result.rows[0]);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+// ═════════════════════════════════════════════
+//  DELETE ACTION PLAN
+// ═════════════════════════════════════════════
+
+/**
+ * DELETE /api/action-plans/:actionPlanId
+ *
+ * Tidak bisa dihapus jika masih ada sub action plan.
+ * History tetap dicatat sebelum penghapusan.
+ */
+async function deleteActionPlan(user, actionPlanId) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const existing = await client.query(
+      `
+        SELECT ap.id, ap.name, ap.activity_group_id
+        FROM action_plans ap
+        JOIN activity_groups ag ON ag.id = ap.activity_group_id
+        JOIN strategies s ON s.id = ag.strategy_id
+        JOIN aspects a ON a.id = s.aspect_id
+        JOIN companies c ON c.id = a.company_id
+        WHERE ap.id = $1 AND c.company_type = 'bumd'
+        FOR UPDATE
+      `,
+      [actionPlanId],
+    );
+
+    if (existing.rowCount === 0) {
+      const error = new Error("Rencana aksi tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const ap = existing.rows[0];
+
+    // Check for child sub action plans
+    const childCheck = await client.query(
+      "SELECT COUNT(*)::INT AS count FROM sub_action_plans WHERE action_plan_id = $1",
+      [actionPlanId],
+    );
+
+    if (Number(childCheck.rows[0].count) > 0) {
+      const error = new Error(
+        `Rencana aksi tidak bisa dihapus karena masih memiliki ${childCheck.rows[0].count} sub rencana aksi`,
+      );
+      error.statusCode = 422;
+      throw error;
+    }
+
+    // Delete related data (cascades handle documents, kpis, history)
+    // But we log first before deleting
+    await logHistory(
+      client,
+      null, // action_plan will be deleted, set null to avoid FK violation
+      user.id,
+      `Menghapus rencana aksi: ${ap.name} (ID: ${ap.id})`,
+    );
+
+    // Clean up history pointing to this action_plan (set to null)
+    await client.query(
+      "UPDATE history_activities SET action_plan_id = NULL WHERE action_plan_id = $1",
+      [actionPlanId],
+    );
+
+    await client.query("DELETE FROM action_plans WHERE id = $1", [
+      actionPlanId,
+    ]);
+
+    await client.query("COMMIT");
+
+    return {
+      deleted_id: Number(actionPlanId),
+      deleted_name: ap.name,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 module.exports = {
   getActionPlanDetail,
+  createActionPlan,
+  updateActionPlan,
+  deleteActionPlan,
 };
+

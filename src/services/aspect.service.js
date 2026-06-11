@@ -474,6 +474,246 @@ function buildStrategyTree(strategies, activityGroups, actionPlans) {
   }));
 }
 
+// ═════════════════════════════════════════════
+//  CREATE ASPECT
+// ═════════════════════════════════════════════
+
+/**
+ * POST /api/aspects
+ *
+ * Body:
+ *  - name                 (required)
+ *  - target_percentage    (required)
+ *  - company_id           (optional — defaults to user's company_id)
+ *
+ * weight, progress_percentage, status diturunkan dari strategy.
+ */
+async function createAspect(user, payload) {
+  const { name, target_percentage, company_id } = payload;
+
+  if (!name) {
+    const error = new Error("Nama aspek wajib diisi");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (target_percentage === undefined || target_percentage === null) {
+    const error = new Error("Target percentage wajib diisi");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const targetCompanyId = isHqUser(user)
+    ? (company_id || user.company_id)
+    : user.company_id;
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const companyCheck = await client.query(
+      "SELECT id FROM companies WHERE id = $1 AND company_type = 'bumd'",
+      [targetCompanyId],
+    );
+
+    if (companyCheck.rowCount === 0) {
+      const error = new Error("Company BUMD tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const result = await client.query(
+      `
+        INSERT INTO aspects (
+          company_id, name, status,
+          weight, progress_percentage, target_percentage
+        )
+        VALUES ($1, $2, 'belum mulai', 0, 0, $3)
+        RETURNING *
+      `,
+      [targetCompanyId, name, target_percentage],
+    );
+
+    await client.query("COMMIT");
+
+    return formatAspect(result.rows[0]);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+// ═════════════════════════════════════════════
+//  UPDATE ASPECT
+// ═════════════════════════════════════════════
+
+/**
+ * PUT /api/aspects/:aspectId
+ *
+ * Body:
+ *  - name                 (optional)
+ *  - target_percentage    (optional)
+ *
+ * weight, progress_percentage, status diturunkan dari strategy.
+ */
+async function updateAspect(user, aspectId, payload) {
+  const { name, target_percentage } = payload;
+  const companyScopeId = getCompanyScope(user);
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const existing = await client.query(
+      `
+        SELECT a.id, a.company_id
+        FROM aspects a
+        JOIN companies c ON c.id = a.company_id
+        WHERE
+          a.id = $1
+          AND c.company_type = 'bumd'
+          AND ($2::BIGINT IS NULL OR a.company_id = $2)
+        FOR UPDATE
+      `,
+      [aspectId, companyScopeId],
+    );
+
+    if (existing.rowCount === 0) {
+      const error = new Error("Aspek tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const sets = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (name !== undefined) {
+      sets.push(`name = $${paramIndex++}`);
+      values.push(name);
+    }
+
+    if (target_percentage !== undefined) {
+      sets.push(`target_percentage = $${paramIndex++}`);
+      values.push(target_percentage);
+    }
+
+    if (sets.length === 0) {
+      const error = new Error("Tidak ada data yang diubah");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    sets.push("updated_at = CURRENT_TIMESTAMP");
+    values.push(aspectId);
+
+    const result = await client.query(
+      `
+        UPDATE aspects
+        SET ${sets.join(", ")}
+        WHERE id = $${paramIndex}
+        RETURNING *
+      `,
+      values,
+    );
+
+    await client.query("COMMIT");
+
+    return formatAspect(result.rows[0]);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+// ═════════════════════════════════════════════
+//  DELETE ASPECT
+// ═════════════════════════════════════════════
+
+async function deleteAspect(user, aspectId) {
+  const companyScopeId = getCompanyScope(user);
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const existing = await client.query(
+      `
+        SELECT a.id, a.name
+        FROM aspects a
+        JOIN companies c ON c.id = a.company_id
+        WHERE
+          a.id = $1
+          AND c.company_type = 'bumd'
+          AND ($2::BIGINT IS NULL OR a.company_id = $2)
+        FOR UPDATE
+      `,
+      [aspectId, companyScopeId],
+    );
+
+    if (existing.rowCount === 0) {
+      const error = new Error("Aspek tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const childCheck = await client.query(
+      "SELECT COUNT(*)::INT AS count FROM strategies WHERE aspect_id = $1",
+      [aspectId],
+    );
+
+    if (Number(childCheck.rows[0].count) > 0) {
+      const error = new Error(
+        `Aspek tidak bisa dihapus karena masih memiliki ${childCheck.rows[0].count} strategi`,
+      );
+      error.statusCode = 422;
+      throw error;
+    }
+
+    await client.query("DELETE FROM aspects WHERE id = $1", [aspectId]);
+
+    await client.query("COMMIT");
+
+    return {
+      deleted_id: Number(aspectId),
+      deleted_name: existing.rows[0].name,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+// ─────────────────────────────────────────────
+//  FORMAT HELPER
+// ─────────────────────────────────────────────
+
+function formatAspect(row) {
+  return {
+    aspect_id: Number(row.id),
+    company_id: Number(row.company_id),
+    name: row.name,
+    status: row.status,
+    weight: toNumber(row.weight),
+    progress_percentage: toNumber(row.progress_percentage),
+    target_percentage: toNumber(row.target_percentage),
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
 module.exports = {
   getAspectDetail,
+  createAspect,
+  updateAspect,
+  deleteAspect,
 };
+

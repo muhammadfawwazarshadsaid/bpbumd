@@ -45,4 +45,104 @@ router.get("/:aspectId", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/aspects
+ *
+ * Body:
+ *  - name                 (required)
+ *  - company_id           (optional — defaults to user's company_id)
+ *  - status               (optional — defaults to 'belum mulai')
+ *  - weight               (optional)
+ *  - progress_percentage  (optional)
+ *  - target_percentage    (optional)
+ */
+router.post("/", authMiddleware, async (req, res) => {
+  try {
+    const data = await aspectService.createAspect(req.user, req.body);
+
+    res.status(201).json({
+      success: true,
+      message: "Aspek berhasil dibuat",
+      data,
+    });
+  } catch (error) {
+    console.error("Create aspect error:", error);
+
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal membuat aspek",
+    });
+  }
+});
+
+/**
+ * PUT /api/aspects/:aspectId
+ *
+ * Body:
+ *  - name                 (optional)
+ *  - status               (optional)
+ *  - weight               (optional)
+ *  - progress_percentage  (optional)
+ *  - target_percentage    (optional)
+ */
+router.put("/:aspectId", authMiddleware, async (req, res) => {
+  try {
+    const aspectId = Number(req.params.aspectId);
+
+    if (!aspectId || isNaN(aspectId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Parameter aspectId harus berupa angka",
+      });
+    }
+
+    const data = await aspectService.updateAspect(req.user, aspectId, req.body);
+
+    res.json({
+      success: true,
+      message: "Aspek berhasil diubah",
+      data,
+    });
+  } catch (error) {
+    console.error("Update aspect error:", error);
+
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal mengubah aspek",
+    });
+  }
+});
+
+/**
+ * DELETE /api/aspects/:aspectId
+ */
+router.delete("/:aspectId", authMiddleware, async (req, res) => {
+  try {
+    const aspectId = Number(req.params.aspectId);
+
+    if (!aspectId || isNaN(aspectId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Parameter aspectId harus berupa angka",
+      });
+    }
+
+    const data = await aspectService.deleteAspect(req.user, aspectId);
+
+    res.json({
+      success: true,
+      message: "Aspek berhasil dihapus",
+      data,
+    });
+  } catch (error) {
+    console.error("Delete aspect error:", error);
+
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal menghapus aspek",
+    });
+  }
+});
+
 module.exports = router;
+
