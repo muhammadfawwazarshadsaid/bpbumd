@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BPBUMD Control Tower — Dashboard Progres Aspek</title>
+  <meta name="description" content="Dashboard progres aspek BPBUMD Control Tower - Platform Pemantauan Rencana Aksi" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --sidebar-icon-w: 64px;
+      --navy: #0F2044;
+      --navy-mid: #1B3A6B;
+      --sky: #0EA5E9;
+      --emerald: #10B981;
+      --amber: #F59E0B;
+      --rose: #EF4444;
+      --violet: #8B5CF6;
+      --slate-50: #F8FAFC;
+      --slate-100: #F1F5F9;
+      --slate-200: #E2E8F0;
+      --slate-300: #CBD5E1;
+      --slate-400: #94A3B8;
+      --slate-500: #64748B;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-900: #0F172A;
+    }
+
+    html {
+      font-size: 14px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #F0F4FA;
+      color: var(--slate-900);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── TOP NAVBAR ─────────────────────────────── */
+    .topnav {
+      background: white;
+      border-bottom: 1px solid var(--slate-200);
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      margin-right: 8px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #0EA5E9, #0F2044);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: white;
+    }
+
+    .brand-text .t1 {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: 0.3px;
+    }
+
+    .brand-text .t2 {
+      font-size: 10px;
+      color: var(--slate-400);
+      margin-top: 1px;
+      font-weight: 500;
+    }
+
+    .brand-divider {
+      width: 1px;
+      height: 32px;
+      background: var(--slate-200);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--slate-700);
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      color: var(--slate-400);
+      margin-top: 1px;
+    }
+
+    .nav-search {
+      flex: 1;
+      max-width: 280px;
+      margin-left: auto;
+      position: relative;
+    }
+
+    .nav-search input {
+      width: 100%;
+      padding: 7px 12px 7px 34px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      background: var(--slate-50);
+      outline: none;
+      color: var(--slate-700);
+    }
+
+    .nav-search input:focus {
+      border-color: var(--sky);
+      background: white;
+    }
+
+    .nav-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--slate-400);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      margin-left: 12px;
+    }
+
+    .nav-tab {
+      padding: 7px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--slate-500);
+      transition: all 0.18s;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .nav-tab:hover {
+      background: var(--slate-100);
+      color: var(--slate-700);
+    }
+
+    .nav-tab.active {
+      background: var(--navy);
+      color: white;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: 12px;
+      flex-shrink: 0;
+    }
+
+    .notif-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1.5px solid var(--slate-200);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--slate-500);
+      position: relative;
+    }
+
+    .notif-btn .badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--rose);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+    }
+
+    .user-avatar-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0EA5E9, #0F2044);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+    }
+
+    /* ── BODY LAYOUT ─────────────────────────────── */
+    .body-wrap {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ── ICON SIDEBAR ────────────────────────────── */
+    .icon-sidebar {
+      width: var(--sidebar-icon-w);
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      gap: 4px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+    }
+
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.45);
+      transition: all 0.18s;
+      text-decoration: none;
+      border: none;
+      background: none;
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .icon-btn.active {
+      background: rgba(14, 165, 233, 0.2);
+      color: var(--sky);
+    }
+
+    .icon-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .icon-sidebar-bottom {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+      padding-bottom: 8px;
+    }
+
+    /* ── MAIN AREA ───────────────────────────────── */
+    .main-area {
+      flex: 1;
+      min-width: 0;
+      padding: 24px 28px;
+      overflow-y: auto;
+    }
+
+    /* PAGE HEADING */
+    .page-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .page-heading-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.3px;
+    }
+
+    /* ── SUMMARY KPI CARDS ──────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px 20px;
+      border: 1px solid var(--slate-200);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .kpi-card.progress-card {
+      border-left: 4px solid var(--amber);
+    }
+
+    .kpi-card.progress-card::before {
+      display: none;
+    }
+
+    .kpi-card.late-card {
+      border-left: 4px solid var(--rose);
+    }
+
+    .kpi-card.late-card::before {
+      display: none;
+    }
+
+    .kpi-card.blue::before {
+      background: linear-gradient(90deg, #0EA5E9, #38BDF8);
+    }
+
+    .kpi-card.green::before {
+      background: linear-gradient(90deg, #10B981, #34D399);
+    }
+
+    .kpi-card.amber::before {
+      background: linear-gradient(90deg, #F59E0B, #FCD34D);
+    }
+
+    .kpi-card.navy::before {
+      background: linear-gradient(90deg, #0F2044, #1B3A6B);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--slate-400);
+      margin-bottom: 12px;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -1px;
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 6px;
+    }
+
+    /* Progress card specific */
+    .progress-donut-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .donut-container {
+      width: 80px;
+      height: 80px;
+      position: relative;
+    }
+
+    .donut-container svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .donut-track {
+      fill: none;
+      stroke: var(--slate-100);
+      stroke-width: 8;
+    }
+
+    .donut-fill {
+      fill: none;
+      stroke: var(--amber);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.8s ease;
+    }
+
+    .donut-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--slate-900);
+    }
+
+    .progress-meta {
+      font-size: 12px;
+      color: var(--slate-500);
+    }
+
+    .progress-meta .target {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 2px;
+    }
+
+    /* Late card */
+    .late-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--rose);
+      letter-spacing: -1px;
+    }
+
+    .late-sub {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 4px;
+    }
+
+    /* ── PROGRESS PER ASPEK SECTION ──────────────── */
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.2px;
+      margin-bottom: 20px;
+    }
+
+    .company-selector {
+      background: white;
+      border-radius: 14px;
+      border: 1px solid var(--slate-200);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .company-tabs {
+      display: flex;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--slate-100);
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .company-dropdown-wrap {
+      position: relative;
+    }
+
+    .company-dropdown {
+      padding: 8px 32px 8px 14px;
+      border: 1.5px solid var(--slate-200);
+      border-radius: 10px;
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 600;
+      color: var(--slate-700);
+      background: white;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2.5'%3E%3Cpolyline points='6,9 12,15 18,9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      min-width: 160px;
+    }
+
+    .company-dropdown:focus {
+      border-color: var(--sky);
+    }
+
+    .company-logo-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .company-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--amber), #FCD34D);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    /* Overall company progress */
+    .company-overall {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--slate-100);
+    }
+
+    .overall-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--slate-500);
+      margin-bottom: 8px;
+    }
+
+    .overall-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .overall-pct {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--slate-900);
+      min-width: 60px;
+    }
+
+    .overall-bar-wrap {
+      flex: 1;
+      height: 14px;
+      background: var(--slate-100);
+      border-radius: 7px;
+      overflow: hidden;
+      max-width: 300px;
+    }
+
+    .overall-bar-fill {
+      height: 100%;
+      border-radius: 7px;
+      transition: width 0.6s ease;
+    }
+
+    .overall-ra-info {
+      font-size: 12px;
+      color: var(--slate-400);
+    }
+
+    .overall-target {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: 4px;
+    }
+
+    /* Aspect table */
+    .aspect-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .aspect-table thead th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--slate-400);
+      background: var(--slate-50);
+      border-bottom: 1px solid var(--slate-200);
+    }
+
+    .aspect-table thead th:first-child {
+      padding-left: 24px;
+    }
+
+    .aspect-table thead th:last-child {
+      padding-right: 24px;
+    }
+
+    .aspect-table tbody tr {
+      border-bottom: 1px solid var(--slate-100);
+      transition: background 0.15s;
+    }
+
+    .aspect-table tbody tr:hover {
+      background: var(--slate-50);
+    }
+
+    .aspect-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .aspect-table tbody td {
+      padding: 16px 16px;
+      font-size: 13px;
+      color: var(--slate-600);
+      vertical-align: middle;
+    }
+
+    .aspect-table tbody td:first-child {
+      padding-left: 24px;
+    }
+
+    .aspect-table tbody td:last-child {
+      padding-right: 24px;
+    }
+
+    .aspect-name {
+      font-weight: 600;
+      color: var(--slate-700);
+      font-size: 13px;
+      max-width: 240px;
+    }
+
+    .aspect-prog-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 180px;
+    }
+
+    .aspect-prog-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .aspect-prog-pct {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--slate-900);
+      min-width: 42px;
+    }
+
+    .aspect-prog-bar-wrap {
+      flex: 1;
+      height: 10px;
+      background: var(--slate-100);
+      border-radius: 5px;
+      overflow: hidden;
+      min-width: 80px;
+      max-width: 140px;
+    }
+
+    .aspect-prog-bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.6s ease;
+    }
+
+    .aspect-prog-target {
+      font-size: 10px;
+      color: var(--slate-400);
+      margin-top: 1px;
+    }
+
+    .td-num {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--slate-700);
+      text-align: center;
+    }
+
+    .btn-lihat-detail {
+      padding: 7px 14px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .btn-lihat-detail:hover {
+      background: var(--navy-mid);
+      box-shadow: 0 4px 12px rgba(15, 32, 68, 0.25);
+    }
+
+    /* Loading states */
+    .loading-skeleton {
+      background: linear-gradient(90deg, var(--slate-100) 25%, var(--slate-200) 50%, var(--slate-100) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0;
+      }
+
+      100% {
+        background-position: 200% 0;
+      }
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--slate-400);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      color: var(--slate-300);
+      margin-bottom: 12px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--slate-200);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--slate-400);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .kpi-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP NAVBAR -->
+  <nav class="topnav" id="topnav">
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24">
+          <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="t1">BPBUMD</div>
+        <div class="t2">Control Tower</div>
+      </div>
+    </div>
+    <div class="brand-divider"></div>
+    <div>
+      <div class="brand-title">CONTROL TOWER</div>
+      <div class="brand-sub">Platform Pemantauan Rencana Aksi</div>
+    </div>
+
+    <div class="nav-search">
+      <span class="nav-search-icon">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </span>
+      <input type="text" placeholder="Search" />
+    </div>
+
+    <div class="nav-tabs">
+      <a class="nav-tab active" href="/dashboard-aspek.html">Dashboard</a>
+      <a class="nav-tab" href="/aspek.html">Aspek</a>
+      <a class="nav-tab" href="/rencana-aksi.html">Rencana Aksi</a>
+    </div>
+
+    <div class="nav-right">
+      <button class="notif-btn" id="notifBtn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        <span class="badge">2</span>
+      </button>
+      <button class="user-avatar-btn" id="userAvatarBtn">A</button>
+    </div>
+  </nav>
+
+  <div class="body-wrap">
+    <!-- ICON SIDEBAR -->
+    <aside class="icon-sidebar">
+      <a class="icon-btn active" href="/dashboard-aspek.html" title="Dashboard">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+      </a>
+      <a class="icon-btn" href="/aspek.html" title="Aspek">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9,22 9,12 15,12 15,22" />
+        </svg>
+      </a>
+      <a class="icon-btn" title="Laporan">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14,2 14,8 20,8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+          <polyline points="10,9 9,9 8,9" />
+        </svg>
+      </a>
+
+      <div class="icon-sidebar-bottom">
+        <a class="icon-btn" title="Bantuan">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </a>
+        <a class="icon-btn" title="Keluar" onclick="BPBUMDAuth.logout()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16,17 21,12 16,7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <main class="main-area">
+
+      <!-- PAGE HEADING -->
+      <div class="page-heading">
+        <div class="page-heading-title">DASHBOARD</div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid" id="kpiGrid">
+        <!-- Card: Progres -->
+        <div class="kpi-card progress-card">
+          <div class="kpi-label">Progres</div>
+          <div class="progress-donut-wrap">
+            <div class="donut-container">
+              <svg viewBox="0 0 80 80">
+                <circle class="donut-track" cx="40" cy="40" r="32" />
+                <circle class="donut-fill" id="donutFill" cx="40" cy="40" r="32" stroke-dasharray="0 201" />
+              </svg>
+              <div class="donut-center" id="donutPct">0%</div>
+            </div>
+            <div class="progress-meta">
+              <div>Selesai</div>
+              <div class="target" id="progressTarget">Target: 0%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Terlambat -->
+        <div class="kpi-card late-card">
+          <div class="kpi-label">Terlambat</div>
+          <div class="late-value" id="terlambatValue">0</div>
+          <div class="late-sub">Rencana Aksi</div>
+        </div>
+
+        <!-- Card: Total Aspek -->
+        <div class="kpi-card blue">
+          <div class="kpi-label">Total Aspek</div>
+          <div class="kpi-value" id="totalAspek">0</div>
+          <div class="kpi-sub">Aspek Strategis</div>
+        </div>
+
+        <!-- Card: Total Strategi -->
+        <div class="kpi-card navy">
+          <div class="kpi-label">Total Strategi</div>
+          <div class="kpi-value" id="totalStrategi">0</div>
+          <div class="kpi-sub">Strategi</div>
+        </div>
+
+        <!-- Card: Total Rencana Aksi -->
+        <div class="kpi-card green">
+          <div class="kpi-label">Total Rencana Aksi</div>
+          <div class="kpi-value" id="totalRA">0</div>
+          <div class="kpi-sub">Rencana Aksi</div>
+        </div>
+
+        <!-- Card: Total Sub Rencana Aksi -->
+        <div class="kpi-card amber">
+          <div class="kpi-label">Total Sub Rencana Aksi</div>
+          <div class="kpi-value" id="totalSubRA">0</div>
+          <div class="kpi-sub">Sub Rencana Aksi</div>
+        </div>
+      </div>
+
+      <!-- PROGRESS PER ASPEK -->
+      <div class="section-title">PROGRESS PER ASPEK</div>
+
+      <div class="company-selector" id="companySelector">
+        <div class="company-tabs">
+          <div class="company-dropdown-wrap">
+            <select class="company-dropdown" id="companyDropdown" onchange="selectCompany(this.value)">
+              <option value="">Pilih BUMD...</option>
+            </select>
+          </div>
+          <div class="company-logo-name" id="companyLogoName" style="display:none;">
+            <div class="company-logo-icon" id="companyLogoIcon">🏢</div>
+            <span id="companyDisplayName">—</span>
+          </div>
+        </div>
+
+        <!-- Company overall progress -->
+        <div class="company-overall" id="companyOverall" style="display:none;">
+          <div class="overall-label">Progres</div>
+          <div class="overall-row">
+            <div class="overall-pct" id="overallPct">0%</div>
+            <div class="overall-bar-wrap">
+              <div class="overall-bar-fill" id="overallBarFill" style="width:0%"></div>
+            </div>
+            <div class="overall-ra-info" id="overallRAInfo"></div>
+          </div>
+          <div class="overall-target" id="overallTarget">Target: 0%</div>
+        </div>
+
+        <!-- Aspect Table -->
+        <div id="aspectTableWrap">
+          <table class="aspect-table" id="aspectTable" style="display:none;">
+            <thead>
+              <tr>
+                <th>Aspek</th>
+                <th>Progres</th>
+                <th style="text-align:center;">Total</th>
+                <th style="text-align:center;">Selesai</th>
+                <th style="text-align:center;">Dalam Progres</th>
+                <th style="text-align:center;">Terlambat</th>
+                <th style="text-align:center;">Belum Mulai</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="aspectTableBody">
+            </tbody>
+          </table>
+
+          <!-- Empty state -->
+          <div class="empty-state" id="emptyState">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9,22 9,12 15,12 15,22" />
+            </svg>
+            <p>Pilih BUMD untuk melihat progres per aspek</p>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /body-wrap -->
+
+  <script src="/auth.js"></script>
+  <script>
+    // ── DATA STORE ───────────────────────────────────────────
+    let dashboardData = null;
+    let selectedCompanyId = null;
+
+    // ── INIT ─────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async function () {
+      const user = await BPBUMDAuth.requireAuth();
+      document.getElementById('userAvatarBtn').textContent = user.name.charAt(0).toUpperCase();
+
+      await loadDashboardData();
+    });
+
+    // ── LOAD DATA ─────────────────────────────────────────────
+    async function loadDashboardData() {
+      try {
+        const response = await fetch('/api/dashboard/summary', {
+          credentials: 'same-origin'
+        });
+
+        if (!response.ok) throw new Error('Failed to load dashboard data');
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          dashboardData = result.data;
+          renderKPICards(dashboardData.cards);
+          renderCompanyDropdown(dashboardData.companies);
+
+          // If only one company (scoped user), auto-select it
+          if (dashboardData.companies.length === 1) {
+            const companyId = dashboardData.companies[0].company_id;
+            document.getElementById('companyDropdown').value = companyId;
+            selectCompany(companyId);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+      }
+    }
+
+    // ── RENDER KPI CARDS ──────────────────────────────────────
+    function renderKPICards(cards) {
+      if (!cards) return;
+
+      // Progress donut
+      const pct = Math.round(cards.progress_percentage);
+      const circumference = 2 * Math.PI * 32; // r=32
+      const fillLength = (pct / 100) * circumference;
+      document.getElementById('donutFill').setAttribute('stroke-dasharray', `${fillLength} ${circumference}`);
+      document.getElementById('donutPct').textContent = pct + '%';
+      document.getElementById('progressTarget').textContent = 'Target: ' + Math.round(cards.target_percentage) + '%';
+
+      // Terlambat
+      document.getElementById('terlambatValue').textContent = cards.terlambat;
+
+      // Counts
+      document.getElementById('totalAspek').textContent = cards.total_aspek;
+      document.getElementById('totalStrategi').textContent = cards.total_strategi;
+      document.getElementById('totalRA').textContent = cards.total_rencana_aksi;
+      document.getElementById('totalSubRA').textContent = cards.total_sub_rencana_aksi;
+    }
+
+    // ── RENDER COMPANY DROPDOWN ─────────────────────────────
+    function renderCompanyDropdown(companies) {
+      const dropdown = document.getElementById('companyDropdown');
+      dropdown.innerHTML = '<option value="">Pilih BUMD...</option>';
+
+      companies.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.company_id;
+        opt.textContent = c.company_name;
+        dropdown.appendChild(opt);
+      });
+    }
+
+    // ── SELECT COMPANY ──────────────────────────────────────
+    function selectCompany(companyId) {
+      if (!companyId || !dashboardData) {
+        document.getElementById('companyLogoName').style.display = 'none';
+        document.getElementById('companyOverall').style.display = 'none';
+        document.getElementById('aspectTable').style.display = 'none';
+        document.getElementById('emptyState').style.display = '';
+        return;
+      }
+
+      selectedCompanyId = Number(companyId);
+      const company = dashboardData.companies.find(c => c.company_id === selectedCompanyId);
+      if (!company) return;
+
+      // Company name display
+      const logoName = document.getElementById('companyLogoName');
+      logoName.style.display = 'flex';
+      document.getElementById('companyDisplayName').textContent = company.company_name.toUpperCase();
+      document.getElementById('companyLogoIcon').textContent = company.company_name.charAt(0);
+
+      // Overall progress
+      const overallEl = document.getElementById('companyOverall');
+      overallEl.style.display = '';
+
+      const overallPct = Math.round(company.cards.progress_percentage);
+      document.getElementById('overallPct').textContent = overallPct + '%';
+
+      const barFill = document.getElementById('overallBarFill');
+      barFill.style.width = overallPct + '%';
+      barFill.style.background = getProgressBarGradient(overallPct, Math.round(company.cards.target_percentage));
+
+      const selesaiRA = company.cards.selesai || 0;
+      const totalRA = company.cards.total_rencana_aksi || 0;
+      document.getElementById('overallRAInfo').textContent = '(' + selesaiRA + ' / ' + totalRA + ') rencana aktivitas';
+      document.getElementById('overallTarget').textContent = 'Target: ' + Math.round(company.cards.target_percentage) + '%';
+
+      // Render aspect table
+      renderAspectTable(company.progress_per_aspect, company.company_id, company.company_name);
+    }
+
+    // ── RENDER ASPECT TABLE ────────────────────────────────
+    function renderAspectTable(aspects, companyId, companyName) {
+      const tbody = document.getElementById('aspectTableBody');
+      const table = document.getElementById('aspectTable');
+      const emptyState = document.getElementById('emptyState');
+
+      if (!aspects || aspects.length === 0) {
+        table.style.display = 'none';
+        emptyState.innerHTML = `
+          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9,22 9,12 15,12 15,22" />
+          </svg>
+          <p>Belum ada aspek untuk BUMD ini</p>`;
+        emptyState.style.display = '';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      table.style.display = '';
+
+      tbody.innerHTML = aspects.map((asp, i) => {
+        const pct = Math.round(asp.progress_percentage);
+        const target = Math.round(asp.target_percentage);
+        const barColor = getBarColor(pct, target);
+
+        return `
+          <tr>
+            <td>
+              <div class="aspect-name">${i + 1}. ${asp.aspect_name}</div>
+            </td>
+            <td>
+              <div class="aspect-prog-cell">
+                <div class="aspect-prog-row">
+                  <span class="aspect-prog-pct">${pct}%</span>
+                  <div class="aspect-prog-bar-wrap">
+                    <div class="aspect-prog-bar-fill" style="width:${pct}%;background:${barColor};"></div>
+                  </div>
+                </div>
+                <div class="aspect-prog-target">Target: ${target}%</div>
+              </div>
+            </td>
+            <td class="td-num">${asp.total}</td>
+            <td class="td-num">${asp.selesai}</td>
+            <td class="td-num">${asp.dalam_progres}</td>
+            <td class="td-num">${asp.terlambat}</td>
+            <td class="td-num">${asp.belum_mulai}</td>
+            <td>
+              <button class="btn-lihat-detail" onclick="goToAspekDetail(${asp.aspect_id}, '${encodeURIComponent(asp.aspect_name)}')">Lihat Detail</button>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    // ── HELPERS ────────────────────────────────────────────
+    function getBarColor(pct, target) {
+      if (pct >= target) return 'var(--emerald)';
+      if (pct >= target * 0.8) return 'var(--amber)';
+      return 'var(--rose)';
+    }
+
+    function getProgressBarGradient(pct, target) {
+      if (pct >= target) return 'linear-gradient(90deg, var(--emerald), #34D399)';
+      if (pct >= target * 0.8) return 'linear-gradient(90deg, var(--amber), #FCD34D)';
+      return 'linear-gradient(90deg, var(--rose), #F87171)';
+    }
+
+    function goToAspekDetail(aspectId, aspectName) {
+      window.location.href = '/aspek.html?id=' + aspectId + '&name=' + aspectName;
+    }
+  </script>
+
+</body>
+
+</html>

@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BPBUMD Control Tower — Aspek</title>
+  <meta name="description" content="Detail aspek strategis BPBUMD Control Tower - Platform Pemantauan Rencana Aksi" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
@@ -380,6 +381,12 @@
       padding: 18px 20px;
       border: 1px solid var(--slate-200);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .sum-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     }
 
     .sum-card.progress-card {
@@ -594,7 +601,7 @@
       white-space: nowrap;
     }
 
-    .status-pill.dalam-progress {
+    .status-pill.dalam-progres {
       background: #DBEAFE;
       color: #1D4ED8;
     }
@@ -621,7 +628,7 @@
       border-radius: 50%;
     }
 
-    .status-pill.dalam-progress::before {
+    .status-pill.dalam-progres::before {
       background: #1D4ED8;
     }
 
@@ -797,23 +804,100 @@
       background: var(--navy-mid);
     }
 
-    /* SEE ALL LINK */
-    .see-all-link {
-      display: inline-flex;
+    /* LOADING STATE */
+    .loading-container {
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 4px;
-      margin-top: 10px;
-      margin-left: 18px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--sky);
-      cursor: pointer;
-      text-decoration: none;
-      padding: 4px 0;
+      justify-content: center;
+      padding: 80px 24px;
+      gap: 16px;
     }
 
-    .see-all-link:hover {
-      text-decoration: underline;
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--slate-200);
+      border-top-color: var(--sky);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .loading-text {
+      font-size: 14px;
+      color: var(--slate-400);
+      font-weight: 500;
+    }
+
+    /* ERROR STATE */
+    .error-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px;
+      gap: 16px;
+    }
+
+    .error-icon {
+      width: 56px;
+      height: 56px;
+      background: #FEE2E2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--rose);
+    }
+
+    .error-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .error-message {
+      font-size: 13px;
+      color: var(--slate-400);
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .btn-retry {
+      padding: 10px 20px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 8px;
+      transition: background 0.18s;
+    }
+
+    .btn-retry:hover {
+      background: var(--navy-mid);
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--slate-400);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      color: var(--slate-300);
+      margin-bottom: 12px;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      font-weight: 500;
     }
 
     /* RENCANA AKSI DETAIL MODAL */
@@ -1028,59 +1112,6 @@
       text-align: right;
     }
 
-    .milestone-list {
-      list-style: none;
-    }
-
-    .milestone-item {
-      display: flex;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--slate-100);
-    }
-
-    .milestone-item:last-child {
-      border-bottom: none;
-    }
-
-    .milestone-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      margin-top: 3px;
-    }
-
-    .milestone-dot.done {
-      background: var(--emerald);
-    }
-
-    .milestone-dot.progress {
-      background: var(--sky);
-    }
-
-    .milestone-dot.late {
-      background: var(--rose);
-    }
-
-    .milestone-dot.pending {
-      background: var(--slate-300);
-      border: 2px solid var(--slate-400);
-      background: white;
-    }
-
-    .milestone-text {
-      font-size: 12px;
-      color: var(--slate-700);
-      line-height: 1.5;
-    }
-
-    .milestone-date {
-      font-size: 11px;
-      color: var(--slate-400);
-      margin-top: 2px;
-    }
-
     .modal-footer {
       padding: 16px 24px;
       border-top: 1px solid var(--slate-200);
@@ -1124,9 +1155,40 @@
       background: var(--navy-mid);
     }
 
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--slate-200);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--slate-400);
+    }
+
     @keyframes spin {
       to {
         transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .summary-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .summary-row {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
   </style>
@@ -1164,9 +1226,9 @@
     </div>
 
     <div class="nav-tabs">
-      <a class="nav-tab" href="/dashboard.html">Dashboard</a>
+      <a class="nav-tab" href="/dashboard-aspek.html">Dashboard</a>
       <button class="nav-tab active">Aspek</button>
-      <button class="nav-tab">Rencana Aksi</button>
+      <a class="nav-tab" href="/rencana-aksi.html">Rencana Aksi</a>
     </div>
 
     <div class="nav-right">
@@ -1184,7 +1246,7 @@
   <div class="body-wrap">
     <!-- ICON SIDEBAR -->
     <aside class="icon-sidebar">
-      <a class="icon-btn" href="/dashboard.html" title="Dashboard">
+      <a class="icon-btn" href="/dashboard-aspek.html" title="Dashboard">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -1227,389 +1289,96 @@
     </aside>
 
     <!-- MAIN AREA -->
-    <main class="main-area">
+    <main class="main-area" id="mainArea">
 
-      <!-- BREADCRUMB -->
-      <div class="breadcrumb">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9,22 9,12 15,12 15,22" />
-        </svg>
-        <span class="breadcrumb-sep">›</span>
-        <span class="breadcrumb-current" id="breadcrumbText">ASPEK 1 - PENGUATAN BISNIS INTI</span>
+      <!-- LOADING STATE (shown initially) -->
+      <div class="loading-container" id="loadingState">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Memuat data aspek...</div>
       </div>
 
-      <!-- PAGE HEADING -->
-      <div class="page-heading">
-        <div class="page-heading-icon" onclick="history.back()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <polyline points="15,18 9,12 15,6" />
+      <!-- ERROR STATE (hidden) -->
+      <div class="error-container" id="errorState" style="display:none;">
+        <div class="error-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
           </svg>
         </div>
-        <div class="page-heading-title" id="pageHeadingTitle">ASPEK 1 - PENGUATAN BISNIS INTI</div>
+        <div class="error-title" id="errorTitle">Terjadi Kesalahan</div>
+        <div class="error-message" id="errorMessage">Gagal memuat data aspek. Silakan coba lagi.</div>
+        <button class="btn-retry" onclick="loadAspectData()">Coba Lagi</button>
       </div>
 
-      <!-- SUMMARY CARDS -->
-      <div class="summary-row">
-        <div class="sum-card progress-card">
-          <div class="sum-card-label">Progres Aspek</div>
-          <div class="progress-pct" id="progPct">63%</div>
-          <div class="progress-bar-wrap">
-            <div class="progress-bar-fill" id="progBar" style="width:63%"></div>
+      <!-- CONTENT (hidden until data loads) -->
+      <div id="contentArea" style="display:none;">
+        <!-- BREADCRUMB -->
+        <div class="breadcrumb">
+          <a href="/dashboard-aspek.html">Dashboard</a>
+          <span class="breadcrumb-sep">›</span>
+          <span class="breadcrumb-current" id="breadcrumbText">—</span>
+        </div>
+
+        <!-- PAGE HEADING -->
+        <div class="page-heading">
+          <div class="page-heading-icon" onclick="history.back()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <polyline points="15,18 9,12 15,6" />
+            </svg>
           </div>
-          <div class="progress-target">Target: 65%</div>
+          <div class="page-heading-title" id="pageHeadingTitle">—</div>
         </div>
-        <div class="sum-card">
-          <div class="sum-card-label">Total Aktivitas</div>
-          <div class="sum-card-value">24</div>
+
+        <!-- SUMMARY CARDS -->
+        <div class="summary-row" id="summaryRow">
+          <div class="sum-card progress-card">
+            <div class="sum-card-label">Progres Aspek</div>
+            <div class="progress-pct" id="progPct">0%</div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" id="progBar" style="width:0%"></div>
+            </div>
+            <div class="progress-target" id="progTarget">Target: 0%</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-card-label">Total Aktivitas</div>
+            <div class="sum-card-value" id="cardTotal">0</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-card-label">Selesai</div>
+            <div class="sum-card-value green" id="cardSelesai">0</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-card-label">Dalam Progres</div>
+            <div class="sum-card-value blue" id="cardDalamProgres">0</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-card-label">Terlambat</div>
+            <div class="sum-card-value red" id="cardTerlambat">0</div>
+          </div>
+          <div class="sum-card">
+            <div class="sum-card-label">Belum Mulai</div>
+            <div class="sum-card-value gray" id="cardBelumMulai">0</div>
+          </div>
         </div>
-        <div class="sum-card">
-          <div class="sum-card-label">Selesai</div>
-          <div class="sum-card-value green">12</div>
-        </div>
-        <div class="sum-card">
-          <div class="sum-card-label">Dalam Progres</div>
-          <div class="sum-card-value blue">8</div>
-        </div>
-        <div class="sum-card">
-          <div class="sum-card-label">Terlambat</div>
-          <div class="sum-card-value red">4</div>
-        </div>
-        <div class="sum-card">
-          <div class="sum-card-label">Belum Mulai</div>
-          <div class="sum-card-value gray">0</div>
+
+        <!-- STRATEGI TABLE -->
+        <div class="strategy-section" id="strategiSection">
+          <div class="strategy-header">Daftar Strategi</div>
+          <div class="strategy-col-header">
+            <div>Strategi / Activity Group</div>
+            <div>Progres</div>
+            <div>Rencana Aksi</div>
+            <div>Bobot</div>
+            <div>Status</div>
+            <div></div>
+          </div>
+          <div id="strategiContainer">
+            <!-- Dynamically rendered -->
+          </div>
         </div>
       </div>
 
-      <!-- STRATEGI TABLE -->
-      <div class="strategy-section">
-        <div class="strategy-header">Daftar Strategi</div>
-        <div class="strategy-col-header">
-          <div>Strategi / Activity Group</div>
-          <div>Progres</div>
-          <div>Rencana Aksi</div>
-          <div>Bobot</div>
-          <div>Status</div>
-          <div></div>
-        </div>
-
-        <!-- STRATEGI 1.A -->
-        <div class="strategy-row" id="row-1a">
-          <div class="strategy-main" onclick="toggleStrategy('1a')">
-            <div class="strategy-name">
-              <strong>Strategi 1.A</strong>
-              Validasi segmen profitable dan potensi repositioning dengan mempertimbangkan persona atau karakteristik
-              pelanggan yang ada pada suatu segmen yang akan dituju serta cara pendekatan (how to approach) yang relevan
-              dan sesuai dengan kapabilitas
-            </div>
-            <div class="prog-cell">
-              <div style="display:flex;align-items:center;gap:6px;">
-                <span class="prog-num">58%</span>
-              </div>
-              <div class="prog-bar-sm">
-                <div class="prog-bar-sm-fill amber" style="width:58%"></div>
-              </div>
-              <div class="prog-target">Target: 65%</div>
-            </div>
-            <div class="ra-cell">
-              <div><span class="ra-count">12/18</span></div>
-              <div class="ra-label">Rencana Aksi</div>
-            </div>
-            <div class="bobot-cell">50%</div>
-            <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
-            <button class="expand-btn" id="expand-1a" onclick="event.stopPropagation();toggleStrategy('1a')">
-              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <polyline points="6,9 12,15 18,9" />
-              </svg>
-            </button>
-          </div>
-          <div class="strategy-body" id="body-1a">
-            <!-- Activity Group 1.A.1 -->
-            <div class="activity-group">
-              <div class="ag-header" onclick="toggleAG('1a1')">
-                <div class="ag-name">
-                  <div class="ag-tag">Activity Group</div>
-                  <strong>Activity Group 1.A.1:</strong> Melakukan uji kesiapan atau internal capability & readiness
-                  check untuk memastikan bahwa strategi relevan terhadap segmen yang dituju dan dapat dijalankan
-                </div>
-                <div class="prog-cell">
-                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">67%</span></div>
-                  <div class="prog-bar-sm">
-                    <div class="prog-bar-sm-fill green" style="width:67%"></div>
-                  </div>
-                  <div class="prog-target">Target: 65%</div>
-                </div>
-                <div class="ra-cell">
-                  <div><span class="ra-count">4/6</span></div>
-                  <div class="ra-label">Rencana Aksi</div>
-                </div>
-                <div class="bobot-cell">20%</div>
-                <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
-                <button class="expand-btn" id="expand-ag-1a1" onclick="event.stopPropagation();toggleAG('1a1')">
-                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <polyline points="6,9 12,15 18,9" />
-                  </svg>
-                </button>
-              </div>
-              <div class="ra-body" id="ra-body-1a1">
-                <!-- Rencana Aksi 1 -->
-                <div class="ra-row">
-                  <div class="ra-title-cell">
-                    <span class="ra-chip">1.A.1.1</span>
-                    <span class="ra-desc">Melakukan analisis komprehensif dengan menganalisis performa historis,
-                      perbandingan dengan channel lain, nilai strategis (branding &amp; data konsumen), kebutuhan
-                      legalitas dan aspek feasibility study yang dibutuhkan serta membandingkan profitabilitas dan biaya
-                      untuk pendirian anak usaha dan perizinannya</span>
-                  </div>
-                  <div class="prog-cell">
-                    <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
-                    <div class="prog-bar-sm">
-                      <div class="prog-bar-sm-fill red" style="width:50%"></div>
-                    </div>
-                    <div class="prog-target">Target: 65%</div>
-                  </div>
-                  <div class="ra-cell">
-                    <div><span class="ra-count">2/4</span></div>
-                    <div class="ra-label">Sub Rencana Aksi</div>
-                  </div>
-                  <div class="bobot-cell">10%</div>
-                  <div><span class="status-pill terlambat">Terlambat</span></div>
-                  <button class="btn-lihat-detail"
-                    onclick="window.location.href='/rencana-aksi.html?id=1.A.1.1&status=terlambat&desc=' + encodeURIComponent('Melakukan analisis komprehensif dengan menganalisis performa historis, perbandingan dengan channel lain, nilai strategis (branding & data konsumen), kebutuhan legalitas dan aspek feasibility study yang dibutuhkan serta membandingkan profitabilitas dan biaya untuk pendirian anak usaha dan perizinannya.')">Lihat
-                    Detail</button>
-                </div>
-                <!-- Rencana Aksi 2 -->
-                <div class="ra-row">
-                  <div class="ra-title-cell">
-                    <span class="ra-chip">1.A.1.1</span>
-                    <span class="ra-desc">Menyesuaikan kesiapan portofolio produk yang selaras dengan karakteristik
-                      channel dan kebutuhan masing-masing footprint</span>
-                  </div>
-                  <div class="prog-cell">
-                    <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">100%</span></div>
-                    <div class="prog-bar-sm">
-                      <div class="prog-bar-sm-fill green" style="width:100%"></div>
-                    </div>
-                    <div class="prog-target">Target: 65%</div>
-                  </div>
-                  <div class="ra-cell">
-                    <div><span class="ra-count">2/2</span></div>
-                    <div class="ra-label">Sub Rencana Aksi</div>
-                  </div>
-                  <div class="bobot-cell">10%</div>
-                  <div><span class="status-pill selesai">Selesai</span></div>
-                  <button class="btn-lihat-detail"
-                    onclick="window.location.href='/rencana-aksi.html?id=1.A.1.2&status=selesai&desc=' + encodeURIComponent('Menyesuaikan kesiapan portofolio produk yang selaras dengan karakteristik channel dan kebutuhan masing-masing footprint untuk memastikan relevansi dan daya saing produk.')">Lihat
-                    Detail</button>
-                </div>
-              </div>
-              <a class="see-all-link">
-                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <polyline points="9,18 15,12 9,6" />
-                </svg>
-                Lihat Semua Rencana Aksi (5)
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- STRATEGI 1.B -->
-        <div class="strategy-row" id="row-1b">
-          <div class="strategy-main" onclick="toggleStrategy('1b')">
-            <div class="strategy-name">
-              <strong>Strategi 1.B</strong>
-              Pencapaian demand capture dan penetapan harga optimal dengan mempertimbangkan RPH yang undercapacity agar
-              mencapai break even point
-            </div>
-            <div class="prog-cell">
-              <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">100%</span></div>
-              <div class="prog-bar-sm">
-                <div class="prog-bar-sm-fill green" style="width:100%"></div>
-              </div>
-              <div class="prog-target">Target: 65%</div>
-            </div>
-            <div class="ra-cell">
-              <div><span class="ra-count">2/2</span></div>
-              <div class="ra-label">Rencana Aksi</div>
-            </div>
-            <div class="bobot-cell">100%</div>
-            <div><span class="status-pill selesai">Selesai</span></div>
-            <button class="expand-btn" id="expand-1b" onclick="event.stopPropagation();toggleStrategy('1b')">
-              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <polyline points="6,9 12,15 18,9" />
-              </svg>
-            </button>
-          </div>
-          <div class="strategy-body" id="body-1b">
-            <div class="activity-group">
-              <div class="ag-header" onclick="toggleAG('1b1')">
-                <div class="ag-name">
-                  <div class="ag-tag">Activity Group</div>
-                  <strong>Activity Group 1.B.1:</strong> Penetapan harga optimal dan strategi demand capture berbasis
-                  data kapasitas RPH
-                </div>
-                <div class="prog-cell">
-                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">100%</span></div>
-                  <div class="prog-bar-sm">
-                    <div class="prog-bar-sm-fill green" style="width:100%"></div>
-                  </div>
-                  <div class="prog-target">Target: 65%</div>
-                </div>
-                <div class="ra-cell">
-                  <div><span class="ra-count">2/2</span></div>
-                  <div class="ra-label">Rencana Aksi</div>
-                </div>
-                <div class="bobot-cell">100%</div>
-                <div><span class="status-pill selesai">Selesai</span></div>
-                <button class="expand-btn" id="expand-ag-1b1" onclick="event.stopPropagation();toggleAG('1b1')">
-                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <polyline points="6,9 12,15 18,9" />
-                  </svg>
-                </button>
-              </div>
-              <div class="ra-body" id="ra-body-1b1">
-                <div class="ra-row">
-                  <div class="ra-title-cell">
-                    <span class="ra-chip">1.B.1.1</span>
-                    <span class="ra-desc">Analisis kapasitas terpasang RPH dan penetapan pricing optimal berdasarkan
-                      biaya operasional dan break-even point</span>
-                  </div>
-                  <div class="prog-cell">
-                    <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">100%</span></div>
-                    <div class="prog-bar-sm">
-                      <div class="prog-bar-sm-fill green" style="width:100%"></div>
-                    </div>
-                  </div>
-                  <div class="ra-cell">
-                    <div><span class="ra-count">3/3</span></div>
-                    <div class="ra-label">Sub Rencana Aksi</div>
-                  </div>
-                  <div class="bobot-cell">50%</div>
-                  <div><span class="status-pill selesai">Selesai</span></div>
-                  <button class="btn-lihat-detail"
-                    onclick="window.location.href='/rencana-aksi.html?id=1.B.1.1&status=selesai&desc=' + encodeURIComponent('Analisis kapasitas terpasang RPH dan penetapan pricing optimal berdasarkan biaya operasional dan break-even point untuk memastikan profitabilitas usaha.')">Lihat
-                    Detail</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- STRATEGI 1.C -->
-        <div class="strategy-row" id="row-1c">
-          <div class="strategy-main" onclick="toggleStrategy('1c')">
-            <div class="strategy-name">
-              <strong>Strategi 1.C</strong>
-              Strategi pemasaran yang terfokus dengan penekanan pada value proposition atau faktor pembeda dari
-              kompetitor lainnya
-            </div>
-            <div class="prog-cell">
-              <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
-              <div class="prog-bar-sm">
-                <div class="prog-bar-sm-fill red" style="width:50%"></div>
-              </div>
-              <div class="prog-target">Target: 65%</div>
-            </div>
-            <div class="ra-cell">
-              <div><span class="ra-count">1/2</span></div>
-              <div class="ra-label">Rencana Aksi</div>
-            </div>
-            <div class="bobot-cell">50%</div>
-            <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
-            <button class="expand-btn" id="expand-1c" onclick="event.stopPropagation();toggleStrategy('1c')">
-              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <polyline points="6,9 12,15 18,9" />
-              </svg>
-            </button>
-          </div>
-          <div class="strategy-body" id="body-1c">
-            <div class="activity-group">
-              <div class="ag-header">
-                <div class="ag-name">
-                  <div class="ag-tag">Activity Group</div>
-                  <strong>Activity Group 1.C.1:</strong> Pengembangan materi pemasaran dan positioning brand berbasis
-                  value proposition unik
-                </div>
-                <div class="prog-cell">
-                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
-                  <div class="prog-bar-sm">
-                    <div class="prog-bar-sm-fill amber" style="width:50%"></div>
-                  </div>
-                </div>
-                <div class="ra-cell">
-                  <div><span class="ra-count">1/2</span></div>
-                  <div class="ra-label">Rencana Aksi</div>
-                </div>
-                <div class="bobot-cell">50%</div>
-                <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
-                <button class="expand-btn">
-                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <polyline points="6,9 12,15 18,9" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- STRATEGI 1.D -->
-        <div class="strategy-row" id="row-1d">
-          <div class="strategy-main" onclick="toggleStrategy('1d')">
-            <div class="strategy-name">
-              <strong>Strategi 1.D</strong>
-              Penawaran sesuai preferensi dan key purchasing (Terms of Payment) criteria segmen yang dituju untuk
-              menonjolkan keunggulan kompetitif selain harga serta meminimalisasi biaya akuisisi pelanggan yang tinggi
-            </div>
-            <div class="prog-cell">
-              <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
-              <div class="prog-bar-sm">
-                <div class="prog-bar-sm-fill red" style="width:50%"></div>
-              </div>
-              <div class="prog-target">Target: 65%</div>
-            </div>
-            <div class="ra-cell">
-              <div><span class="ra-count">1/2</span></div>
-              <div class="ra-label">Rencana Aksi</div>
-            </div>
-            <div class="bobot-cell">50%</div>
-            <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
-            <button class="expand-btn" id="expand-1d" onclick="event.stopPropagation();toggleStrategy('1d')">
-              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <polyline points="6,9 12,15 18,9" />
-              </svg>
-            </button>
-          </div>
-          <div class="strategy-body" id="body-1d">
-            <div class="activity-group">
-              <div class="ag-header">
-                <div class="ag-name">
-                  <div class="ag-tag">Activity Group</div>
-                  <strong>Activity Group 1.D.1:</strong> Pengembangan skema ToP fleksibel dan paket bundling sesuai
-                  segmen pelanggan prioritas
-                </div>
-                <div class="prog-cell">
-                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">50%</span></div>
-                  <div class="prog-bar-sm">
-                    <div class="prog-bar-sm-fill amber" style="width:50%"></div>
-                  </div>
-                </div>
-                <div class="ra-cell">
-                  <div><span class="ra-count">1/2</span></div>
-                  <div class="ra-label">Rencana Aksi</div>
-                </div>
-                <div class="bobot-cell">50%</div>
-                <div><span class="status-pill dalam-progress">Dalam Progress</span></div>
-                <button class="expand-btn">
-                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <polyline points="6,9 12,15 18,9" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div><!-- /strategy-section -->
     </main>
   </div><!-- /body-wrap -->
 
@@ -1619,7 +1388,7 @@
       <div class="modal-header">
         <div class="modal-header-info">
           <h3 id="modalTitle">Detail Rencana Aksi</h3>
-          <p id="modalSubtitle">Rencana Aksi 1.A.1.1</p>
+          <p id="modalSubtitle">Rencana Aksi</p>
         </div>
         <button class="modal-close" onclick="closeDetail()">✕</button>
       </div>
@@ -1628,37 +1397,297 @@
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeDetail()">Tutup</button>
-        <button class="btn-primary">Edit Rencana Aksi</button>
+        <a class="btn-primary" id="modalDetailLink" href="#">Lihat Detail Lengkap</a>
       </div>
     </div>
   </div>
 
   <script src="/auth.js"></script>
   <script>
-    // ── INIT ─────────────────────────────────────────────────────
+    // ── GLOBALS ──────────────────────────────────────────────
+    let aspectData = null;
+    let currentAspectId = null;
+
+    // ── INIT ─────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async function () {
       const user = await BPBUMDAuth.requireAuth();
       document.getElementById('userAvatarBtn').textContent = user.name.charAt(0).toUpperCase();
 
-      // Read aspek param
+      // Read aspect param from URL
       const params = new URLSearchParams(window.location.search);
-      const aspekId = params.get('id') || '1';
-      const aspekName = params.get('name') || 'PENGUATAN BISNIS INTI';
-      const title = 'ASPEK ' + aspekId + ' - ' + aspekName.toUpperCase();
-      document.getElementById('pageHeadingTitle').textContent = title;
-      document.getElementById('breadcrumbText').textContent = title;
+      currentAspectId = params.get('id');
+
+      if (!currentAspectId) {
+        showError('Parameter Tidak Valid', 'ID aspek tidak ditemukan di URL. Kembali ke dashboard untuk memilih aspek.');
+        return;
+      }
+
+      await loadAspectData();
     });
 
-    // ── TOGGLE STRATEGY ───────────────────────────────────────────
+    // ── LOAD ASPECT DATA ────────────────────────────────────
+    async function loadAspectData() {
+      showLoading();
+
+      try {
+        const response = await fetch('/api/aspects/' + currentAspectId, {
+          credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.message || 'Gagal memuat data aspek (HTTP ' + response.status + ')');
+        }
+
+        const result = await response.json();
+
+        if (!result.success || !result.data) {
+          throw new Error(result.message || 'Data aspek tidak valid');
+        }
+
+        aspectData = result.data;
+        renderPage(aspectData);
+        showContent();
+
+      } catch (error) {
+        console.error('Error loading aspect:', error);
+        showError('Gagal Memuat Data', error.message);
+      }
+    }
+
+    // ── RENDER PAGE ─────────────────────────────────────────
+    function renderPage(data) {
+      const { aspect, cards, daftar_strategi } = data;
+
+      // Page title & breadcrumb
+      const title = aspect.aspect_name.toUpperCase();
+      document.getElementById('pageHeadingTitle').textContent = title;
+      document.getElementById('breadcrumbText').textContent = title;
+      document.title = 'BPBUMD Control Tower — ' + aspect.aspect_name;
+
+      // Summary cards
+      renderCards(cards);
+
+      // Strategi tree
+      renderStrategies(daftar_strategi);
+    }
+
+    // ── RENDER SUMMARY CARDS ────────────────────────────────
+    function renderCards(cards) {
+      const pct = Math.round(cards.progress_percentage);
+      const target = Math.round(cards.target_percentage);
+
+      // Progress card
+      const progPctEl = document.getElementById('progPct');
+      progPctEl.textContent = pct + '%';
+      // Color: green if >= target, amber if near, red if far below
+      if (pct >= target) {
+        progPctEl.style.color = 'var(--emerald)';
+        document.getElementById('progBar').style.background = 'linear-gradient(90deg, var(--emerald), #34D399)';
+      } else if (pct >= target * 0.75) {
+        progPctEl.style.color = 'var(--amber)';
+        document.getElementById('progBar').style.background = 'linear-gradient(90deg, var(--amber), #FCD34D)';
+      } else {
+        progPctEl.style.color = 'var(--rose)';
+        document.getElementById('progBar').style.background = 'linear-gradient(90deg, var(--rose), #F87171)';
+      }
+
+      document.getElementById('progBar').style.width = pct + '%';
+      document.getElementById('progTarget').textContent = 'Target: ' + target + '%';
+
+      // Count cards
+      document.getElementById('cardTotal').textContent = cards.total_aktivitas;
+      document.getElementById('cardSelesai').textContent = cards.selesai;
+      document.getElementById('cardDalamProgres').textContent = cards.dalam_progres;
+      document.getElementById('cardTerlambat').textContent = cards.terlambat;
+      document.getElementById('cardBelumMulai').textContent = cards.belum_mulai;
+    }
+
+    // ── RENDER STRATEGIES ───────────────────────────────────
+    function renderStrategies(strategies) {
+      const container = document.getElementById('strategiContainer');
+
+      if (!strategies || strategies.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" />
+            </svg>
+            <p>Belum ada strategi untuk aspek ini</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = strategies.map((s, sIdx) => {
+        const sKey = 's' + s.strategy_id;
+        const sPct = Math.round(s.progress_percentage);
+        const sTarget = Math.round(s.target_percentage);
+        const sBarColor = getBarColorClass(sPct, sTarget);
+        const sStatusClass = getStatusClass(s.status);
+        const sStatusLabel = getStatusLabel(s.status);
+        const sSelesai = s.selesai || 0;
+        const sTotal = s.total_rencana_aksi || 0;
+
+        // Activity groups HTML
+        const agHtml = (s.activity_groups || []).map((ag, agIdx) => {
+          const agKey = 'ag' + ag.activity_group_id;
+          const agPct = Math.round(ag.progress_percentage);
+          const agTarget = Math.round(ag.target_percentage);
+          const agBarColor = getBarColorClass(agPct, agTarget);
+          const agStatusClass = getStatusClass(ag.status);
+          const agStatusLabel = getStatusLabel(ag.status);
+          const agSelesai = ag.selesai || 0;
+          const agTotal = ag.total_rencana_aksi || 0;
+
+          // Action plans (Rencana Aksi) HTML
+          const apHtml = (ag.action_plans || []).map(ap => {
+            const apPct = Math.round(ap.progress_percentage);
+            const apTarget = Math.round(ap.target_percentage);
+            const apBarColor = getBarColorClass(apPct, apTarget);
+            const apStatusClass = getStatusClass(ap.status);
+            const apStatusLabel = getStatusLabel(ap.status);
+            const apSelesaiSub = ap.rencana_aksi ? ap.rencana_aksi.selesai : 0;
+            const apTotalSub = ap.rencana_aksi ? ap.rencana_aksi.total : 0;
+
+            return `
+              <div class="ra-row">
+                <div class="ra-title-cell">
+                  <span class="ra-chip">${escapeHtml(ap.code_order || '')}</span>
+                  <span class="ra-desc">${escapeHtml(ap.action_plan_name)}</span>
+                </div>
+                <div class="prog-cell">
+                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">${apPct}%</span></div>
+                  <div class="prog-bar-sm">
+                    <div class="prog-bar-sm-fill ${apBarColor}" style="width:${apPct}%"></div>
+                  </div>
+                  <div class="prog-target">Target: ${apTarget}%</div>
+                </div>
+                <div class="ra-cell">
+                  <div><span class="ra-count">${apSelesaiSub}/${apTotalSub}</span></div>
+                  <div class="ra-label">Sub Rencana Aksi</div>
+                </div>
+                <div class="bobot-cell">${ap.weight}%</div>
+                <div><span class="status-pill ${apStatusClass}">${apStatusLabel}</span></div>
+                <button class="btn-lihat-detail" onclick="openActionPlanDetail(${ap.action_plan_id}, '${escapeAttr(ap.code_order || '')}', '${escapeAttr(ap.action_plan_name)}', ${apPct}, ${apTarget}, '${escapeAttr(ap.status)}', ${ap.weight}, ${apSelesaiSub}, ${apTotalSub})">Lihat Detail</button>
+              </div>`;
+          }).join('');
+
+          return `
+            <div class="activity-group">
+              <div class="ag-header" onclick="toggleAG('${agKey}')">
+                <div class="ag-name">
+                  <div class="ag-tag">Activity Group</div>
+                  <strong>${escapeHtml(ag.code_order || '')}:</strong> ${escapeHtml(ag.activity_group_name)}
+                </div>
+                <div class="prog-cell">
+                  <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">${agPct}%</span></div>
+                  <div class="prog-bar-sm">
+                    <div class="prog-bar-sm-fill ${agBarColor}" style="width:${agPct}%"></div>
+                  </div>
+                  <div class="prog-target">Target: ${agTarget}%</div>
+                </div>
+                <div class="ra-cell">
+                  <div><span class="ra-count">${agSelesai}/${agTotal}</span></div>
+                  <div class="ra-label">Rencana Aksi</div>
+                </div>
+                <div class="bobot-cell">${ag.weight}%</div>
+                <div><span class="status-pill ${agStatusClass}">${agStatusLabel}</span></div>
+                <button class="expand-btn" id="expand-ag-${agKey}" onclick="event.stopPropagation();toggleAG('${agKey}')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <polyline points="6,9 12,15 18,9" />
+                  </svg>
+                </button>
+              </div>
+              <div class="ra-body" id="ra-body-${agKey}">
+                ${apHtml}
+              </div>
+            </div>`;
+        }).join('');
+
+        return `
+          <div class="strategy-row" id="row-${sKey}">
+            <div class="strategy-main" onclick="toggleStrategy('${sKey}')">
+              <div class="strategy-name">
+                <strong>${escapeHtml(s.code_order || 'Strategi ' + (sIdx + 1))}</strong>
+                ${escapeHtml(s.strategy_name)}
+              </div>
+              <div class="prog-cell">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="prog-num">${sPct}%</span>
+                </div>
+                <div class="prog-bar-sm">
+                  <div class="prog-bar-sm-fill ${sBarColor}" style="width:${sPct}%"></div>
+                </div>
+                <div class="prog-target">Target: ${sTarget}%</div>
+              </div>
+              <div class="ra-cell">
+                <div><span class="ra-count">${sSelesai}/${sTotal}</span></div>
+                <div class="ra-label">Rencana Aksi</div>
+              </div>
+              <div class="bobot-cell">${s.weight}%</div>
+              <div><span class="status-pill ${sStatusClass}">${sStatusLabel}</span></div>
+              <button class="expand-btn" id="expand-${sKey}" onclick="event.stopPropagation();toggleStrategy('${sKey}')">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <polyline points="6,9 12,15 18,9" />
+                </svg>
+              </button>
+            </div>
+            <div class="strategy-body" id="body-${sKey}">
+              ${agHtml}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── STATUS & COLOR HELPERS ─────────────────────────────
+    function getBarColorClass(pct, target) {
+      if (pct >= target) return 'green';
+      if (pct >= target * 0.75) return 'amber';
+      return 'red';
+    }
+
+    function getStatusClass(status) {
+      if (!status) return 'belum-mulai';
+      const s = status.toLowerCase();
+      if (s === 'selesai') return 'selesai';
+      if (s === 'dalam progres' || s === 'dalam progress') return 'dalam-progres';
+      if (s === 'terlambat') return 'terlambat';
+      return 'belum-mulai';
+    }
+
+    function getStatusLabel(status) {
+      if (!status) return 'Belum Mulai';
+      const s = status.toLowerCase();
+      if (s === 'selesai') return 'Selesai';
+      if (s === 'dalam progres' || s === 'dalam progress') return 'Dalam Progres';
+      if (s === 'terlambat') return 'Terlambat';
+      return 'Belum Mulai';
+    }
+
+    // ── ESCAPE HELPERS ──────────────────────────────────────
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function escapeAttr(str) {
+      if (!str) return '';
+      return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+
+    // ── TOGGLE STRATEGY ─────────────────────────────────────
     function toggleStrategy(id) {
       const body = document.getElementById('body-' + id);
       const btn = document.getElementById('expand-' + id);
+      if (!body || !btn) return;
       const isOpen = body.classList.contains('open');
       body.classList.toggle('open', !isOpen);
       btn.classList.toggle('open', !isOpen);
     }
 
-    // ── TOGGLE ACTIVITY GROUP ─────────────────────────────────────
+    // ── TOGGLE ACTIVITY GROUP ───────────────────────────────
     function toggleAG(id) {
       const body = document.getElementById('ra-body-' + id);
       const btn = document.getElementById('expand-ag-' + id);
@@ -1668,87 +1697,65 @@
       if (btn) btn.classList.toggle('open', !isOpen);
     }
 
-    // ── DETAIL MODAL ──────────────────────────────────────────────
-    function openDetail(data) {
-      const statusMap = {
-        'terlambat': '<span class="status-pill terlambat">Terlambat</span>',
-        'selesai': '<span class="status-pill selesai">Selesai</span>',
-        'dalam-progress': '<span class="status-pill dalam-progress">Dalam Progress</span>',
-        'belum-mulai': '<span class="status-pill belum-mulai">Belum Mulai</span>',
-      };
-      const colorMap = { 'terlambat': 'red', 'selesai': 'green', 'dalam-progress': 'blue', 'belum-mulai': 'gray' };
-      const barColor = data.progres >= data.target ? 'green' : data.progres >= data.target * 0.7 ? 'amber' : 'red';
+    // ── OPEN ACTION PLAN DETAIL MODAL ────────────────────────
+    function openActionPlanDetail(apId, codeOrder, name, progres, target, status, weight, selesaiSub, totalSub) {
+      const barColor = getBarColorClass(progres, target);
+      const statusClass = getStatusClass(status);
+      const statusLabel = getStatusLabel(status);
 
-      document.getElementById('modalTitle').textContent = data.title;
-      document.getElementById('modalSubtitle').textContent = 'Rencana Aksi ' + data.id;
-
-      const milestonesHtml = (data.milestones || []).map(m => `
-        <li class="milestone-item">
-          <div class="milestone-dot ${m.status === 'done' ? 'done' : m.status === 'progress' ? 'progress' : m.status === 'late' ? 'late' : 'pending'}"></div>
-          <div>
-            <div class="milestone-text">${m.label}</div>
-            <div class="milestone-date">${m.date}</div>
-          </div>
-        </li>`).join('');
+      document.getElementById('modalTitle').textContent = name;
+      document.getElementById('modalSubtitle').textContent = 'Rencana Aksi ' + codeOrder;
+      document.getElementById('modalDetailLink').href = '/rencana-aksi.html?id=' + apId;
 
       document.getElementById('modalBody').innerHTML = `
         <div class="modal-section-title">Ringkasan</div>
         <div class="modal-kpi-grid">
           <div class="modal-kpi">
             <div class="modal-kpi-label">Status</div>
-            <div>${statusMap[data.status] || data.status}</div>
+            <div><span class="status-pill ${statusClass}">${statusLabel}</span></div>
           </div>
           <div class="modal-kpi">
             <div class="modal-kpi-label">Bobot</div>
-            <div class="modal-kpi-val">${data.bobot}%</div>
+            <div class="modal-kpi-val">${weight}%</div>
           </div>
           <div class="modal-kpi">
             <div class="modal-kpi-label">Progres</div>
-            <div class="modal-kpi-val ${barColor}">${data.progres}%</div>
+            <div class="modal-kpi-val ${barColor === 'green' ? 'green' : barColor === 'amber' ? 'amber' : 'red'}">${progres}%</div>
           </div>
           <div class="modal-kpi">
             <div class="modal-kpi-label">Sub Rencana Aksi</div>
-            <div class="modal-kpi-val">${data.raSelesai}/${data.raTotal}</div>
+            <div class="modal-kpi-val">${selesaiSub}/${totalSub}</div>
           </div>
         </div>
 
         <div class="modal-section-title">Progres vs Target</div>
         <div class="modal-progress-row">
           <div class="modal-progress-label">Realisasi</div>
-          <div class="modal-progress-bar"><div class="modal-progress-fill ${barColor}" style="width:${data.progres}%"></div></div>
-          <div class="modal-progress-pct">${data.progres}%</div>
+          <div class="modal-progress-bar"><div class="modal-progress-fill ${barColor}" style="width:${progres}%"></div></div>
+          <div class="modal-progress-pct">${progres}%</div>
         </div>
         <div class="modal-progress-row">
           <div class="modal-progress-label">Target</div>
-          <div class="modal-progress-bar"><div class="modal-progress-fill" style="width:${data.target}%;background:var(--slate-300)"></div></div>
-          <div class="modal-progress-pct">${data.target}%</div>
+          <div class="modal-progress-bar"><div class="modal-progress-fill" style="width:${target}%;background:var(--slate-300)"></div></div>
+          <div class="modal-progress-pct">${target}%</div>
         </div>
 
         <div class="modal-section-title">Informasi</div>
         <div class="modal-field">
-          <div class="modal-field-label">Deskripsi</div>
-          <div class="modal-field-value">${data.deskripsi}</div>
+          <div class="modal-field-label">Nama Rencana Aksi</div>
+          <div class="modal-field-value">${escapeHtml(name)}</div>
         </div>
-        <div class="modal-kpi-grid">
-          <div class="modal-field">
-            <div class="modal-field-label">PIC / Pelaksana</div>
-            <div class="modal-field-value">${data.picName}</div>
-          </div>
-          <div class="modal-field">
-            <div class="modal-field-label">Batas Waktu</div>
-            <div class="modal-field-value">${data.deadline}</div>
-          </div>
+        <div class="modal-field">
+          <div class="modal-field-label">Kode</div>
+          <div class="modal-field-value">${escapeHtml(codeOrder)}</div>
         </div>
-
-        ${data.milestones && data.milestones.length ? `
-        <div class="modal-section-title">Milestone</div>
-        <ul class="milestone-list">${milestonesHtml}</ul>` : ''}
       `;
 
       document.getElementById('modalOverlay').classList.add('open');
       document.body.style.overflow = 'hidden';
     }
 
+    // ── CLOSE MODAL ──────────────────────────────────────────
     function closeDetail() {
       document.getElementById('modalOverlay').classList.remove('open');
       document.body.style.overflow = '';
@@ -1759,6 +1766,27 @@
     }
 
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+    // ── VIEW STATE MANAGEMENT ───────────────────────────────
+    function showLoading() {
+      document.getElementById('loadingState').style.display = '';
+      document.getElementById('errorState').style.display = 'none';
+      document.getElementById('contentArea').style.display = 'none';
+    }
+
+    function showError(title, message) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = '';
+      document.getElementById('contentArea').style.display = 'none';
+      document.getElementById('errorTitle').textContent = title || 'Terjadi Kesalahan';
+      document.getElementById('errorMessage').textContent = message || 'Silakan coba lagi.';
+    }
+
+    function showContent() {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorState').style.display = 'none';
+      document.getElementById('contentArea').style.display = '';
+    }
   </script>
 </body>
 
