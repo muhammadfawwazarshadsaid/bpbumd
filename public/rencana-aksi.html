@@ -1231,6 +1231,12 @@
         grid-template-columns: 1fr 1fr;
       }
     }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   </style>
 </head>
 
@@ -1627,44 +1633,117 @@
 
   <script src="/auth.js"></script>
   <script>
-    // ── DATA ─────────────────────────────────────────────────────
-    const defaultData = {
-      id: '1.A.1.1',
-      title: 'RENCANA AKSI 1.A.1.1 – Melakukan analisis komprehensif dengan menganalisis performa historis, perbandingan dengan channel lain, nilai strategis (branding & data konsumen), kebutuhan legalitas dan aspek feasibility study yang dibutuhkan serta membandingkan profitabilitas dan biaya untuk pendirian anak usaha dan perizinannya',
-      status: 'terlambat',
-      progresSelesai: 50,
-      progresProgress: 0,
-      pregresBelum: 25,
-      lastUpdated: 'Terakhir diperbarui<br>10 Mei 2024, 10:30',
-      picInitial: 'RH',
-      picName: 'Rudi Hermawan',
-      picRole: 'Kepala Strategi dan Perencanaan',
-      targetDate: '30 April 2026',
-      targetNote: 'Lewat 30 hari',
-      targetNoteType: 'late',
-      tglMulai: '01 Februari 2026',
-      blocked: 'No',
-      sra: [
-        { num: 1, desc: 'Menetapkan kriteria segmentasi, seperti berdasarkan tingkat harga dan variasi produk', status: 'selesai', tglMulai: '01 Feb 26', tglSelesai: '28 Feb 26', pic: 'Rudi Gunawan' },
-        { num: 2, desc: 'Mengidentifikasi karakteristik setiap segmen channel lebih lanjut', status: 'selesai', tglMulai: '01 Feb 26', tglSelesai: '28 Feb 26', pic: 'Budi Anduk' },
-        { num: 3, desc: 'Merumuskan skenario repositioning channel berdasarkan potensi profit & biaya untuk menutup gap serta potensi market share yang didapat', status: 'terlambat', tglMulai: '01 Mar 26', tglSelesai: '30 Apr 26', pic: 'Hermawan' },
-        { num: 4, desc: 'Memfinalisasikan target channel dan segmen prioritas yang akan dituju', status: 'terlambat', tglMulai: '01 Mar 26', tglSelesai: '30 Apr 26', pic: 'Hermawan' },
-      ],
-      docs: [
-        { name: 'Laporan Analisis Proses.pdf', type: 'pdf', desc: 'Hasil analisis proses eksisting', uploader: 'Rudi Gunawan', date: '18 Feb 26', status: 'verified' },
-        { name: 'Rencana Implementasi.xlsx', type: 'xlsx', desc: 'Rencana implementasi detail', uploader: 'Budi Anduk', date: '22 Feb 26', status: 'verified' },
-        { name: 'Draft Feasibility Study.docx', type: 'docx', desc: 'Draft awal feasibility study', uploader: 'Hermawan', date: '15 Mar 26', status: 'pending' },
-      ],
-      kpi: [
-        { text: '≥ x% anggota tim relevan memahami & sepakat segmentasi', status: 'on-track' },
-        { text: 'Semua channel prioritas punya ≥ x segmen jelas', status: 'on-track' },
-      ],
-      activity: [
-        { name: 'Rudi Hermawan', action: 'memverifikasi dokumen "Laporan Analisis Proses.pdf"', time: '19 Feb 2026 21:20' },
-        { name: 'Rudi Gunawan', action: 'mengunggah dokumen "Laporan Analisis Proses.pdf"', time: '18 Feb 2026 12:35' },
-        { name: 'Rudi Hermawan', action: 'membuat rencana aksi ini', time: '06 Feb 2026 09:41' },
-      ],
-    };
+    // ── STATE ────────────────────────────────────────────────────
+    let currentActionPlanId = null;
+    let currentData = null;
+
+    // ── HELPERS ──────────────────────────────────────────────────
+    const MONTHS_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+    function formatDateDisplay(dateStr) {
+      if (!dateStr) return '–';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '–';
+      return `${d.getDate()} ${MONTHS_ID[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function formatDateShort(dateStr) {
+      if (!dateStr) return '–';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '–';
+      const monthShort = MONTHS_ID[d.getMonth()].substring(0, 3);
+      const yearShort = String(d.getFullYear()).substring(2);
+      return `${String(d.getDate()).padStart(2, '0')} ${monthShort} ${yearShort}`;
+    }
+
+    function formatDateTime(dateStr) {
+      if (!dateStr) return '–';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '–';
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${d.getDate()} ${MONTHS_ID[d.getMonth()]} ${d.getFullYear()} ${hh}:${mm}`;
+    }
+
+    function toISODateStr(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function parseDisplayDate(str) {
+      const months = {
+        Januari: '01', Februari: '02', Maret: '03', April: '04', Mei: '05', Juni: '06',
+        Juli: '07', Agustus: '08', September: '09', Oktober: '10', November: '11', Desember: '12'
+      };
+      const m = str && str.match(/(\d{1,2})\s+(\S+)\s+(\d{4})/);
+      if (m && months[m[2]]) return `${m[3]}-${months[m[2]]}-${m[1].padStart(2, '0')}`;
+      return '';
+    }
+
+    function formatISODate(iso) {
+      if (!iso) return '–';
+      const [y, mo, d] = iso.split('-');
+      return `${parseInt(d)} ${MONTHS_ID[parseInt(mo) - 1]} ${y}`;
+    }
+
+    function getInitials(name) {
+      if (!name) return '?';
+      return name.split(' ').map(w => w.charAt(0).toUpperCase()).slice(0, 2).join('');
+    }
+
+    function mapStatusToCSS(status) {
+      const map = {
+        'belum mulai': 'belum-mulai',
+        'dalam progres': 'dalam-progress',
+        'selesai': 'selesai',
+        'terlambat': 'terlambat',
+        'pengajuan': 'dalam-progress',
+        'verif_1': 'dalam-progress',
+        'verif_2': 'dalam-progress',
+        'ditolak': 'terlambat',
+      };
+      return map[status] || 'belum-mulai';
+    }
+
+    function mapStatusToLabel(status) {
+      const map = {
+        'belum mulai': 'Belum Mulai',
+        'dalam progres': 'Dalam Progress',
+        'selesai': 'Selesai',
+        'terlambat': 'Terlambat',
+        'pengajuan': 'Pengajuan',
+        'verif_1': 'Verifikasi 1',
+        'verif_2': 'Verifikasi 2',
+        'ditolak': 'Ditolak',
+      };
+      return map[status] || status || '–';
+    }
+
+    function getFileExtension(filename) {
+      if (!filename) return '';
+      const parts = filename.split('.');
+      return parts.length > 1 ? parts.pop().toLowerCase() : '';
+    }
+
+    // ── API HELPERS ──────────────────────────────────────────────
+    async function apiFetch(url, options = {}) {
+      const res = await fetch(url, {
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', ...options.headers },
+        ...options,
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || 'Request gagal');
+      }
+      return json.data;
+    }
 
     // ── INIT ─────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async function () {
@@ -1672,69 +1751,168 @@
       document.getElementById('userAvatarBtn').textContent = user.name.charAt(0).toUpperCase();
 
       const params = new URLSearchParams(window.location.search);
-      const raId = params.get('id') || defaultData.id;
-      const raTitle = params.get('title') || defaultData.title;
-      const raStatus = params.get('status') || defaultData.status;
+      currentActionPlanId = params.get('id') ? Number(params.get('id')) : null;
 
-      // Merge URL params into display data
-      const d = Object.assign({}, defaultData, {
-        id: raId,
-        title: 'RENCANA AKSI ' + raId + ' – ' + (params.get('desc') || defaultData.title.replace(/^RENCANA AKSI [^ ]+ – /, '')),
-        status: raStatus,
-      });
-
-      renderPage(d);
+      if (currentActionPlanId) {
+        await loadActionPlanDetail(currentActionPlanId);
+      } else {
+        // No ID in URL — show empty state
+        document.getElementById('pageTitle').textContent = 'Rencana Aksi tidak ditemukan. Silakan pilih rencana aksi dari halaman aspek.';
+      }
     });
 
-    function renderPage(d) {
-      // Heading
-      document.getElementById('pageTitle').textContent = d.title;
+    // ── LOAD DATA FROM BACKEND ──────────────────────────────────
+    async function loadActionPlanDetail(actionPlanId) {
+      try {
+        const data = await apiFetch(`/api/action-plans/${actionPlanId}`);
+        currentData = data;
+        renderPage(data);
+      } catch (error) {
+        console.error('Error loading action plan:', error);
+        document.getElementById('pageTitle').textContent = 'Gagal memuat rencana aksi: ' + error.message;
+      }
+    }
 
-      // Status badge
-      const statusLabels = { terlambat: 'Terlambat', selesai: 'Selesai', 'dalam-progress': 'Dalam Progress', 'belum-mulai': 'Belum Mulai' };
-      document.getElementById('statusBadge').innerHTML = `<span class="status-big ${d.status}">${statusLabels[d.status] || d.status}</span>`;
-      document.getElementById('lastUpdated').innerHTML = d.lastUpdated;
+    // ── RENDER PAGE ─────────────────────────────────────────────
+    function renderPage(data) {
+      const ap = data.action_plan;
+      const cards = data.cards;
+      const info = data.informasi_rencana_aksi;
 
-      // Donut
+      // ── Heading ──
+      const titleText = `RENCANA AKSI ${ap.code_order || ''} – ${ap.action_plan_name}`;
+      document.getElementById('pageTitle').textContent = titleText;
+
+      // ── Status Card ──
+      const statusCSS = mapStatusToCSS(cards.status_rencana_aksi.status);
+      const statusLabel = mapStatusToLabel(cards.status_rencana_aksi.status);
+      document.getElementById('statusBadge').innerHTML = `<span class="status-big ${statusCSS}">${statusLabel}</span>`;
+      document.getElementById('lastUpdated').innerHTML = cards.status_rencana_aksi.updated_at
+        ? `Terakhir diperbarui<br>${formatDateTime(cards.status_rencana_aksi.updated_at)}`
+        : 'Belum ada pembaruan';
+
+      // ── Progress Donut ──
+      const breakdown = cards.progres.breakdown;
+      const total = breakdown.total || 1;
+      const selesaiPct = breakdown.selesai_percentage || 0;
+      const progressPct = (breakdown.pengajuan_percentage || 0) + (breakdown.verif_1_percentage || 0) + (breakdown.verif_2_percentage || 0);
+      const belumPct = 100 - selesaiPct - progressPct - (breakdown.terlambat_percentage || 0) - (breakdown.ditolak_percentage || 0);
+
       const circ = 2 * Math.PI * 28;
-      const selesaiDash = (d.progresSelesai / 100) * circ;
-      const progressDash = (d.progresProgress / 100) * circ;
-      const selesaiOffset = -(circ - selesaiDash); // starts from top (rotated SVG)
+      const selesaiDash = (selesaiPct / 100) * circ;
+      const progressDash = (progressPct / 100) * circ;
+
       document.getElementById('donutSelesai').setAttribute('stroke-dasharray', selesaiDash + ' ' + circ);
-      document.getElementById('donutSelesai').setAttribute('stroke-dashoffset', circ * 0.25); // adjust start
+      document.getElementById('donutSelesai').setAttribute('stroke-dashoffset', circ * 0.25);
       document.getElementById('donutProgress').setAttribute('stroke-dasharray', progressDash + ' ' + circ);
       document.getElementById('donutProgress').setAttribute('stroke-dashoffset', circ * 0.25 - selesaiDash);
-      document.getElementById('donutLabel').textContent = d.progresSelesai + '%';
-      document.getElementById('legSelesai').textContent = d.progresSelesai + '%';
-      document.getElementById('legProgress').textContent = d.progresProgress + '%';
-      document.getElementById('legBelum').textContent = d.pregresBelum + '%';
+      document.getElementById('donutLabel').textContent = Math.round(cards.progres.progress_percentage) + '%';
+      document.getElementById('legSelesai').textContent = selesaiPct + '%';
+      document.getElementById('legProgress').textContent = progressPct + '%';
+      document.getElementById('legBelum').textContent = Math.max(0, belumPct) + '%';
 
-      // PIC
-      document.getElementById('picAvatar').textContent = d.picInitial;
-      document.getElementById('picName').textContent = d.picName;
-      document.getElementById('picRole').textContent = d.picRole;
+      // ── PIC Card ──
+      const pic = cards.pic_utama;
+      if (pic) {
+        document.getElementById('picAvatar').textContent = getInitials(pic.name);
+        document.getElementById('picName').textContent = pic.name;
+        document.getElementById('picRole').textContent = pic.role || '–';
+      } else {
+        document.getElementById('picAvatar').textContent = '?';
+        document.getElementById('picName').textContent = 'Belum ditentukan';
+        document.getElementById('picRole').textContent = '–';
+      }
 
-      // Target
-      document.getElementById('targetDate').textContent = d.targetDate;
+      // ── Target Selesai Card ──
+      const targetEndDate = cards.target_selesai.target_end_date;
+      const overdueDays = cards.target_selesai.overdue_days;
+      document.getElementById('targetDate').textContent = formatDateDisplay(targetEndDate);
       const noteEl = document.getElementById('targetNote');
-      noteEl.textContent = d.targetNote;
-      noteEl.className = d.targetNoteType === 'late' ? 'target-late' : 'target-ontime';
+      if (overdueDays !== null && overdueDays > 0) {
+        noteEl.textContent = `Lewat ${overdueDays} hari`;
+        noteEl.className = 'target-late';
+      } else if (overdueDays !== null && overdueDays <= 0) {
+        noteEl.textContent = `${Math.abs(overdueDays)} hari tersisa`;
+        noteEl.className = 'target-ontime';
+      } else {
+        noteEl.textContent = '–';
+        noteEl.className = 'target-ontime';
+      }
 
-      // Info table
-      document.getElementById('infoTglMulaiView').textContent = d.tglMulai;
-      document.getElementById('infoTargetSelesaiView').textContent = d.targetDate;
-      document.getElementById('infoBlockedView').textContent = d.blocked;
+      // ── Bukti Card ──
+      const bukti = cards.bukti;
+      document.querySelector('.bukti-count').textContent = `${bukti.total_dokumen} Dokumen`;
+      const buktiNote = document.querySelector('.bukti-note');
+      if (bukti.perlu_verifikasi > 0) {
+        buktiNote.textContent = `${bukti.perlu_verifikasi} perlu verifikasi`;
+        buktiNote.style.color = 'var(--amber)';
+      } else {
+        buktiNote.textContent = 'Semua terverifikasi';
+        buktiNote.style.color = 'var(--emerald)';
+      }
 
-      // SRA Table
+      // ── Informasi Rencana Aksi ──
+      // Output
+      const outputList = document.getElementById('infoOutputView');
+      if (info.output) {
+        const outputLines = info.output.split('\n').filter(l => l.trim());
+        outputList.innerHTML = outputLines.map(l => `<li>${escapeHtml(l)}</li>`).join('');
+      } else {
+        outputList.innerHTML = '<li style="color:var(--slate-400)">Belum ada output</li>';
+      }
+
+      // Penilaian
+      document.getElementById('infoPenilaianView').textContent = info.penilaian_rencana_aksi || '–';
+
+      // Dates
+      document.getElementById('infoTglMulaiView').textContent = formatDateDisplay(info.tanggal_mulai);
+      document.getElementById('infoTargetSelesaiView').textContent = formatDateDisplay(info.target_tanggal_selesai);
+      const aktualView = document.getElementById('infoAktualView');
+      if (info.aktual_tanggal_selesai) {
+        aktualView.textContent = formatDateDisplay(info.aktual_tanggal_selesai);
+        aktualView.style.color = 'var(--slate-800)';
+      } else {
+        aktualView.textContent = '–';
+        aktualView.style.color = 'var(--slate-400)';
+      }
+
+      // Blocked
+      document.getElementById('infoBlockedView').textContent = info.is_blocked ? 'Yes' : 'No';
+
+      // ── Sub Rencana Aksi Table ──
+      renderSRATable(data.sub_rencana_aksi);
+
+      // ── Dokumen Table ──
+      renderDocTable(data.dokumen);
+
+      // ── KPI Table ──
+      renderKPITable(data.kpis);
+
+      // ── Riwayat Aktivitas ──
+      renderActivityFeed(data.riwayat_aktivitas);
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ── SRA TABLE ───────────────────────────────────────────────
+    function renderSRATable(sraList) {
       const sraBody = document.getElementById('sraTableBody');
-      sraBody.innerHTML = d.sra.map(r => `
+      if (!sraList || sraList.length === 0) {
+        sraBody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada sub rencana aksi</td></tr>`;
+        return;
+      }
+      sraBody.innerHTML = sraList.map(r => `
         <tr>
-          <td><div class="sra-num">${r.num}</div></td>
-          <td><span class="sra-desc">${r.desc}</span></td>
-          <td><span class="sra-status ${r.status}">${{ selesai: 'Selesai', terlambat: 'Terlambat', 'dalam-progress': 'Dalam Proses', 'belum-mulai': 'Belum Mulai' }[r.status] || r.status}</span></td>
-          <td><span class="sra-date">${r.tglMulai}</span></td>
-          <td><span class="sra-date">${r.tglSelesai}</span></td>
-          <td><span class="sra-pic">${r.pic}</span></td>
+          <td><div class="sra-num">${r.no}</div></td>
+          <td><span class="sra-desc">${escapeHtml(r.sub_action_plan_name)}</span></td>
+          <td><span class="sra-status ${mapStatusToCSS(r.status)}">${mapStatusToLabel(r.status)}</span></td>
+          <td><span class="sra-date">${formatDateShort(r.created_at)}</span></td>
+          <td><span class="sra-date">${r.submitted_at ? formatDateShort(r.submitted_at) : '–'}</span></td>
+          <td><span class="sra-pic">${r.pic ? escapeHtml(r.pic.name) : '–'}</span></td>
           <td>
             <button class="sra-action-btn" title="Opsi">
               <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
@@ -1743,23 +1921,36 @@
             </button>
           </td>
         </tr>`).join('');
+    }
 
-      // Doc Table
+    // ── DOC TABLE ───────────────────────────────────────────────
+    function renderDocTable(docs) {
       const docBody = document.getElementById('docTableBody');
-      docBody.innerHTML = d.docs.map(doc => `
+      if (!docs || docs.length === 0) {
+        docBody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada dokumen</td></tr>`;
+        return;
+      }
+      docBody.innerHTML = docs.map(doc => {
+        const ext = getFileExtension(doc.original_file_name || doc.document_name);
+        const extCSS = ext === 'pdf' ? 'pdf' : ext === 'xlsx' || ext === 'xls' ? 'xlsx' : ext === 'docx' || ext === 'doc' ? 'docx' : 'pdf';
+        const statusBadge = doc.status === 'terverifikasi'
+          ? '<span class="verified-badge">Terverifikasi</span>'
+          : doc.status === 'ditolak'
+            ? '<span class="pending-badge" style="background:#FEE2E2;color:#DC2626;">Ditolak</span>'
+            : '<span class="pending-badge">Perlu Verifikasi</span>';
+
+        return `
         <tr>
           <td>
             <div class="doc-file">
-              <div class="doc-icon ${doc.type}">${doc.type.toUpperCase()}</div>
-              <span class="doc-name">${doc.name}</span>
+              <div class="doc-icon ${extCSS}">${ext.toUpperCase() || 'FILE'}</div>
+              <span class="doc-name">${escapeHtml(doc.document_name || doc.original_file_name || 'Dokumen')}</span>
             </div>
           </td>
-          <td>${doc.desc}</td>
-          <td>${doc.uploader}</td>
-          <td>${doc.date}</td>
-          <td>${doc.status === 'verified'
-          ? '<span class="verified-badge">Terverifikasi</span>'
-          : '<span class="pending-badge">Perlu Verifikasi</span>'}</td>
+          <td>${escapeHtml(doc.description || '–')}</td>
+          <td>${doc.uploaded_by ? escapeHtml(doc.uploaded_by.name) : '–'}</td>
+          <td>${formatDateShort(doc.uploaded_at)}</td>
+          <td>${statusBadge}</td>
           <td>
             <div class="doc-actions">
               <button class="doc-action-btn" title="Lihat">
@@ -1787,13 +1978,20 @@
               </button>
             </div>
           </td>
-        </tr>`).join('');
+        </tr>`;
+      }).join('');
+    }
 
-      // KPI Table
+    // ── KPI TABLE ───────────────────────────────────────────────
+    function renderKPITable(kpis) {
       const kpiBody = document.getElementById('kpiTableBody');
-      kpiBody.innerHTML = d.kpi.map(k => `
+      if (!kpis || kpis.length === 0) {
+        kpiBody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada KPI</td></tr>`;
+        return;
+      }
+      kpiBody.innerHTML = kpis.map(k => `
         <tr>
-          <td>${k.text}</td>
+          <td>${escapeHtml(k.kpi_name)}</td>
           <td>${k.status === 'on-track'
           ? '<span class="on-track">On Track</span>'
           : '<span class="at-risk">At Risk</span>'}</td>
@@ -1819,47 +2017,47 @@
             </div>
           </td>
         </tr>`).join('');
+    }
 
-      // Activity Feed
+    // ── ACTIVITY FEED ───────────────────────────────────────────
+    function renderActivityFeed(activities) {
       const feed = document.getElementById('activityFeed');
-      feed.innerHTML = d.activity.map(a => `
+      if (!activities || activities.length === 0) {
+        feed.innerHTML = `<li style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada aktivitas</li>`;
+        return;
+      }
+      feed.innerHTML = activities.map(a => `
         <li class="activity-item">
           <div class="act-dot"></div>
           <div>
-            <div class="act-text"><span class="act-name">${a.name}</span> ${a.action}</div>
-            <div class="act-time">${a.time}</div>
+            <div class="act-text"><span class="act-name">${escapeHtml(a.user_name || 'System')}</span> ${escapeHtml(a.description)}</div>
+            <div class="act-time">${formatDateTime(a.updated_at)}</div>
           </div>
         </li>`).join('');
     }
-    // ── INFO EDIT MODE ─────────────────────────────────────────
-    function parseDisplayDate(str) {
-      // Try to parse "01 Februari 2026" style → yyyy-mm-dd
-      const months = {
-        Januari: '01', Februari: '02', Maret: '03', April: '04', Mei: '05', Juni: '06',
-        Juli: '07', Agustus: '08', September: '09', Oktober: '10', November: '11', Desember: '12'
-      };
-      const m = str && str.match(/(\d{1,2})\s+(\S+)\s+(\d{4})/);
-      if (m && months[m[2]]) return `${m[3]}-${months[m[2]]}-${m[1].padStart(2, '0')}`;
-      return '';
-    }
-    function formatISODate(iso) {
-      if (!iso) return '–';
-      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-      const [y, mo, d] = iso.split('-');
-      return `${parseInt(d)} ${months[parseInt(mo) - 1]} ${y}`;
-    }
 
+    // ── INFO EDIT MODE ─────────────────────────────────────────
     function enterInfoEditMode() {
-      // Populate inputs from current view values
-      const outputLines = Array.from(document.querySelectorAll('#infoOutputView li')).map(li => li.textContent).join('\n');
-      document.getElementById('infoOutputInput').value = outputLines;
-      document.getElementById('infoPenilaianInput').value = document.getElementById('infoPenilaianView').textContent;
-      document.getElementById('infoTglMulaiInput').value = parseDisplayDate(document.getElementById('infoTglMulaiView').textContent);
-      document.getElementById('infoTargetSelesaiInput').value = parseDisplayDate(document.getElementById('infoTargetSelesaiView').textContent);
-      const aktual = document.getElementById('infoAktualView').textContent.trim();
-      document.getElementById('infoAktualInput').value = aktual === '–' ? '' : parseDisplayDate(aktual);
-      document.getElementById('infoBlockedInput').value = document.getElementById('infoBlockedView').textContent;
+      const info = currentData ? currentData.informasi_rencana_aksi : null;
+
+      if (info) {
+        document.getElementById('infoOutputInput').value = info.output || '';
+        document.getElementById('infoPenilaianInput').value = info.penilaian_rencana_aksi || '';
+        document.getElementById('infoTglMulaiInput').value = toISODateStr(info.tanggal_mulai);
+        document.getElementById('infoTargetSelesaiInput').value = toISODateStr(info.target_tanggal_selesai);
+        document.getElementById('infoAktualInput').value = toISODateStr(info.aktual_tanggal_selesai);
+        document.getElementById('infoBlockedInput').value = info.is_blocked ? 'Yes' : 'No';
+      } else {
+        // Fallback: parse from display
+        const outputLines = Array.from(document.querySelectorAll('#infoOutputView li')).map(li => li.textContent).join('\n');
+        document.getElementById('infoOutputInput').value = outputLines;
+        document.getElementById('infoPenilaianInput').value = document.getElementById('infoPenilaianView').textContent;
+        document.getElementById('infoTglMulaiInput').value = parseDisplayDate(document.getElementById('infoTglMulaiView').textContent);
+        document.getElementById('infoTargetSelesaiInput').value = parseDisplayDate(document.getElementById('infoTargetSelesaiView').textContent);
+        const aktual = document.getElementById('infoAktualView').textContent.trim();
+        document.getElementById('infoAktualInput').value = aktual === '–' ? '' : parseDisplayDate(aktual);
+        document.getElementById('infoBlockedInput').value = document.getElementById('infoBlockedView').textContent;
+      }
 
       // Switch visibility
       document.getElementById('infoOutputView').style.display = 'none';
@@ -1880,8 +2078,7 @@
       document.getElementById('btnCancelInfo').style.display = '';
     }
 
-    function saveInfoEdit() {
-      // Read input values
+    async function saveInfoEdit() {
       const outputRaw = document.getElementById('infoOutputInput').value.trim();
       const penilaian = document.getElementById('infoPenilaianInput').value.trim();
       const tglMulai = document.getElementById('infoTglMulaiInput').value;
@@ -1889,21 +2086,54 @@
       const aktual = document.getElementById('infoAktualInput').value;
       const blocked = document.getElementById('infoBlockedInput').value;
 
-      // Update Output list
-      const lines = outputRaw.split('\n').map(l => l.trim()).filter(l => l);
-      const ul = document.getElementById('infoOutputView');
-      ul.innerHTML = lines.map(l => `<li>${l}</li>`).join('');
+      // Build payload for backend
+      const payload = {
+        output: outputRaw || null,
+        indicator: penilaian || null,
+        start_date: tglMulai || null,
+        target_end_date: tgtSelesai || null,
+        end_date: aktual || null,
+        is_blocked: blocked === 'Yes',
+      };
 
-      // Update text views
-      document.getElementById('infoPenilaianView').textContent = penilaian;
-      document.getElementById('infoTglMulaiView').textContent = tglMulai ? formatISODate(tglMulai) : '–';
-      document.getElementById('infoTargetSelesaiView').textContent = tgtSelesai ? formatISODate(tgtSelesai) : '–';
-      const aktualView = document.getElementById('infoAktualView');
-      aktualView.textContent = aktual ? formatISODate(aktual) : '–';
-      aktualView.style.color = aktual ? 'var(--slate-800)' : 'var(--slate-400)';
-      document.getElementById('infoBlockedView').textContent = blocked;
+      // If connected to backend, save via API
+      if (currentActionPlanId) {
+        const saveBtn = document.getElementById('btnSaveInfo');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<svg width="12" height="12" style="animation:spin .6s linear infinite" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4m-7.07-2.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83"/></svg> Menyimpan...';
+        saveBtn.disabled = true;
 
-      exitInfoEditMode();
+        try {
+          await apiFetch(`/api/action-plans/${currentActionPlanId}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+          });
+
+          // Reload data from server to get fresh state
+          await loadActionPlanDetail(currentActionPlanId);
+          exitInfoEditMode();
+        } catch (error) {
+          alert('Gagal menyimpan: ' + error.message);
+          saveBtn.innerHTML = originalText;
+          saveBtn.disabled = false;
+          return;
+        }
+      } else {
+        // Offline: update UI directly
+        const lines = outputRaw.split('\n').map(l => l.trim()).filter(l => l);
+        const ul = document.getElementById('infoOutputView');
+        ul.innerHTML = lines.map(l => `<li>${escapeHtml(l)}</li>`).join('');
+
+        document.getElementById('infoPenilaianView').textContent = penilaian || '–';
+        document.getElementById('infoTglMulaiView').textContent = tglMulai ? formatISODate(tglMulai) : '–';
+        document.getElementById('infoTargetSelesaiView').textContent = tgtSelesai ? formatISODate(tgtSelesai) : '–';
+        const aktualView = document.getElementById('infoAktualView');
+        aktualView.textContent = aktual ? formatISODate(aktual) : '–';
+        aktualView.style.color = aktual ? 'var(--slate-800)' : 'var(--slate-400)';
+        document.getElementById('infoBlockedView').textContent = blocked;
+
+        exitInfoEditMode();
+      }
     }
 
     function cancelInfoEdit() {
@@ -1927,6 +2157,10 @@
       document.getElementById('btnEditInfo').style.display = '';
       document.getElementById('btnSaveInfo').style.display = 'none';
       document.getElementById('btnCancelInfo').style.display = 'none';
+
+      const saveBtn = document.getElementById('btnSaveInfo');
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg> Simpan';
     }
   </script>
 </body>
