@@ -301,7 +301,50 @@
       overflow-y: auto;
     }
 
-    /* BREADCRUMB */
+    /* BREADCRUMB NAV */
+    .breadcrumb-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: var(--slate-500);
+      font-weight: 500;
+    }
+
+    .breadcrumb-nav a {
+      color: var(--slate-500);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+    }
+
+    .breadcrumb-nav a:hover {
+      color: var(--slate-900);
+    }
+
+    .breadcrumb-nav svg.home-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .breadcrumb-nav svg.sep-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--slate-300);
+    }
+
+    .breadcrumb-nav .current {
+      color: var(--slate-900);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 400px;
+    }
+
+    /* PAGE HEADING (was BREADCRUMB) */
     .breadcrumb {
       display: flex;
       align-items: flex-start;
@@ -406,11 +449,72 @@
       background: linear-gradient(90deg, #0F2044, #1B3A6B);
     }
 
-    .sum-card-label {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--slate-400);
+    .kpi-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 14px;
+    }
+
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .kpi-icon.blue {
+      background: #E0F2FE;
+      color: #0284C7;
+    }
+
+    .kpi-icon.green {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .kpi-icon.amber {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .kpi-icon.rose {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
+    .kpi-icon.navy {
+      background: #E0E7FF;
+      color: #3730A3;
+    }
+
+    .kpi-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .sum-card-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .sum-card-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--slate-600);
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--slate-400);
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--slate-100);
     }
 
     .status-big {
@@ -485,9 +589,10 @@
     .dl-row {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 11px;
+      gap: 8px;
+      font-size: 13px;
       color: var(--slate-600);
+      margin-bottom: 2px;
     }
 
     .dl-dot {
@@ -501,8 +606,9 @@
       font-weight: 700;
       color: var(--slate-900);
       margin-left: auto;
-      min-width: 28px;
+      min-width: 40px;
       text-align: right;
+      font-size: 14px;
     }
 
     /* PIC CARD */
@@ -513,12 +619,12 @@
     }
 
     .pic-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #0EA5E9, #0F2044);
-      color: white;
-      font-size: 14px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #E0E7FF, #C7D2FE);
+      color: #3730A3;
+      font-size: 15px;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -539,75 +645,14 @@
       line-height: 1.4;
     }
 
-    /* TARGET SELESAI */
-    .target-wrap {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .target-icon {
-      width: 36px;
-      height: 36px;
-      background: #DBEAFE;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #1D4ED8;
-      flex-shrink: 0;
-    }
-
-    .target-date {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--slate-900);
-    }
-
     .target-late {
-      font-size: 11px;
-      color: var(--rose);
-      margin-top: 3px;
       font-weight: 600;
+      color: var(--rose);
     }
 
     .target-ontime {
-      font-size: 11px;
+      font-weight: 600;
       color: var(--emerald);
-      margin-top: 3px;
-      font-weight: 600;
-    }
-
-    /* BUKTI */
-    .bukti-wrap {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .bukti-icon {
-      width: 36px;
-      height: 36px;
-      background: #EDE9FE;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--violet);
-      flex-shrink: 0;
-    }
-
-    .bukti-count {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--slate-900);
-    }
-
-    .bukti-note {
-      font-size: 11px;
-      color: var(--amber);
-      margin-top: 3px;
-      font-weight: 600;
     }
 
     /* ── TWO COLUMN ── */
@@ -1872,10 +1917,10 @@
       <input type="text" placeholder="Search" />
     </div>
 
+
     <div class="nav-tabs">
-      <a class="nav-tab" href="/dashboard.html">Dashboard</a>
-      <a class="nav-tab" href="/aspek.html">Aspek</a>
-      <button class="nav-tab active">Rencana Aksi</button>
+      <a class="nav-tab active" href="/dashboard-aspek.html">Dashboard</a>
+      <a class="nav-tab" href="/daftar-bumd.html">BUMD</a>
     </div>
 
     <div class="nav-right">
@@ -1893,7 +1938,7 @@
   <div class="body-wrap">
     <!-- ICON SIDEBAR -->
     <aside class="icon-sidebar">
-      <a class="icon-btn" href="/dashboard.html" title="Dashboard">
+      <a class="icon-btn" href="/dashboard-aspek.html" title="Dashboard">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -1901,18 +1946,13 @@
           <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
       </a>
-      <a class="icon-btn" href="/aspek.html" title="Aspek">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9,22 9,12 15,12 15,22" />
-        </svg>
-      </a>
-      <a class="icon-btn active" title="Rencana Aksi">
+      <a class="icon-btn" href="/daftar-bumd.html" title="Daftar BUMD">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14,2 14,8 20,8" />
           <line x1="16" y1="13" x2="8" y2="13" />
           <line x1="16" y1="17" x2="8" y2="17" />
+          <polyline points="10,9 9,9 8,9" />
         </svg>
       </a>
       <div class="icon-sidebar-bottom">
@@ -1936,7 +1976,29 @@
     <!-- MAIN AREA -->
     <main class="main-area">
 
-      <!-- BREADCRUMB / HEADING -->
+      <!-- BREADCRUMB NAV -->
+      <nav class="breadcrumb-nav">
+        <a href="/dashboard-aspek.html" title="Beranda">
+          <svg class="home-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </a>
+        <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
+        </svg>
+        <a href="/dashboard-aspek.html">Dashboard Progres</a>
+        <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
+        </svg>
+        <a href="javascript:history.back()">Aspek</a>
+        <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
+        </svg>
+        <span class="current">Rencana Aksi</span>
+      </nav>
+
+      <!-- PAGE HEADING -->
       <div class="breadcrumb">
         <div class="bc-icon" onclick="history.back()" title="Kembali">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -1956,95 +2018,87 @@
       <div class="summary-row">
         <!-- Status -->
         <div class="sum-card amber">
-          <div class="sum-card-label">Status Rencana Aksi</div>
-          <div class="sum-card-body">
-            <div id="statusBadge"><span class="status-big terlambat">Terlambat</span></div>
-            <div class="sum-updated" id="lastUpdated">Terakhir diperbarui<br>10 Mei 2024, 10:30</div>
+          <div class="kpi-top">
+            <div class="sum-card-label">Status Rencana Aksi</div>
+            <div class="kpi-icon amber">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
+          <div class="sum-card-value" id="statusBadge" style="margin-bottom: 8px;"><span
+              class="status-big terlambat">Terlambat</span></div>
+          <div class="kpi-sub" id="lastUpdated">Terakhir diperbarui<br>10 Mei 2024, 10:30</div>
         </div>
         <!-- Progres Donut -->
         <div class="sum-card blue">
-          <div class="sum-card-label">Progres</div>
-          <div class="sum-card-body">
-            <div class="donut-wrap">
-              <div class="donut-svg" style="position:relative;width:72px;height:72px;">
-                <svg width="72" height="72" viewBox="0 0 72 72">
-                  <circle cx="36" cy="36" r="28" fill="none" stroke="#F1F5F9" stroke-width="9" />
-                  <circle id="donutSelesai" cx="36" cy="36" r="28" fill="none" stroke="#10B981" stroke-width="9"
-                    stroke-dasharray="175.9 175.9" stroke-dashoffset="87.96" stroke-linecap="round" />
-                  <circle id="donutProgress" cx="36" cy="36" r="28" fill="none" stroke="#0EA5E9" stroke-width="9"
-                    stroke-dasharray="0 175.9" stroke-dashoffset="0" stroke-linecap="round" />
-                </svg>
-                <div class="donut-label" id="donutLabel">50%</div>
+          <div class="kpi-top">
+            <div class="sum-card-label">Progres Rencana Aksi</div>
+          </div>
+          <div class="donut-wrap" style="margin-bottom: 8px; margin-top: 4px;">
+            <div class="donut-svg" style="position:relative;width:84px;height:84px;">
+              <svg width="84" height="84" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="28" fill="none" stroke="#F1F5F9" stroke-width="9" />
+                <circle id="donutSelesai" cx="36" cy="36" r="28" fill="none" stroke="#10B981" stroke-width="9"
+                  stroke-dasharray="175.9 175.9" stroke-dashoffset="87.96" stroke-linecap="round" />
+              </svg>
+              <div class="donut-label" id="donutLabel" style="font-size: 18px;">0%</div>
+            </div>
+            <div class="donut-legend">
+              <div class="dl-row">
+                <div class="dl-dot" style="background:#10B981"></div>Selesai<div class="dl-val" id="legSelesai">50%
+                </div>
               </div>
-              <div class="donut-legend">
-                <div class="dl-row">
-                  <div class="dl-dot" style="background:#10B981"></div>Selesai<div class="dl-val" id="legSelesai">50%
-                  </div>
+              <div class="dl-row">
+                <div class="dl-dot" style="background:#0EA5E9"></div>Dalam Proses<div class="dl-val" id="legProgress">0%
                 </div>
-                <div class="dl-row">
-                  <div class="dl-dot" style="background:#0EA5E9"></div>Dalam Proses<div class="dl-val" id="legProgress">
-                    0%
-                  </div>
-                </div>
-                <div class="dl-row">
-                  <div class="dl-dot" style="background:#F1F5F9;border:1px solid #CBD5E1"></div>Belum Mulai<div
-                    class="dl-val" id="legBelum">25%</div>
-                </div>
+              </div>
+              <div class="dl-row">
+                <div class="dl-dot" style="background:#F1F5F9;border:1px solid #CBD5E1"></div>Belum Mulai<div
+                  class="dl-val" id="legBelum">25%</div>
               </div>
             </div>
           </div>
         </div>
         <!-- PIC -->
         <div class="sum-card navy">
-          <div class="sum-card-label">PIC Utama</div>
-          <div class="sum-card-body">
-            <div class="pic-wrap">
-              <div class="pic-avatar" id="picAvatar">RH</div>
-              <div>
-                <div class="pic-name" id="picName">Rudi Hermawan</div>
-                <div class="pic-role" id="picRole">Kepala Strategi dan Perencanaan</div>
-              </div>
-            </div>
+          <div class="kpi-top">
+            <div class="sum-card-label">PIC Utama</div>
+            <div class="pic-avatar" id="picAvatar">RH</div>
           </div>
+          <div class="sum-card-value" id="picName" style="font-size: 18px; margin-bottom: 4px;">Rudi Hermawan</div>
+          <div class="kpi-sub" id="picRole">Kepala Strategi dan Perencanaan</div>
         </div>
         <!-- Target Selesai -->
         <div class="sum-card rose">
-          <div class="sum-card-label">Target Selesai</div>
-          <div class="sum-card-body">
-            <div class="target-wrap">
-              <div class="target-icon">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </div>
-              <div>
-                <div class="target-date" id="targetDate">30 April 2026</div>
-                <div class="target-late" id="targetNote">Lewat 30 hari</div>
-              </div>
+          <div class="kpi-top">
+            <div class="sum-card-label">Target Selesai</div>
+            <div class="kpi-icon rose">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
             </div>
           </div>
+          <div class="sum-card-value" id="targetDate" style="font-size: 20px; margin-bottom: 4px;">30 April 2026</div>
+          <div class="kpi-sub"><span id="targetNote" class="target-late">Lewat 30 hari</span></div>
         </div>
         <!-- Bukti -->
         <div class="sum-card green">
-          <div class="sum-card-label">Bukti</div>
-          <div class="sum-card-body">
-            <div class="bukti-wrap">
-              <div class="bukti-icon">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14,2 14,8 20,8" />
-                </svg>
-              </div>
-              <div>
-                <div class="bukti-count">3 Dokumen</div>
-                <div class="bukti-note">2 perlu verifikasi</div>
-              </div>
+          <div class="kpi-top">
+            <div class="sum-card-label">Bukti</div>
+            <div class="kpi-icon green">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14,2 14,8 20,8" />
+              </svg>
             </div>
           </div>
+          <div class="sum-card-value bukti-count">3 Dokumen</div>
+          <div class="kpi-sub bukti-note">2 perlu verifikasi</div>
         </div>
       </div>
 
@@ -2407,7 +2461,7 @@
             <input type="hidden" id="verifDecision" value="">
           </div>
           <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label">Catatan (Opsional)</label>
+            <label class="form-label" id="labelApproveNotes">Catatan (Opsional)</label>
             <textarea class="textarea-notes" id="approveNotes" placeholder="Tuliskan catatan..."></textarea>
           </div>
         </div>
@@ -2879,9 +2933,7 @@
 
       document.getElementById('donutSelesai').setAttribute('stroke-dasharray', selesaiDash + ' ' + circ);
       document.getElementById('donutSelesai').setAttribute('stroke-dashoffset', circ * 0.25);
-      document.getElementById('donutProgress').setAttribute('stroke-dasharray', progressDash + ' ' + circ);
-      document.getElementById('donutProgress').setAttribute('stroke-dashoffset', circ * 0.25 - selesaiDash);
-      document.getElementById('donutLabel').textContent = Math.round(cards.progres.progress_percentage) + '%';
+      document.getElementById('donutLabel').textContent = Math.round(selesaiPct) + '%';
       document.getElementById('legSelesai').textContent = selesaiPct + '%';
       document.getElementById('legProgress').textContent = progressPct + '%';
       document.getElementById('legBelum').textContent = Math.max(0, belumPct) + '%';
@@ -3447,7 +3499,14 @@
     function populateUserDropdown(selectId) {
       const select = document.getElementById(selectId);
       const currentVal = select.value;
-      select.innerHTML = '<option value="">Pilih...</option>' + allUsers.map(u =>
+      const targetCompanyId = currentData?.action_plan?.company_id;
+
+      // Only show users from the same BUMD company (exclude BPBUMD users)
+      const filteredUsers = targetCompanyId
+        ? allUsers.filter(u => Number(u.company_id) === Number(targetCompanyId) && u.company_type === 'bumd')
+        : allUsers.filter(u => u.company_type === 'bumd');
+
+      select.innerHTML = '<option value="">Pilih...</option>' + filteredUsers.map(u =>
         `<option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(u.role)})</option>`
       ).join('');
       select.value = currentVal;
@@ -3572,12 +3631,22 @@
       document.getElementById('verifDecision').value = decision;
       const chipSetuju = document.getElementById('chipSetuju');
       const chipTolak = document.getElementById('chipTolak');
+      const labelNotes = document.getElementById('labelApproveNotes');
+      const inputNotes = document.getElementById('approveNotes');
 
       chipSetuju.classList.remove('selected-setuju');
       chipTolak.classList.remove('selected-tolak');
 
-      if (decision === 'setuju') chipSetuju.classList.add('selected-setuju');
-      if (decision === 'tolak') chipTolak.classList.add('selected-tolak');
+      if (decision === 'setuju') {
+        chipSetuju.classList.add('selected-setuju');
+        labelNotes.innerHTML = 'Catatan (Opsional)';
+        inputNotes.placeholder = 'Tuliskan catatan...';
+      }
+      if (decision === 'tolak') {
+        chipTolak.classList.add('selected-tolak');
+        labelNotes.innerHTML = 'Catatan Penolakan <span class="required">*</span>';
+        inputNotes.placeholder = 'Alasan penolakan wajib diisi...';
+      }
     }
 
     async function submitVerifikasi(id) {

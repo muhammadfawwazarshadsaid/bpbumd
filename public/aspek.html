@@ -307,31 +307,46 @@
     }
 
     /* BREADCRUMB */
-    .breadcrumb {
+    .breadcrumb-nav {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-bottom: 20px;
-      font-size: 13px;
-    }
-
-    .breadcrumb a {
-      color: var(--sky);
-      text-decoration: none;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: var(--slate-500);
       font-weight: 500;
     }
 
-    .breadcrumb a:hover {
-      text-decoration: underline;
+    .breadcrumb-nav a {
+      color: var(--slate-500);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
     }
 
-    .breadcrumb-sep {
-      color: var(--slate-400);
+    .breadcrumb-nav a:hover {
+      color: var(--slate-900);
     }
 
-    .breadcrumb-current {
-      font-weight: 700;
-      color: var(--slate-700);
+    .breadcrumb-nav svg.home-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .breadcrumb-nav svg.sep-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--slate-300);
+    }
+
+    .breadcrumb-nav .current {
+      color: var(--slate-900);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 400px;
     }
 
     .page-heading {
@@ -1436,11 +1451,10 @@
       <input type="text" placeholder="Search" />
     </div>
 
+
     <div class="nav-tabs">
-      <a class="nav-tab" href="/dashboard-aspek.html">Dashboard</a>
-      <button class="nav-tab active">Aspek</button>
-      <a class="nav-tab" href="/rencana-aksi.html">Rencana Aksi</a>
-      <a class="nav-tab" href="/bumd.html">BUMD</a>
+      <a class="nav-tab active" href="/dashboard-aspek.html">Dashboard</a>
+      <a class="nav-tab" href="/daftar-bumd.html">BUMD</a>
     </div>
 
     <div class="nav-right">
@@ -1457,6 +1471,7 @@
 
   <div class="body-wrap">
     <!-- ICON SIDEBAR -->
+
     <aside class="icon-sidebar">
       <a class="icon-btn" href="/dashboard-aspek.html" title="Dashboard">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1466,13 +1481,7 @@
           <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
       </a>
-      <a class="icon-btn active" title="Aspek">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9,22 9,12 15,12 15,22" />
-        </svg>
-      </a>
-      <a class="icon-btn" title="Laporan">
+      <a class="icon-btn" href="/daftar-bumd.html" title="Daftar BUMD">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14,2 14,8 20,8" />
@@ -1526,11 +1535,22 @@
       <!-- CONTENT (hidden until data loads) -->
       <div id="contentArea" style="display:none;">
         <!-- BREADCRUMB -->
-        <div class="breadcrumb">
-          <a href="/dashboard-aspek.html">Dashboard</a>
-          <span class="breadcrumb-sep">›</span>
-          <span class="breadcrumb-current" id="breadcrumbText">—</span>
-        </div>
+        <nav class="breadcrumb-nav">
+          <a href="/dashboard-aspek.html" title="Beranda">
+            <svg class="home-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </a>
+          <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
+          </svg>
+          <a href="/dashboard-aspek.html">Dashboard Progres</a>
+          <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
+          </svg>
+          <span class="current" id="breadcrumbText">—</span>
+        </nav>
 
         <!-- PAGE HEADING -->
         <div class="page-heading">
@@ -1904,10 +1924,10 @@
       const { aspect, cards, daftar_strategi } = data;
 
       // Page title & breadcrumb
-      const title = aspect.aspect_name.toUpperCase();
+      const title = aspect.aspect_name;
       document.getElementById('pageHeadingTitle').textContent = title;
       document.getElementById('breadcrumbText').textContent = title;
-      document.title = 'BPBUMD Control Tower — ' + aspect.aspect_name;
+      document.title = 'BPBUMD Control Tower — ' + title;
 
       // Summary cards
       renderCards(cards);
@@ -2545,15 +2565,24 @@
       }
     }
 
-    // Load users for PIC select
+    // Load users for PIC select — only show users from the same BUMD
     async function loadUsersForSelect() {
       try {
         const res = await fetch('/api/auth/users');
         const data = await res.json();
         if (data && data.success && data.data) {
+          const targetCompanyId = aspectData?.aspect?.company_id;
           const select = document.getElementById('addAPPic');
           select.innerHTML = '<option value="">Pilih PIC</option>';
-          data.data.forEach(user => {
+
+          // Filter: only users from the same BUMD company
+          const filtered = data.data.filter(user => {
+            if (user.company_type !== 'bumd') return false;
+            if (targetCompanyId && Number(user.company_id) !== Number(targetCompanyId)) return false;
+            return true;
+          });
+
+          filtered.forEach(user => {
             select.innerHTML += `<option value="${user.id}">${user.name} (${user.role})</option>`;
           });
         }

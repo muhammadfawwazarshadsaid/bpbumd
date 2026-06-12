@@ -197,25 +197,169 @@ async function getCurrentUser(userId) {
   return result.rows[0];
 }
 
-async function getAllUsers() {
+async function getAllUsers(user) {
+  const isBpbumd = user && user.company_type === 'bpbumd';
+
+  let sql = `
+    SELECT
+      u.id,
+      u.username,
+      u.name,
+      u.role,
+      u.company_id,
+      c.name AS company_name,
+      c.company_type
+    FROM users u
+    LEFT JOIN companies c ON c.id = u.company_id
+    WHERE u.is_active = TRUE
+  `;
+
+  const values = [];
+  
+  if (!isBpbumd && user) {
+    sql += ` AND u.company_id = $1`;
+    values.push(user.company_id);
+  }
+
+  sql += ` ORDER BY u.name ASC`;
+
+  const result = await pool.query(sql, values);
+
+  return result.rows;
+}
+
+async function getUserById(userId) {
   const result = await pool.query(
     `
       SELECT
         u.id,
+        u.company_id,
         u.username,
         u.name,
         u.role,
-        u.company_id,
+        u.is_active,
         c.name AS company_name,
         c.company_type
       FROM users u
-      LEFT JOIN companies c ON c.id = u.company_id
-      WHERE u.is_active = TRUE
-      ORDER BY u.name ASC
+      JOIN companies c ON c.id = u.company_id
+      WHERE u.id = $1
+      LIMIT 1
     `,
+    [userId],
   );
 
-  return result.rows;
+  if (result.rowCount === 0) {
+    const error = new Error("User tidak ditemukan");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return result.rows[0];
+}
+
+async function updateUser(requestingUser, userId, payload) {
+  const { name, username, password, role } = payload;
+
+  // Check user exists
+  const existing = await pool.query(
+    `SELECT u.id, u.company_id, c.company_type
+     FROM users u
+     JOIN companies c ON c.id = u.company_id
+     WHERE u.id = $1`,
+    [userId],
+  );
+
+  if (existing.rowCount === 0) {
+    const error = new Error("User tidak ditemukan");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const targetUser = existing.rows[0];
+
+  // Authorization:
+  // 1. User can always edit themselves
+  // 2. BPBUMD admin can edit anyone
+  // 3. BUMD admin can edit anyone in their own company
+  const isSelf = Number(requestingUser.id) === Number(userId);
+  const isAdmin = requestingUser.role === 'admin';
+  const isBpbumd = requestingUser.company_type === 'bpbumd';
+
+  if (!isSelf) {
+    if (!isAdmin) {
+      const error = new Error("Anda tidak memiliki akses untuk mengedit user lain");
+      error.statusCode = 403;
+      throw error;
+    }
+    
+    if (!isBpbumd && Number(targetUser.company_id) !== Number(requestingUser.company_id)) {
+      const error = new Error("Anda tidak memiliki akses untuk mengedit user ini");
+      error.statusCode = 403;
+      throw error;
+    }
+  }
+
+  const sets = [];
+  const values = [];
+  let paramIndex = 1;
+
+  if (name !== undefined) {
+    sets.push(`name = $${paramIndex++}`);
+    values.push(name);
+  }
+
+  if (username !== undefined) {
+    sets.push(`username = $${paramIndex++}`);
+    values.push(username);
+  }
+
+  if (role !== undefined) {
+    if (!['admin', 'user'].includes(role)) {
+      const error = new Error("Role harus admin atau user");
+      error.statusCode = 400;
+      throw error;
+    }
+    sets.push(`role = $${paramIndex++}`);
+    values.push(role);
+  }
+
+  if (password !== undefined) {
+    if (password.length < 6) {
+      const error = new Error("Password minimal 6 karakter");
+      error.statusCode = 400;
+      throw error;
+    }
+    const bcrypt = require('bcryptjs');
+    const hash = await bcrypt.hash(password, 10);
+    sets.push(`password_hash = $${paramIndex++}`);
+    values.push(hash);
+  }
+
+  if (sets.length === 0) {
+    const error = new Error("Tidak ada data yang diubah");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  sets.push('updated_at = CURRENT_TIMESTAMP');
+  values.push(userId);
+
+  try {
+    const result = await pool.query(
+      `UPDATE users SET ${sets.join(', ')} WHERE id = $${paramIndex}
+       RETURNING id, company_id, username, name, role, is_active`,
+      values,
+    );
+
+    return result.rows[0];
+  } catch (error) {
+    if (error.code === '23505') {
+      const duplicateError = new Error('Username sudah digunakan');
+      duplicateError.statusCode = 409;
+      throw duplicateError;
+    }
+    throw error;
+  }
 }
 
 module.exports = {
@@ -223,4 +367,6 @@ module.exports = {
   loginUser,
   getCurrentUser,
   getAllUsers,
+  getUserById,
+  updateUser,
 };

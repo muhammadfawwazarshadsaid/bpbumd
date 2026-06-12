@@ -55,6 +55,18 @@ async function createSubActionPlan(user, payload) {
     throw error;
   }
 
+  if (Number(approver_user_id_1) === Number(user.id) || Number(approver_user_id_2) === Number(user.id)) {
+    const error = new Error("Anda tidak dapat menjadi verifikator untuk sub rencana aksi yang Anda ajukan sendiri");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (pic_user_id && (Number(approver_user_id_1) === Number(pic_user_id) || Number(approver_user_id_2) === Number(pic_user_id))) {
+    const error = new Error("PIC tidak dapat menjadi verifikator untuk sub rencana aksi miliknya sendiri");
+    error.statusCode = 400;
+    throw error;
+  }
+
   const client = await pool.connect();
 
   try {

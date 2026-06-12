@@ -61,7 +61,7 @@
       bottom: 0;
       z-index: 100;
       overflow-y: auto;
-      transition: transform 0.3s;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .sidebar-logo {
@@ -215,6 +215,7 @@
       display: flex;
       flex-direction: column;
       min-width: 0;
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     /* TOPBAR */
@@ -229,6 +230,25 @@
       position: sticky;
       top: 0;
       z-index: 50;
+    }
+
+    .menu-toggle {
+      background: none;
+      border: none;
+      color: var(--slate-500);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      margin-left: -8px;
+      border-radius: 6px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .menu-toggle:hover {
+      background: var(--slate-100);
+      color: var(--slate-900);
     }
 
     .topbar-left {
@@ -919,6 +939,46 @@
         grid-template-columns: 1fr 1fr;
       }
     }
+
+    /* ── COLLAPSED SIDEBAR STATE ──────────────── */
+    body.sidebar-collapsed {
+      --sidebar-w: 80px;
+    }
+
+    body.sidebar-collapsed .logo-text,
+    body.sidebar-collapsed .nav-label,
+    body.sidebar-collapsed .nav-badge,
+    body.sidebar-collapsed .user-info,
+    body.sidebar-collapsed .logout-btn {
+      display: none;
+    }
+
+    body.sidebar-collapsed .nav-item {
+      font-size: 0;
+      justify-content: center;
+      padding: 14px 0;
+      gap: 0;
+    }
+
+    body.sidebar-collapsed .sidebar-logo {
+      padding: 24px 0 20px;
+    }
+
+    body.sidebar-collapsed .logo-row {
+      justify-content: center;
+    }
+
+    body.sidebar-collapsed .user-card {
+      justify-content: center;
+    }
+
+    body.sidebar-collapsed .sidebar-bottom {
+      padding: 16px 0;
+    }
+
+    body.sidebar-collapsed .nav-item svg {
+      margin: 0;
+    }
   </style>
 </head>
 
@@ -1038,6 +1098,13 @@
   <!-- MAIN CONTENT -->
   <div class="main">
     <header class="topbar">
+      <button class="menu-toggle" onclick="toggleSidebar()" title="Toggle Sidebar">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
       <div class="topbar-left">
         <div class="page-title" id="pageTitle">Dashboard Utama</div>
         <div class="page-sub" id="pageSub">Ringkasan kinerja seluruh BUMD · Periode: Januari – Juni 2026</div>
@@ -1343,8 +1410,12 @@
 
   <script src="/auth.js"></script>
   <script>
-    // ── INIT ─────────────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', async function () {
+    function toggleSidebar() {
+      document.body.classList.toggle('sidebar-collapsed');
+    }
+
+    // ── INITIAL LOAD ──────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
       // Auth guard — redirect to login if not authenticated
       const user = await BPBUMDAuth.requireAuth();
 

@@ -12,7 +12,7 @@ const { authMiddleware } = require("../middleware/auth.middleware");
  */
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const data = await bumdService.getAllBumds(req.query);
+    const data = await bumdService.getAllBumds(req.user, req.query);
 
     res.json({
       success: true,

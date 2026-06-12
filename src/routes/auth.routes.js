@@ -98,8 +98,8 @@ router.get("/me", authMiddleware, async (req, res) => {
 
 router.get("/users", authMiddleware, async (req, res) => {
   try {
-    const users = await authService.getAllUsers();
-    
+    const users = await authService.getAllUsers(req.user);
+
     res.json({
       success: true,
       message: "Berhasil mendapatkan daftar user",
@@ -107,10 +107,40 @@ router.get("/users", authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error("Get Users error:", error);
-    
+
     res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Gagal mengambil daftar user",
+    });
+  }
+});
+
+/**
+ * PUT /api/auth/users/:id
+ * Body: { name, username, password, role }
+ */
+router.put("/users/:id", authMiddleware, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Parameter id harus berupa angka",
+      });
+    }
+
+    const data = await authService.updateUser(req.user, id, req.body);
+
+    res.json({
+      success: true,
+      message: "User berhasil diubah",
+      data,
+    });
+  } catch (error) {
+    console.error("Update User error:", error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal mengubah user",
     });
   }
 });

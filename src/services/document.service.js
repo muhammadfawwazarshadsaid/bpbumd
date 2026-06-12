@@ -324,6 +324,12 @@ async function verifyDocument(user, documentId) {
       throw error;
     }
 
+    if (Number(user.id) === Number(doc.uploaded_by_user_id)) {
+      const error = new Error("Anda tidak dapat memverifikasi dokumen yang Anda unggah sendiri");
+      error.statusCode = 403;
+      throw error;
+    }
+
     await client.query(
       `
         UPDATE documents
@@ -390,6 +396,12 @@ async function rejectDocument(user, documentId, reason) {
     }
 
     const doc = existing.rows[0];
+
+    if (Number(user.id) === Number(doc.uploaded_by_user_id)) {
+      const error = new Error("Anda tidak dapat menolak dokumen yang Anda unggah sendiri");
+      error.statusCode = 403;
+      throw error;
+    }
 
     await client.query(
       `

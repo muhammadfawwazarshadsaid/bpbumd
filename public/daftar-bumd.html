@@ -173,6 +173,20 @@
       font-family: inherit;
     }
 
+    .user-chip:hover {
+      background: var(--slate-200);
+      transform: translateY(-1px);
+    }
+
+    .user-chip.is-me {
+      border-color: var(--sky);
+      background: #F0F9FF;
+    }
+    
+    .user-chip.is-me:hover {
+      background: #E0F2FE;
+    }
+
     .nav-tab:hover {
       background: var(--slate-100);
       color: var(--slate-700);
@@ -304,6 +318,49 @@
       min-width: 0;
       padding: 24px 28px;
       overflow-y: auto;
+    }
+
+    /* BREADCRUMB */
+    .breadcrumb-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: var(--slate-500);
+      font-weight: 500;
+    }
+
+    .breadcrumb-nav a {
+      color: var(--slate-500);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      transition: color 0.15s;
+    }
+
+    .breadcrumb-nav a:hover {
+      color: var(--slate-900);
+    }
+
+    .breadcrumb-nav svg.home-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .breadcrumb-nav svg.sep-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--slate-300);
+    }
+
+    .breadcrumb-nav .current {
+      color: var(--slate-900);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 400px;
     }
 
     /* PAGE HEADING */
@@ -782,6 +839,30 @@
 
     .form-select {
       cursor: pointer;
+    }
+
+    /* ── PASSWORD TOGGLE ───────────────────────── */
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--slate-400);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .password-toggle:hover {
+      color: var(--slate-600);
     }
 
     /* ── MULTI CHIP SELECTOR ───────────────────── */
@@ -1350,9 +1431,23 @@
     <!-- MAIN AREA -->
     <main class="main-area">
 
+      <!-- BREADCRUMB -->
+      <nav class="breadcrumb-nav">
+        <a href="/dashboard-aspek.html" title="Beranda">
+          <svg class="home-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </a>
+        <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
+        </svg>
+        <span class="current">Daftar BUMD</span>
+      </nav>
+
       <!-- PAGE HEADING -->
       <div class="page-heading">
-        <div class="page-heading-title">DAFTAR BUMD</div>
+        <div class="page-heading-title">Daftar BUMD</div>
       </div>
 
       <!-- KPI SUMMARY -->
@@ -1547,7 +1642,17 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="createUserPassword">Password <span class="required">*</span></label>
-          <input class="form-input" id="createUserPassword" type="password" placeholder="Minimal 6 karakter" />
+          <div class="password-wrapper">
+            <input class="form-input" id="createUserPassword" type="password" placeholder="Minimal 6 karakter"
+              style="padding-right: 40px;" />
+            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('createUserPassword')"
+              title="Tampilkan/Sembunyikan">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label" for="createUserRole">Role</label>
@@ -1570,6 +1675,63 @@
     </div>
   </div>
 
+  <!-- MODAL: EDIT PENGGUNA -->
+  <div class="modal-overlay" id="editUserModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Edit Pengguna</div>
+        <button class="modal-close" onclick="closeEditUserModal()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="editUserName">Nama Lengkap <span class="required">*</span></label>
+          <input class="form-input" id="editUserName" type="text" placeholder="Masukkan nama lengkap" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editUserUsername">Username <span class="required">*</span></label>
+          <input class="form-input" id="editUserUsername" type="text" placeholder="Masukkan username" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editUserPassword">Ubah Password (Kosongkan jika tidak ingin mengubah)</label>
+          <div class="password-wrapper">
+            <input class="form-input" id="editUserPassword" type="password" placeholder="Minimal 6 karakter"
+              style="padding-right: 40px;" />
+            <button type="button" class="password-toggle" onclick="togglePasswordVisibility('editUserPassword')"
+              title="Tampilkan/Sembunyikan">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editUserRole">Role</label>
+          <select class="form-select" id="editUserRole">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeEditUserModal()">Batal</button>
+        <button class="btn-submit" id="btnEditUser" onclick="submitEditUser()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17,21 17,13 7,13 7,21" />
+            <polyline points="7,3 7,8 15,8" />
+          </svg>
+          Simpan
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST -->
   <div class="toast-container" id="toastContainer"></div>
 
@@ -1587,14 +1749,19 @@
     let deletingId = null;
     let creatingUserId = null;
     let searchTimeout = null;
+    let currentUser = null;
 
     // ════════════════════════════════════════════
     //  INIT
     // ════════════════════════════════════════════
 
     document.addEventListener('DOMContentLoaded', async () => {
-      const user = await BPBUMDAuth.requireAuth();
-      initUserInfo(user);
+      currentUser = await BPBUMDAuth.requireAuth();
+      if (currentUser && currentUser.company_type !== 'bpbumd') {
+        const btnTambah = document.getElementById('btnTambah');
+        if (btnTambah) btnTambah.style.display = 'none';
+      }
+      initUserInfo(currentUser);
       initDate();
       initEventListeners();
       await Promise.all([loadBumds(), loadSectors(), loadUsers()]);
@@ -1750,14 +1917,19 @@
           <tbody>
       `;
 
+      const isBpbumd = currentUser && currentUser.company_type === 'bpbumd';
+
       allBumds.forEach((bumd, i) => {
         const users = bumd.users || [];
-        let chipsHtml = users.map(u => `
-              <div class="user-chip">
+        let chipsHtml = users.map(u => {
+          const isMe = currentUser && Number(u.user_id) === Number(currentUser.id);
+          return `
+              <div class="user-chip ${isMe ? 'is-me' : ''}" onclick="openEditUserModal(${u.user_id})" style="cursor:pointer;" title="${isMe ? 'Profil Anda' : 'Edit Pengguna'}">
                 <span class="chip-avatar">${getInitials(u.name)}</span>
-                ${escapeHtml(u.name)}
+                ${escapeHtml(u.name)} ${isMe ? '<span style="color:var(--sky);font-weight:600;margin-left:4px">(Anda)</span>' : ''}
               </div>
-            `).join('');
+            `;
+        }).join('');
 
         const emptyCount = 3 - users.length;
         for (let j = 0; j < emptyCount; j++) {
@@ -1770,6 +1942,28 @@
                 </svg>
               </span>
               Tambah Pengguna
+            </div>
+          `;
+        }
+
+        let actionBtns = '-';
+        if (isBpbumd) {
+          actionBtns = `
+            <div class="action-btns">
+              <button class="action-btn" onclick="openEditModal(${bumd.id})" title="Edit">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Edit
+              </button>
+              <button class="action-btn delete" onclick="openDeleteModal(${bumd.id}, '${escapeHtml(bumd.name).replace(/'/g, "\\'")}')" title="Hapus">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <polyline points="3,6 5,6 21,6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                Hapus
+              </button>
             </div>
           `;
         }
@@ -1787,22 +1981,7 @@
               <div class="user-chips">${chipsHtml}</div>
             </td>
             <td>
-              <div class="action-btns">
-                <button class="action-btn" onclick="openEditModal(${bumd.id})" title="Edit">
-                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  Edit
-                </button>
-                <button class="action-btn delete" onclick="openDeleteModal(${bumd.id}, '${escapeHtml(bumd.name).replace(/'/g, "\\'")}')" title="Hapus">
-                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <polyline points="3,6 5,6 21,6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                  Hapus
-                </button>
-              </div>
+              ${actionBtns}
             </td>
           </tr>
         `;
@@ -2037,9 +2216,9 @@
     function addUser(userId) {
       if (selectedUsers.length >= 3) return;
 
-      const user = allUsers.find(u => u.id === userId);
+      const user = allUsers.find(u => Number(u.id) === Number(userId));
       if (!user) return;
-      if (selectedUsers.some(u => u.id === userId)) return;
+      if (selectedUsers.some(u => Number(u.id) === Number(userId))) return;
 
       selectedUsers.push({
         id: user.id,
@@ -2065,7 +2244,7 @@
     function renderChipDropdown() {
       const dropdown = document.getElementById('chipDropdown');
       const query = document.getElementById('chipSearchInput').value.trim().toLowerCase();
-      const selectedIds = new Set(selectedUsers.map(u => u.id));
+      const selectedIds = new Set(selectedUsers.map(u => Number(u.id)));
 
       const filtered = allUsers.filter(u => {
         const matchQuery = !query ||
@@ -2083,8 +2262,8 @@
       const atLimit = selectedUsers.length >= 3;
 
       dropdown.innerHTML = filtered.map(u => {
-        const isSelected = selectedIds.has(u.id);
-        const isAlreadyRegistered = u.company_type === 'bumd' && u.company_id !== editingId;
+        const isSelected = selectedIds.has(Number(u.id));
+        const isAlreadyRegistered = u.company_type === 'bumd' && u.company_id && Number(u.company_id) !== Number(editingId);
         const isAdmin = u.company_type === 'bpbumd';
         const isUnavailable = !isSelected && (isAlreadyRegistered || isAdmin);
         const isDisabled = (atLimit && !isSelected) || isUnavailable;
@@ -2117,8 +2296,96 @@
     }
 
     function removeUserById(userId) {
-      const idx = selectedUsers.findIndex(u => u.id === userId);
+      const idx = selectedUsers.findIndex(u => Number(u.id) === Number(userId));
       if (idx !== -1) removeUser(idx);
+    }
+
+    // ════════════════════════════════════════════
+    //  MODAL: EDIT PENGGUNA
+    // ════════════════════════════════════════════
+
+    let editingUserId = null;
+
+    async function openEditUserModal(userId) {
+      editingUserId = userId;
+
+      document.getElementById('editUserName').value = 'Memuat...';
+      document.getElementById('editUserUsername').value = 'Memuat...';
+      document.getElementById('editUserPassword').value = '';
+      document.getElementById('editUserModal').classList.add('show');
+
+      try {
+        const user = allUsers.find(u => Number(u.id) === Number(userId));
+        if (user) {
+          document.getElementById('editUserName').value = user.name;
+          document.getElementById('editUserUsername').value = user.username;
+          document.getElementById('editUserRole').value = user.role;
+        } else {
+          document.getElementById('editUserName').value = 'Gagal memuat';
+          document.getElementById('editUserUsername').value = 'Gagal memuat';
+        }
+      } catch (err) {
+        showToast('Gagal memuat detail pengguna', 'error');
+        closeEditUserModal();
+      }
+    }
+
+    function closeEditUserModal() {
+      document.getElementById('editUserModal').classList.remove('show');
+      editingUserId = null;
+    }
+
+    async function submitEditUser() {
+      if (!editingUserId) return;
+
+      const name = document.getElementById('editUserName').value.trim();
+      const username = document.getElementById('editUserUsername').value.trim();
+      const password = document.getElementById('editUserPassword').value;
+      const role = document.getElementById('editUserRole').value;
+
+      if (!name || !username) {
+        showToast('Nama dan username wajib diisi', 'error');
+        return;
+      }
+
+      if (password && password.length < 6) {
+        showToast('Password minimal 6 karakter', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btnEditUser');
+      btn.disabled = true;
+
+      const payload = { name, username, role };
+      if (password) payload.password = password;
+
+      try {
+        await apiFetch(`/api/auth/users/${editingUserId}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        showToast('Pengguna berhasil diubah', 'success');
+        closeEditUserModal();
+        await loadBumds();
+        await loadUsers();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function togglePasswordVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      const icon = input.nextElementSibling.querySelector('svg');
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+      } else {
+        input.type = 'password';
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+      }
     }
 
     // ════════════════════════════════════════════

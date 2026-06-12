@@ -109,6 +109,7 @@ async function getActionPlanDetail(user, actionPlanId) {
         action_plan_name: actionPlan.action_plan_name,
         code_order: actionPlan.code_order,
         weight: actionPlan.weight,
+        company_id: actionPlan.company_id,
       },
 
       cards,
@@ -153,7 +154,9 @@ async function getActionPlan(client, actionPlanId, companyScopeId) {
 
         pic.id             AS pic_user_id,
         pic.name           AS pic_name,
-        pic.role           AS pic_role
+        pic.role           AS pic_role,
+
+        a.company_id       AS company_id
 
       FROM action_plans ap
       JOIN activity_groups ag
@@ -196,12 +199,14 @@ async function getActionPlan(client, actionPlanId, companyScopeId) {
     is_blocked: row.is_blocked,
     updated_at: row.updated_at,
 
+    company_id: Number(row.company_id),
+
     pic_utama: row.pic_user_id
       ? {
-          user_id: Number(row.pic_user_id),
-          name: row.pic_name,
-          role: row.pic_role,
-        }
+        user_id: Number(row.pic_user_id),
+        name: row.pic_name,
+        role: row.pic_role,
+      }
       : null,
   };
 }
@@ -459,15 +464,15 @@ async function getSubRencanaAksi(client, actionPlanId) {
     created_at: row.created_at,
     pic: row.pic_user_id
       ? {
-          user_id: Number(row.pic_user_id),
-          name: row.pic_name,
-        }
+        user_id: Number(row.pic_user_id),
+        name: row.pic_name,
+      }
       : null,
     submitted_by: row.submitted_by_user_id
       ? {
-          user_id: Number(row.submitted_by_user_id),
-          name: row.submitted_by_name,
-        }
+        user_id: Number(row.submitted_by_user_id),
+        name: row.submitted_by_name,
+      }
       : null,
     approvals: approvalMap.get(String(row.sub_action_plan_id)) || [],
   }));
@@ -526,15 +531,15 @@ async function getDokumen(client, actionPlanId) {
     verified_at: row.verified_at,
     uploaded_by: row.uploaded_by_user_id
       ? {
-          user_id: Number(row.uploaded_by_user_id),
-          name: row.uploaded_by_name,
-        }
+        user_id: Number(row.uploaded_by_user_id),
+        name: row.uploaded_by_name,
+      }
       : null,
     verified_by: row.verified_by_user_id
       ? {
-          user_id: Number(row.verified_by_user_id),
-          name: row.verified_by_name,
-        }
+        user_id: Number(row.verified_by_user_id),
+        name: row.verified_by_name,
+      }
       : null,
   }));
 }

@@ -6,8 +6,9 @@ const { pool } = require("../config/database");
 //  GET ALL BUMDs
 // ═════════════════════════════════════════════
 
-async function getAllBumds(query) {
+async function getAllBumds(user, query) {
   const { search, sector_id } = query || {};
+  const isBpbumd = user && user.company_type === 'bpbumd';
 
   let sql = `
     SELECT
@@ -39,6 +40,12 @@ async function getAllBumds(query) {
 
   const values = [];
   let paramIndex = 1;
+
+  // Non-BPBUMD users can only see their own BUMD
+  if (!isBpbumd && user) {
+    sql += ` AND c.id = $${paramIndex++}`;
+    values.push(user.company_id);
+  }
 
   if (search) {
     sql += ` AND c.name ILIKE $${paramIndex++}`;
@@ -259,15 +266,21 @@ async function updateBumd(user, bumdId, payload) {
         "SELECT id FROM users WHERE company_id = $1 AND is_active = TRUE",
         [bumdId]
       );
-      const currentUserIds = currentUsersRes.rows.map(r => r.id);
+      const currentUserIds = currentUsersRes.rows.map(r => Number(r.id));
+      const newUserIds = user_ids.map(id => Number(id));
 
-      // Cari user yang perlu di-unassign (tapi kita nggak bisa set company_id jadi NULL)
-      // Solusi: Kita abaikan unassign, atau kita hanya assign user baru.
-      // Karena company_id NOT NULL, user harus dipindah ke company lain lewat Manajemen Pengguna.
-      // Di sini kita hanya assign user yang dipilih.
+      // Cari user yang perlu di-unassign
+      const usersToUnassign = currentUserIds.filter(id => !newUserIds.includes(id));
+      
+      if (usersToUnassign.length > 0) {
+        for (const uid of usersToUnassign) {
+          await client.query("UPDATE users SET company_id = NULL WHERE id = $1", [uid]);
+        }
+      }
 
-      if (user_ids && user_ids.length > 0) {
-        for (const uid of user_ids) {
+      // Cari user yang baru di-assign
+      if (newUserIds.length > 0) {
+        for (const uid of newUserIds) {
           await client.query(
             "UPDATE users SET company_id = $1 WHERE id = $2",
             [bumdId, uid],

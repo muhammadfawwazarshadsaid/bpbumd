@@ -60,6 +60,7 @@ async function getAspectDetail(user, aspectId) {
         aspect_name: aspect.aspect_name,
         aspect_status: aspect.aspect_status,
         weight: aspect.weight,
+        company_id: aspect.company_id,
       },
 
       cards,
@@ -106,6 +107,7 @@ async function getAspect(client, aspectId, companyScopeId) {
     aspect_name: row.aspect_name,
     aspect_status: row.aspect_status,
     weight: toNumber(row.weight),
+    company_id: Number(row.company_id),
   };
 }
 
