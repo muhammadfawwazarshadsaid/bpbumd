@@ -29,7 +29,11 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
           ELSE NULL
         END,
         status = CASE
-          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND status != 'selesai') = 0 THEN 'selesai'
+          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND status != 'selesai') = 0 THEN 
+            CASE 
+              WHEN ap.target_end_date IS NOT NULL AND (SELECT MAX(updated_at) FROM sub_action_plans WHERE action_plan_id = ap.id AND status = 'selesai')::DATE > ap.target_end_date THEN 'selesai terlambat'
+              ELSE 'selesai'
+            END
           WHEN ap.target_end_date < CURRENT_DATE THEN 'terlambat'
           WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id) = 0 THEN 'belum mulai'
           ELSE 'dalam progres'
@@ -84,7 +88,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
          WHERE ap.activity_group_id = ag.id), 0
       ),
       status = CASE
-        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id AND sap.status != 'selesai') = 0 THEN 'selesai'
+        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id AND sap.status != 'selesai') = 0 THEN 
+          CASE WHEN (SELECT COUNT(*) FROM action_plans WHERE activity_group_id = ag.id AND status = 'selesai terlambat') > 0 THEN 'selesai terlambat' ELSE 'selesai' END
         WHEN (SELECT COUNT(*) FROM action_plans WHERE activity_group_id = ag.id AND status = 'terlambat') > 0 THEN 'terlambat'
         WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id) = 0 THEN 'belum mulai'
         ELSE 'dalam progres'
@@ -104,7 +109,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
          WHERE ag.strategy_id = s.id), 0
       ),
       status = CASE
-        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND sap.status != 'selesai') = 0 THEN 'selesai'
+        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND sap.status != 'selesai') = 0 THEN 
+          CASE WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND ap.status = 'selesai terlambat') > 0 THEN 'selesai terlambat' ELSE 'selesai' END
         WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND ap.status = 'terlambat') > 0 THEN 'terlambat'
         WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id) = 0 THEN 'belum mulai'
         ELSE 'dalam progres'
@@ -125,7 +131,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
          WHERE s.aspect_id = a.id), 0
       ),
       status = CASE
-        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND sap.status != 'selesai') = 0 THEN 'selesai'
+        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND sap.status != 'selesai') = 0 THEN 
+          CASE WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND ap.status = 'selesai terlambat') > 0 THEN 'selesai terlambat' ELSE 'selesai' END
         WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND ap.status = 'terlambat') > 0 THEN 'terlambat'
         WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id) = 0 THEN 'belum mulai'
         ELSE 'dalam progres'

@@ -551,6 +551,11 @@
       color: #059669;
     }
 
+    .status-big.selesai-terlambat {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
     .status-big.belum-mulai {
       background: var(--slate-100);
       color: var(--slate-500);
@@ -2838,6 +2843,7 @@
         'belum mulai': 'belum-mulai',
         'dalam progres': 'dalam-progress',
         'selesai': 'selesai',
+        'selesai terlambat': 'selesai-terlambat',
         'terlambat': 'terlambat',
         'pengajuan': 'dalam-progress',
         'verifikasi': 'dalam-progress',
@@ -2851,6 +2857,7 @@
         'belum mulai': 'Belum Mulai',
         'dalam progres': 'Dalam Progress',
         'selesai': 'Selesai',
+        'selesai terlambat': 'Selesai (Terlambat)',
         'terlambat': 'Terlambat',
         'pengajuan': 'Pengajuan',
         'verifikasi': 'Verifikasi',
@@ -3193,10 +3200,12 @@
           }
         }
 
+        const badgeHtml = r.needs_my_verification ? `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>` : '';
+
         return `
           <tr>
             <td><div class="sra-num">${r.no}</div></td>
-            <td><span class="sra-desc">${escapeHtml(r.sub_action_plan_name)}</span></td>
+            <td><div style="display:flex; align-items:center; flex-wrap:wrap;"><span class="sra-desc">${escapeHtml(r.sub_action_plan_name)}</span>${badgeHtml}</div></td>
             <td><span class="sra-status ${mapStatusToCSS(r.status)}">${mapStatusToLabel(r.status)}</span></td>
             <td><span class="sra-date">${formatDateShort(r.created_at)}</span></td>
             <td><span class="sra-date">${tanggalSelesai}</span></td>

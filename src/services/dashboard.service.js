@@ -26,7 +26,7 @@ async function getDashboardSummary(user) {
     const [overallCards, companyCards, progressPerAspect] = await Promise.all([
       getOverallCards(client, companyScopeId),
       getCompanyCards(client, companyScopeId),
-      getProgressPerAspect(client, companyScopeId),
+      getProgressPerAspect(client, companyScopeId, user.id),
     ]);
 
     const aspectMap = groupAspectsByCompany(progressPerAspect);
@@ -247,7 +247,7 @@ async function getCompanyCards(client, companyScopeId) {
           )::INT AS terlambat,
 
           COUNT(ap.id) FILTER (
-            WHERE ap.status = 'selesai'
+            WHERE ap.status IN ('selesai', 'selesai terlambat')
           )::INT AS selesai
 
         FROM action_plans ap
@@ -332,7 +332,7 @@ async function getCompanyCards(client, companyScopeId) {
   }));
 }
 
-async function getProgressPerAspect(client, companyScopeId) {
+async function getProgressPerAspect(client, companyScopeId, userId) {
   const result = await client.query(
     `
       SELECT
@@ -352,6 +352,10 @@ async function getProgressPerAspect(client, companyScopeId) {
         )::INT AS selesai,
 
         COUNT(DISTINCT ap.id) FILTER (
+          WHERE ap.status = 'selesai terlambat'
+        )::INT AS selesai_terlambat,
+
+        COUNT(DISTINCT ap.id) FILTER (
           WHERE ap.status = 'dalam progres'
         )::INT AS dalam_progres,
 
@@ -361,7 +365,23 @@ async function getProgressPerAspect(client, companyScopeId) {
 
         COUNT(DISTINCT ap.id) FILTER (
           WHERE ap.status = 'belum mulai'
-        )::INT AS belum_mulai
+        )::INT AS belum_mulai,
+
+        EXISTS (
+          SELECT 1
+          FROM sub_action_plan_approvals sapa
+          JOIN sub_action_plans sap ON sap.id = sapa.sub_action_plan_id
+          JOIN action_plans ap2 ON ap2.id = sap.action_plan_id
+          JOIN activity_groups ag2 ON ag2.id = ap2.activity_group_id
+          JOIN strategies st2 ON st2.id = ag2.strategy_id
+          WHERE st2.aspect_id = a.id
+            AND sapa.approver_user_id = $2
+            AND sapa.status = 'menunggu'
+            AND (
+              (sap.status = 'pengajuan' AND sapa.approval_order = 1) OR
+              (sap.status = 'verifikasi' AND sapa.approval_order = 2)
+            )
+        ) AS needs_my_verification
 
       FROM companies c
       JOIN aspects a
@@ -387,7 +407,7 @@ async function getProgressPerAspect(client, companyScopeId) {
         c.name,
         a.id
     `,
-    [companyScopeId],
+    [companyScopeId, userId],
   );
 
   return result.rows.map((row) => ({
@@ -399,9 +419,11 @@ async function getProgressPerAspect(client, companyScopeId) {
     target_percentage: toNumber(row.target_percentage),
     total: toNumber(row.total),
     selesai: toNumber(row.selesai),
+    selesai_terlambat: toNumber(row.selesai_terlambat),
     dalam_progres: toNumber(row.dalam_progres),
     terlambat: toNumber(row.terlambat),
     belum_mulai: toNumber(row.belum_mulai),
+    needs_my_verification: row.needs_my_verification,
   }));
 }
 
@@ -423,9 +445,11 @@ function groupAspectsByCompany(rows) {
       target_percentage: row.target_percentage,
       total: row.total,
       selesai: row.selesai,
+      selesai_terlambat: row.selesai_terlambat,
       dalam_progres: row.dalam_progres,
       terlambat: row.terlambat,
       belum_mulai: row.belum_mulai,
+      needs_my_verification: row.needs_my_verification,
     });
   }
 

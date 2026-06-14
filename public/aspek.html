@@ -383,7 +383,7 @@
     /* SUMMARY CARDS */
     .summary-row {
       display: grid;
-      grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr 1fr;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr 1fr 1fr;
       gap: 16px;
       margin-bottom: 28px;
     }
@@ -718,6 +718,11 @@
       color: #059669;
     }
 
+    .status-pill.selesai-terlambat {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
     .status-pill.terlambat {
       background: #FEE2E2;
       color: #DC2626;
@@ -741,6 +746,10 @@
 
     .status-pill.selesai::before {
       background: #059669;
+    }
+
+    .status-pill.selesai-terlambat::before {
+      background: #D97706;
     }
 
     .status-pill.terlambat::before {
@@ -1410,7 +1419,7 @@
 
     @media (max-width: 1200px) {
       .summary-row {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
       }
     }
 
@@ -1614,6 +1623,18 @@
             <div class="sum-card-label">Selesai</div>
             <div class="kpi-sub">Aktivitas telah selesai</div>
           </div>
+          <div class="sum-card amber">
+            <div class="kpi-top">
+              <div class="kpi-icon amber">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div class="sum-card-value" id="cardSelesaiTerlambat">0</div>
+            <div class="sum-card-label">Selesai (Terlambat)</div>
+            <div class="kpi-sub">Selesai melewati tenggat</div>
+          </div>
           <div class="sum-card blue">
             <div class="kpi-top">
               <div class="kpi-icon blue">
@@ -1637,8 +1658,8 @@
               </div>
             </div>
             <div class="sum-card-value" id="cardTerlambat">0</div>
-            <div class="sum-card-label">Terlambat</div>
-            <div class="kpi-sub">Aktivitas melewati tenggat</div>
+            <div class="sum-card-label">Terlambat (Dalam Proses)</div>
+            <div class="kpi-sub">Sedang berjalan melewati tenggat</div>
           </div>
           <div class="sum-card gray">
             <div class="kpi-top">
@@ -1963,6 +1984,7 @@
       // Count cards
       document.getElementById('cardTotal').textContent = cards.total_aktivitas;
       document.getElementById('cardSelesai').textContent = cards.selesai;
+      document.getElementById('cardSelesaiTerlambat').textContent = cards.selesai_terlambat || 0;
       document.getElementById('cardDalamProgres').textContent = cards.dalam_progres;
       document.getElementById('cardTerlambat').textContent = cards.terlambat;
       document.getElementById('cardBelumMulai').textContent = cards.belum_mulai;
@@ -2033,11 +2055,13 @@
             const apSelesaiSub = ap.rencana_aksi ? ap.rencana_aksi.selesai : 0;
             const apTotalSub = ap.rencana_aksi ? ap.rencana_aksi.total : 0;
 
+            const badgeHtml = ap.needs_my_verification ? `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>` : '';
+
             return `
               <div class="ra-row">
                 <div class="ra-title-cell">
                   <span class="ra-chip">${escapeHtml(ap.code_order || '')}</span>
-                  <span class="ra-desc">${escapeHtml(ap.action_plan_name)}</span>
+                  <span class="ra-desc" style="display:flex; align-items:center;">${escapeHtml(ap.action_plan_name)}${badgeHtml}</span>
                 </div>
                 <div class="prog-cell">
                   <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">${apPct}%</span></div>
@@ -2060,12 +2084,17 @@
               </div>`;
           }).join('');
 
+          const badgeHtml = ag.needs_my_verification ? `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>` : '';
+
           return `
             <div class="activity-group">
               <div class="ag-header" onclick="toggleAG('${agKey}')">
                 <div class="ag-name">
                   <div class="ag-tag">Activity Group</div>
-                  <strong>${escapeHtml(ag.code_order || '')}:</strong> ${escapeHtml(ag.activity_group_name)}
+                  <div style="display:flex; align-items:center;">
+                    <strong>${escapeHtml(ag.code_order || '')}:</strong>&nbsp;${escapeHtml(ag.activity_group_name)}
+                    ${badgeHtml}
+                  </div>
                 </div>
                 <div class="prog-cell">
                   <div style="display:flex;align-items:center;gap:6px;"><span class="prog-num">${agPct}%</span></div>
@@ -2099,12 +2128,15 @@
             </div>`;
         }).join('');
 
+        const badgeHtml = s.needs_my_verification ? `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>` : '';
+
         return `
           <div class="strategy-row" id="row-${sKey}">
             <div class="strategy-main" onclick="toggleStrategy('${sKey}')">
-              <div class="strategy-name">
-                <strong>${escapeHtml(s.code_order || 'Strategi ' + (sIdx + 1))}</strong>
+              <div class="strategy-name" style="display:flex; align-items:center; flex-wrap:wrap;">
+                <strong>${escapeHtml(s.code_order || 'Strategi ' + (sIdx + 1))}</strong>&nbsp;
                 ${escapeHtml(s.strategy_name)}
+                ${badgeHtml}
               </div>
               <div class="prog-cell">
                 <div style="display:flex;align-items:center;gap:6px;">
@@ -2152,6 +2184,7 @@
       if (!status) return 'belum-mulai';
       const s = status.toLowerCase();
       if (s === 'selesai') return 'selesai';
+      if (s === 'selesai terlambat') return 'selesai-terlambat';
       if (s === 'dalam progres' || s === 'dalam progress') return 'dalam-progres';
       if (s === 'terlambat') return 'terlambat';
       return 'belum-mulai';
@@ -2161,6 +2194,7 @@
       if (!status) return 'Belum Mulai';
       const s = status.toLowerCase();
       if (s === 'selesai') return 'Selesai';
+      if (s === 'selesai terlambat') return 'Selesai (Terlambat)';
       if (s === 'dalam progres' || s === 'dalam progress') return 'Dalam Progres';
       if (s === 'terlambat') return 'Terlambat';
       return 'Belum Mulai';

@@ -42,9 +42,9 @@ async function getAspectDetail(user, aspectId) {
     // ── 2. Fetch all data in parallel ──
     const [cards, strategies, activityGroups, actionPlans] = await Promise.all([
       getAspectCards(client, aspectId),
-      getStrategies(client, aspectId),
-      getActivityGroups(client, aspectId),
-      getActionPlans(client, aspectId),
+      getStrategies(client, aspectId, user.id),
+      getActivityGroups(client, aspectId, user.id),
+      getActionPlans(client, aspectId, user.id),
     ]);
 
     // ── 3. Build nested hierarchy ──
@@ -121,9 +121,13 @@ async function getAspectCards(client, aspectId) {
       WITH sub_action_plan_rows AS (
         SELECT
           sap.id,
-          sap.status,
-          ap.progress_percentage,
-          ap.target_percentage
+          CASE 
+            WHEN sap.status = 'selesai' THEN 
+              CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+            WHEN ap.status = 'terlambat' THEN 'terlambat'
+            WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+            ELSE 'belum_mulai'
+          END AS effective_status
         FROM sub_action_plans sap
         JOIN action_plans ap
           ON ap.id = sap.action_plan_id
@@ -146,22 +150,32 @@ async function getAspectCards(client, aspectId) {
         (
           SELECT COUNT(*)
           FROM sub_action_plan_rows
-          WHERE status = 'selesai'
+          WHERE effective_status = 'selesai'
         )::INT AS selesai,
 
         (
           SELECT COUNT(*)
           FROM sub_action_plan_rows
-          WHERE status IN ('pengajuan', 'verifikasi', 'ditolak')
+          WHERE effective_status = 'selesai_terlambat'
+        )::INT AS selesai_terlambat,
+
+        (
+          SELECT COUNT(*)
+          FROM sub_action_plan_rows
+          WHERE effective_status = 'dalam_progres'
         )::INT AS dalam_progres,
 
         (
           SELECT COUNT(*)
           FROM sub_action_plan_rows
-          WHERE status = 'terlambat'
+          WHERE effective_status = 'terlambat'
         )::INT AS terlambat,
 
-        0::INT AS belum_mulai
+        (
+          SELECT COUNT(*)
+          FROM sub_action_plan_rows
+          WHERE effective_status = 'belum_mulai'
+        )::INT AS belum_mulai
     `,
     [aspectId],
   );
@@ -173,6 +187,7 @@ async function getAspectCards(client, aspectId) {
     target_percentage: toNumber(row.target_percentage),
     total_aktivitas: toNumber(row.total_aktivitas),
     selesai: toNumber(row.selesai),
+    selesai_terlambat: toNumber(row.selesai_terlambat),
     dalam_progres: toNumber(row.dalam_progres),
     terlambat: toNumber(row.terlambat),
     belum_mulai: toNumber(row.belum_mulai),
@@ -183,7 +198,7 @@ async function getAspectCards(client, aspectId) {
 //  STRATEGIES
 // ─────────────────────────────────────────────
 
-async function getStrategies(client, aspectId) {
+async function getStrategies(client, aspectId, userId) {
   const result = await client.query(
     `
       SELECT
@@ -210,7 +225,22 @@ async function getStrategies(client, aspectId) {
           WHERE sap.status = 'terlambat'
         )::INT AS terlambat,
 
-        0::INT AS belum_mulai
+        0::INT AS belum_mulai,
+
+        EXISTS (
+          SELECT 1
+          FROM sub_action_plan_approvals sapa
+          JOIN sub_action_plans sap2 ON sap2.id = sapa.sub_action_plan_id
+          JOIN action_plans ap2 ON ap2.id = sap2.action_plan_id
+          JOIN activity_groups ag2 ON ag2.id = ap2.activity_group_id
+          WHERE ag2.strategy_id = s.id
+            AND sapa.approver_user_id = $2
+            AND sapa.status = 'menunggu'
+            AND (
+              (sap2.status = 'pengajuan' AND sapa.approval_order = 1) OR
+              (sap2.status = 'verifikasi' AND sapa.approval_order = 2)
+            )
+        ) AS needs_my_verification
 
       FROM strategies s
       LEFT JOIN activity_groups ag
@@ -233,7 +263,7 @@ async function getStrategies(client, aspectId) {
         s.code_order,
         s.id
     `,
-    [aspectId],
+    [aspectId, userId],
   );
 
   return result.rows.map((row) => ({
@@ -249,6 +279,7 @@ async function getStrategies(client, aspectId) {
     dalam_progres: toNumber(row.dalam_progres),
     terlambat: toNumber(row.terlambat),
     belum_mulai: toNumber(row.belum_mulai),
+    needs_my_verification: row.needs_my_verification,
   }));
 }
 
@@ -256,7 +287,7 @@ async function getStrategies(client, aspectId) {
 //  ACTIVITY GROUPS
 // ─────────────────────────────────────────────
 
-async function getActivityGroups(client, aspectId) {
+async function getActivityGroups(client, aspectId, userId) {
   const result = await client.query(
     `
       SELECT
@@ -284,7 +315,21 @@ async function getActivityGroups(client, aspectId) {
           WHERE sap.status = 'terlambat'
         )::INT AS terlambat,
 
-        0::INT AS belum_mulai
+        0::INT AS belum_mulai,
+
+        EXISTS (
+          SELECT 1
+          FROM sub_action_plan_approvals sapa
+          JOIN sub_action_plans sap2 ON sap2.id = sapa.sub_action_plan_id
+          JOIN action_plans ap2 ON ap2.id = sap2.action_plan_id
+          WHERE ap2.activity_group_id = ag.id
+            AND sapa.approver_user_id = $2
+            AND sapa.status = 'menunggu'
+            AND (
+              (sap2.status = 'pengajuan' AND sapa.approval_order = 1) OR
+              (sap2.status = 'verifikasi' AND sapa.approval_order = 2)
+            )
+        ) AS needs_my_verification
 
       FROM activity_groups ag
       JOIN strategies s
@@ -308,7 +353,7 @@ async function getActivityGroups(client, aspectId) {
         ag.code_order,
         ag.id
     `,
-    [aspectId],
+    [aspectId, userId],
   );
 
   return result.rows.map((row) => ({
@@ -325,6 +370,7 @@ async function getActivityGroups(client, aspectId) {
     dalam_progres: toNumber(row.dalam_progres),
     terlambat: toNumber(row.terlambat),
     belum_mulai: toNumber(row.belum_mulai),
+    needs_my_verification: row.needs_my_verification,
   }));
 }
 
@@ -332,7 +378,7 @@ async function getActivityGroups(client, aspectId) {
 //  ACTION PLANS (Rencana Aksi)
 // ─────────────────────────────────────────────
 
-async function getActionPlans(client, aspectId) {
+async function getActionPlans(client, aspectId, userId) {
   const result = await client.query(
     `
       SELECT
@@ -350,7 +396,20 @@ async function getActionPlans(client, aspectId) {
 
         COUNT(DISTINCT sap.id) FILTER (
           WHERE sap.status = 'selesai'
-        )::INT AS selesai_sub
+        )::INT AS selesai_sub,
+
+        EXISTS (
+          SELECT 1
+          FROM sub_action_plan_approvals sapa
+          JOIN sub_action_plans sap2 ON sap2.id = sapa.sub_action_plan_id
+          WHERE sap2.action_plan_id = ap.id
+            AND sapa.approver_user_id = $2
+            AND sapa.status = 'menunggu'
+            AND (
+              (sap2.status = 'pengajuan' AND sapa.approval_order = 1) OR
+              (sap2.status = 'verifikasi' AND sapa.approval_order = 2)
+            )
+        ) AS needs_my_verification
 
       FROM action_plans ap
       JOIN activity_groups ag
@@ -374,7 +433,7 @@ async function getActionPlans(client, aspectId) {
         ap.code_order,
         ap.id
     `,
-    [aspectId],
+    [aspectId, userId],
   );
 
   return result.rows.map((row) => ({
@@ -388,6 +447,7 @@ async function getActionPlans(client, aspectId) {
     target_percentage: toNumber(row.target_percentage),
     total_sub_rencana_aksi: toNumber(row.total_sub_rencana_aksi),
     selesai_sub: toNumber(row.selesai_sub),
+    needs_my_verification: row.needs_my_verification,
   }));
 }
 
@@ -415,6 +475,7 @@ function buildStrategyTree(strategies, activityGroups, actionPlans) {
       weight: ap.weight,
       progress_percentage: ap.progress_percentage,
       target_percentage: ap.target_percentage,
+      needs_my_verification: ap.needs_my_verification,
       rencana_aksi: {
         selesai: ap.selesai_sub,
         total: ap.total_sub_rencana_aksi,
@@ -445,26 +506,34 @@ function buildStrategyTree(strategies, activityGroups, actionPlans) {
       dalam_progres: ag.dalam_progres,
       terlambat: ag.terlambat,
       belum_mulai: ag.belum_mulai,
+      needs_my_verification: ag.needs_my_verification,
       action_plans: apByAg.get(String(ag.activity_group_id)) || [],
     });
   }
 
-  // Attach activity groups to strategies
-  return strategies.map((s) => ({
-    strategy_id: s.strategy_id,
-    strategy_name: s.strategy_name,
-    code_order: s.code_order,
-    status: s.status,
-    weight: s.weight,
-    progress_percentage: s.progress_percentage,
-    target_percentage: s.target_percentage,
-    total_rencana_aksi: s.total_rencana_aksi,
-    selesai: s.selesai,
-    dalam_progres: s.dalam_progres,
-    terlambat: s.terlambat,
-    belum_mulai: s.belum_mulai,
-    activity_groups: agByStrategy.get(String(s.strategy_id)) || [],
-  }));
+  // Group strategies
+  const strategyList = [];
+
+  for (const s of strategies) {
+    strategyList.push({
+      strategy_id: s.strategy_id,
+      strategy_name: s.strategy_name,
+      code_order: s.code_order,
+      status: s.status,
+      weight: s.weight,
+      progress_percentage: s.progress_percentage,
+      target_percentage: s.target_percentage,
+      total_rencana_aksi: s.total_rencana_aksi,
+      selesai: s.selesai,
+      dalam_progres: s.dalam_progres,
+      terlambat: s.terlambat,
+      belum_mulai: s.belum_mulai,
+      needs_my_verification: s.needs_my_verification,
+      activity_groups: agByStrategy.get(String(s.strategy_id)) || [],
+    });
+  }
+
+  return strategyList;
 }
 
 // ═════════════════════════════════════════════

@@ -61,7 +61,7 @@ async function getActionPlanDetail(user, actionPlanId) {
       getDocumentSummary(client, actionPlanId),
       getKpis(client, actionPlanId),
       getRiwayatAktivitas(client, actionPlanId),
-      getSubRencanaAksi(client, actionPlanId),
+      getSubRencanaAksi(client, actionPlanId, user.id),
       getDokumen(client, actionPlanId),
     ]);
 
@@ -363,7 +363,7 @@ async function getRiwayatAktivitas(client, actionPlanId) {
 //  SUB RENCANA AKSI
 // ─────────────────────────────────────────────
 
-async function getSubRencanaAksi(client, actionPlanId) {
+async function getSubRencanaAksi(client, actionPlanId, userId) {
   // ── 1. Fetch sub action plans ──
   const sapResult = await client.query(
     `
@@ -447,28 +447,50 @@ async function getSubRencanaAksi(client, actionPlanId) {
   }
 
   // ── 3. Combine ──
-  return sapResult.rows.map((row, index) => ({
-    no: index + 1,
-    sub_action_plan_id: Number(row.sub_action_plan_id),
-    sub_action_plan_name: row.sub_action_plan_name,
-    status: row.status,
-    weight: toNumber(row.weight),
-    submitted_at: row.submitted_at,
-    created_at: row.created_at,
-    pic: row.pic_user_id
-      ? {
-        user_id: Number(row.pic_user_id),
-        name: row.pic_name,
+  return sapResult.rows.map((row, index) => {
+    const sapIdStr = String(row.sub_action_plan_id);
+    const approvals = approvalMap.get(sapIdStr) || [];
+
+    // Calculate needs_my_verification
+    let needs_my_verification = false;
+    if (userId) {
+      const expectedOrder = row.status === 'pengajuan' ? 1 : (row.status === 'verifikasi' ? 2 : null);
+      if (expectedOrder) {
+        const myApproval = approvals.find(a => 
+          a.approval_order === expectedOrder && 
+          a.status === 'menunggu' && 
+          Number(a.approver.user_id) === Number(userId)
+        );
+        if (myApproval) {
+          needs_my_verification = true;
+        }
       }
-      : null,
-    submitted_by: row.submitted_by_user_id
-      ? {
-        user_id: Number(row.submitted_by_user_id),
-        name: row.submitted_by_name,
-      }
-      : null,
-    approvals: approvalMap.get(String(row.sub_action_plan_id)) || [],
-  }));
+    }
+
+    return {
+      no: index + 1,
+      sub_action_plan_id: Number(row.sub_action_plan_id),
+      sub_action_plan_name: row.sub_action_plan_name,
+      status: row.status,
+      weight: toNumber(row.weight),
+      submitted_at: row.submitted_at,
+      created_at: row.created_at,
+      pic: row.pic_user_id
+        ? {
+          user_id: Number(row.pic_user_id),
+          name: row.pic_name,
+        }
+        : null,
+      submitted_by: row.submitted_by_user_id
+        ? {
+          user_id: Number(row.submitted_by_user_id),
+          name: row.submitted_by_name,
+        }
+        : null,
+      approvals,
+      needs_my_verification,
+    };
+  });
 }
 
 // ─────────────────────────────────────────────

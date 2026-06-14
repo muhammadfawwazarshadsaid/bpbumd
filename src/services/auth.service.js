@@ -221,7 +221,7 @@ async function getCurrentUser(userId) {
 }
 
 async function getAllUsers(user) {
-  const isBpbumd = user && user.company_type === 'bpbumd';
+  const isBpbumdOrLainnya = user && (user.company_type === 'bpbumd' || user.company_type === 'lainnya');
 
   let sql = `
     SELECT
@@ -241,9 +241,9 @@ async function getAllUsers(user) {
 
   const values = [];
 
-  if (!isBpbumd && user) {
-    // BUMD users (admin and regular) can see everyone in their BUMD
-    sql += ` AND u.company_id = $1`;
+  if (!isBpbumdOrLainnya && user) {
+    // BUMD users (admin and regular) can see everyone in their BUMD, PLUS all bpbumd and lainnya users
+    sql += ` AND (u.company_id = $1 OR c.company_type IN ('bpbumd', 'lainnya'))`;
     values.push(user.company_id);
   }
 
