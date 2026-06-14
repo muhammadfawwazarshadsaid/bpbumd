@@ -2171,8 +2171,13 @@
                 <tr>
                   <td>Penilaian Rencana Aksi</td>
                   <td id="infoPenilaian">
-                    <span id="infoPenilaianView">Kelengkapan indikator atau metrik berupa manfaat dan biaya</span>
-                    <input class="info-input" id="infoPenilaianInput" style="display:none" type="text" />
+                    <ul class="info-output-list" id="infoPenilaianView">
+                      <li>Kelengkapan indikator atau metrik berupa manfaat dan biaya</li>
+                    </ul>
+                    <div id="infoPenilaianEdit" style="display:none">
+                      <textarea class="info-textarea" id="infoPenilaianInput"></textarea>
+                      <div class="info-hint">Pisahkan setiap poin dengan baris baru (Enter)</div>
+                    </div>
                   </td>
                 </tr>
                 <tr>
@@ -3025,7 +3030,13 @@
       }
 
       // Penilaian
-      document.getElementById('infoPenilaianView').textContent = info.penilaian_rencana_aksi || '–';
+      const penilaianList = document.getElementById('infoPenilaianView');
+      if (info.penilaian_rencana_aksi) {
+        const penilaianLines = info.penilaian_rencana_aksi.split('\n').filter(l => l.trim());
+        penilaianList.innerHTML = penilaianLines.map(l => `<li>${escapeHtml(l)}</li>`).join('');
+      } else {
+        penilaianList.innerHTML = '<li style="color:var(--slate-400)">Belum ada penilaian</li>';
+      }
 
       // Dates
       document.getElementById('infoTglMulaiView').textContent = formatDateDisplay(info.tanggal_mulai);
@@ -3461,7 +3472,8 @@
         // Fallback: parse from display
         const outputLines = Array.from(document.querySelectorAll('#infoOutputView li')).map(li => li.textContent).join('\n');
         document.getElementById('infoOutputInput').value = outputLines;
-        document.getElementById('infoPenilaianInput').value = document.getElementById('infoPenilaianView').textContent;
+        const penilaianLinesArr = Array.from(document.querySelectorAll('#infoPenilaianView li')).map(li => li.textContent).join('\n');
+        document.getElementById('infoPenilaianInput').value = penilaianLinesArr === 'Belum ada penilaian' ? '' : penilaianLinesArr;
         document.getElementById('infoTargetSelesaiInput').value = parseDisplayDate(document.getElementById('infoTargetSelesaiView').textContent);
         document.getElementById('infoBlockedInput').value = document.getElementById('infoBlockedView').textContent;
       }
@@ -3470,7 +3482,7 @@
       document.getElementById('infoOutputView').style.display = 'none';
       document.getElementById('infoOutputEdit').style.display = 'block';
       document.getElementById('infoPenilaianView').style.display = 'none';
-      document.getElementById('infoPenilaianInput').style.display = '';
+      document.getElementById('infoPenilaianEdit').style.display = 'block';
       document.getElementById('infoTargetSelesaiView').style.display = 'none';
       document.getElementById('infoTargetSelesaiInput').style.display = '';
       document.getElementById('infoBlockedView').style.display = 'none';
@@ -3523,7 +3535,13 @@
         const ul = document.getElementById('infoOutputView');
         ul.innerHTML = lines.map(l => `<li>${escapeHtml(l)}</li>`).join('');
 
-        document.getElementById('infoPenilaianView').textContent = penilaian || '–';
+        const penLines = penilaian.split('\n').map(l => l.trim()).filter(l => l);
+        const ulPenilaian = document.getElementById('infoPenilaianView');
+        if (penLines.length > 0) {
+          ulPenilaian.innerHTML = penLines.map(l => `<li>${escapeHtml(l)}</li>`).join('');
+        } else {
+          ulPenilaian.innerHTML = '<li style="color:var(--slate-400)">Belum ada penilaian</li>';
+        }
         document.getElementById('infoTargetSelesaiView').textContent = tgtSelesai ? formatISODate(tgtSelesai) : '–';
         document.getElementById('infoBlockedView').textContent = blocked;
 
@@ -3539,7 +3557,7 @@
       document.getElementById('infoOutputView').style.display = '';
       document.getElementById('infoOutputEdit').style.display = 'none';
       document.getElementById('infoPenilaianView').style.display = '';
-      document.getElementById('infoPenilaianInput').style.display = 'none';
+      document.getElementById('infoPenilaianEdit').style.display = 'none';
       document.getElementById('infoTargetSelesaiView').style.display = '';
       document.getElementById('infoTargetSelesaiInput').style.display = 'none';
       document.getElementById('infoBlockedView').style.display = '';

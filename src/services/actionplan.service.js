@@ -371,7 +371,6 @@ async function getSubRencanaAksi(client, actionPlanId, userId) {
         sap.id              AS sub_action_plan_id,
         sap.name            AS sub_action_plan_name,
         sap.status,
-        sap.weight,
         sap.submitted_at,
         sap.created_at,
 

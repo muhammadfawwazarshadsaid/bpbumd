@@ -15,14 +15,6 @@ INSERT INTO users (
 )
 VALUES
 (
-    1,
-    'admin_bpbumd',
-    '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
-    'Admin BPBUMD',
-    'admin',
-    TRUE
-),
-(
     2,
     'user_jakpro',
     '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
