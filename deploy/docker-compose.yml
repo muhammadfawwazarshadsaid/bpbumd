@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bpbumd-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-bpbumd}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-bpbumd}
+      POSTGRES_DB: ${DB_NAME:-bpbumd}
+    ports:
+      - "${DB_PORT:-5484}:5432"
+    volumes:
+      - bpbumd_postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  app:
+    image: mfarsa/bpbumd-app:v1
+    container_name: bpbumd-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8084}:8080"
+    environment:
+      PORT: 8080
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-bpbumd}
+      DB_PASSWORD: ${DB_PASSWORD:-bpbumd}
+      DB_NAME: ${DB_NAME:-bpbumd}
+      JWT_SECRET: ${JWT_SECRET:-supersecretkey}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+    depends_on:
+      - postgres
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  bpbumd_postgres_data:

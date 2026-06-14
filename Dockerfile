@@ -15,4 +15,4 @@ ENV PORT=8080
 
 USER node
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
