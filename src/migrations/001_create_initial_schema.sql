@@ -82,6 +82,7 @@ CREATE TABLE aspects (
             'belum mulai',
             'dalam progres',
             'selesai',
+            'selesai terlambat',
             'terlambat'
         ))
 );
@@ -112,6 +113,7 @@ CREATE TABLE strategies (
             'belum mulai',
             'dalam progres',
             'selesai',
+            'selesai terlambat',
             'terlambat'
         ))
 );
@@ -143,6 +145,7 @@ CREATE TABLE activity_groups (
             'belum mulai',
             'dalam progres',
             'selesai',
+            'selesai terlambat',
             'terlambat'
         ))
 );
@@ -184,6 +187,7 @@ CREATE TABLE action_plans (
             'belum mulai',
             'dalam progres',
             'selesai',
+            'selesai terlambat',
             'terlambat'
         ))
 );
@@ -199,7 +203,6 @@ CREATE TABLE sub_action_plans (
     submitted_by_user_id BIGINT NULL,
     name TEXT NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'pengajuan',
-    weight NUMERIC(5,2),
     submitted_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

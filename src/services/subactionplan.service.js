@@ -29,7 +29,6 @@ async function createSubActionPlan(user, payload) {
     action_plan_id,
     name,
     pic_user_id,
-    weight,
     approver_user_id_1,
     approver_user_id_2,
   } = payload;
@@ -93,13 +92,12 @@ async function createSubActionPlan(user, payload) {
           submitted_by_user_id,
           name,
           status,
-          weight,
           submitted_at
         )
-        VALUES ($1, $2, $3, $4, 'pengajuan', $5, CURRENT_TIMESTAMP)
+        VALUES ($1, $2, $3, $4, 'pengajuan', CURRENT_TIMESTAMP)
         RETURNING *
       `,
-      [action_plan_id, pic_user_id || null, user.id, name, weight || null],
+      [action_plan_id, pic_user_id || null, user.id, name],
     );
 
     const subActionPlan = result.rows[0];
@@ -153,7 +151,7 @@ async function createSubActionPlan(user, payload) {
  *  - weight       (optional)
  */
 async function updateSubActionPlan(user, subActionPlanId, payload) {
-  const { name, pic_user_id, weight } = payload;
+  const { name, pic_user_id } = payload;
 
   const client = await pool.connect();
 
@@ -212,10 +210,7 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
       values.push(pic_user_id);
     }
 
-    if (weight !== undefined) {
-      sets.push(`weight = $${paramIndex++}`);
-      values.push(weight);
-    }
+    // weight removed
 
     // ── Jika ditolak → resubmit ──
     if (sap.status === "ditolak") {
@@ -668,7 +663,7 @@ function formatSubActionPlan(row) {
       : null,
     name: row.name,
     status: row.status,
-    weight: toNumber(row.weight),
+    weight: 0, // Placeholder if anything relies on it, or just remove
     submitted_at: row.submitted_at,
     created_at: row.created_at,
     updated_at: row.updated_at,
