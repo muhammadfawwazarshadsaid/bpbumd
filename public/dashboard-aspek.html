@@ -1387,15 +1387,9 @@
             <label class="form-label">Nama Aspek *</label>
             <input type="text" id="addAspectName" required class="form-input" placeholder="Masukkan nama aspek" />
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label">Target Persentase (%)</label>
-              <input type="number" id="addAspectTarget" min="0" max="100" class="form-input" placeholder="0-100" />
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label">Bobot (%)</label>
-              <input type="number" id="addAspectWeight" min="0" max="100" class="form-input" placeholder="Opsional" />
-            </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Target Persentase (%)</label>
+            <input type="number" id="addAspectTarget" min="0" max="100" class="form-input" placeholder="0-100" />
           </div>
         </form>
       </div>
@@ -1541,14 +1535,14 @@
       selectedCompanyId = Number(companyId);
       const company = dashboardData.companies.find(c => c.company_id === selectedCompanyId);
       if (!company) return;
-      
+
       localStorage.setItem('dashboardAspekSelectedCompany', companyId);
 
       // Company name display
       const logoName = document.getElementById('companyLogoName');
       logoName.style.display = 'flex';
       document.getElementById('companyDisplayName').textContent = company.company_name.toUpperCase();
-      
+
       const logoIcon = document.getElementById('companyLogoIcon');
       if (company.logo) {
         logoIcon.innerHTML = `<img src="${company.logo}" style="width:100%;height:100%;object-fit:contain;background-color:var(--slate-50);border-radius:inherit;" />`;
@@ -1693,8 +1687,7 @@
       const editId = document.getElementById('editAspectId').value;
       const payload = {
         name: document.getElementById('addAspectName').value,
-        target_percentage: Number(document.getElementById('addAspectTarget').value) || 0,
-        weight: Number(document.getElementById('addAspectWeight').value) || 0
+        target_percentage: Number(document.getElementById('addAspectTarget').value) || 0
       };
 
       if (!editId && selectedCompanyId) {
@@ -1733,7 +1726,6 @@
       document.getElementById('aspectModalTitle').textContent = 'Ubah Aspek';
       document.getElementById('addAspectName').value = aspect.aspect_name;
       document.getElementById('addAspectTarget').value = Math.round(aspect.target_percentage || 0);
-      document.getElementById('addAspectWeight').value = Math.round(aspect.weight || 0);
 
       document.getElementById('modalAddAspect').classList.add('open');
     }

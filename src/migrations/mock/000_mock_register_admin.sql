@@ -4,6 +4,10 @@
 -- Hash bcrypt (generated with bcryptjs v3):
 -- $2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6
 -- =========================
+INSERT INTO companies (sector_id, name, company_code, company_type)
+VALUES
+(NULL, 'BPBUMD', 100, 'bpbumd')
+ON CONFLICT (company_code) DO NOTHING;
 
 INSERT INTO users (
     company_id,

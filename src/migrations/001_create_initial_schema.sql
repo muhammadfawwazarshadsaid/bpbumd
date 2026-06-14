@@ -66,7 +66,6 @@ CREATE TABLE aspects (
     company_id BIGINT NOT NULL,
     name VARCHAR(255) NOT NULL,
     status VARCHAR(50) NOT NULL DEFAULT 'belum mulai',
-    weight NUMERIC(5,2),
     progress_percentage NUMERIC(5,2),
     target_percentage NUMERIC(5,2),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

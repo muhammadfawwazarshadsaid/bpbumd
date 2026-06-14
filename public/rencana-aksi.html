@@ -2392,7 +2392,7 @@
   <div class="modal-overlay" id="modalAddSRA">
     <div class="modal-container">
       <div class="modal-header">
-        <div class="modal-title">Tambah Sub Rencana Aksi</div>
+        <div class="modal-title" id="sraModalTitle">Tambah Sub Rencana Aksi</div>
         <button class="modal-close" onclick="closeAddSRAModal()">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <line x1="18" y1="6" x2="6" y2="18" />
@@ -3591,12 +3591,41 @@
       select.value = currentVal;
     }
 
+    let editSRAId = null;
     function openAddSRAModal() {
+      editSRAId = null;
+      document.getElementById('sraModalTitle').textContent = 'Tambah Sub Rencana Aksi';
       populateUserDropdown('sraPic');
       populateUserDropdown('sraApprover1');
       populateUserDropdown('sraApprover2');
 
       document.getElementById('formAddSRA').reset();
+      document.getElementById('modalAddSRA').classList.add('active');
+    }
+
+    function openEditSRAModal(id, isResubmit = false) {
+      editSRAId = id;
+      const sra = currentData.sub_rencana_aksi.find(x => x.sub_action_plan_id === id);
+      if (!sra) return;
+
+      document.getElementById('sraModalTitle').textContent = isResubmit ? 'Ajukan Ulang Sub Rencana Aksi' : 'Ubah Sub Rencana Aksi';
+      populateUserDropdown('sraPic');
+      populateUserDropdown('sraApprover1');
+      populateUserDropdown('sraApprover2');
+
+      document.getElementById('sraName').value = sra.sub_action_plan_name;
+      document.getElementById('sraPic').value = sra.pic ? sra.pic.user_id : '';
+
+      // Find approvals
+      const v1 = sra.approvals.find(a => a.approval_order === 1);
+      const v2 = sra.approvals.find(a => a.approval_order === 2);
+
+      document.getElementById('sraApprover1').value = v1 ? v1.approver.user_id : '';
+      document.getElementById('sraApprover2').value = v2 ? v2.approver.user_id : '';
+
+      // Hide the detail modal if it's open
+      closeDetailSRAModal();
+
       document.getElementById('modalAddSRA').classList.add('active');
     }
 
@@ -3611,7 +3640,6 @@
         action_plan_id: currentActionPlanId,
         name: document.getElementById('sraName').value,
         pic_user_id: document.getElementById('sraPic').value || null,
-        weight: document.getElementById('sraWeight').value || null,
         approver_user_id_1: document.getElementById('sraApprover1').value,
         approver_user_id_2: document.getElementById('sraApprover2').value,
       };
@@ -3632,10 +3660,17 @@
       btn.disabled = true;
 
       try {
-        await apiFetch('/api/sub-action-plans', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
+        if (editSRAId) {
+          await apiFetch(`/api/sub-action-plans/${editSRAId}`, {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+          });
+        } else {
+          await apiFetch('/api/sub-action-plans', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+        }
 
         closeAddSRAModal();
         // Reload data
@@ -3769,28 +3804,8 @@
       }
     }
 
-    async function resubmitSRA(id) {
-      if (!confirm('Ajukan ulang Sub Rencana Aksi ini?')) return;
-      if (!selectedSRA) return;
-
-      try {
-        // Resubmitting means calling PUT with the same fields to trigger status reset in the backend
-        const payload = {
-          name: selectedSRA.sub_action_plan_name,
-          pic_user_id: selectedSRA.pic ? selectedSRA.pic.user_id : null,
-          weight: selectedSRA.weight || 0
-        };
-
-        await apiFetch(`/api/sub-action-plans/${id}`, {
-          method: 'PUT',
-          body: JSON.stringify(payload)
-        });
-
-        closeDetailSRAModal();
-        await loadActionPlanDetail(currentActionPlanId);
-      } catch (err) {
-        alert("Gagal mengajukan ulang: " + err.message);
-      }
+    function resubmitSRA(id) {
+      openEditSRAModal(id, true);
     }
 
     function showNoteModal(note) {
@@ -3984,10 +3999,10 @@
       progressText.textContent = 'Mengunggah...';
 
       const formData = new FormData();
-      formData.append('file', selectedUploadFile);
       formData.append('action_plan_id', currentActionPlanId);
       formData.append('name', docName);
       if (docDesc) formData.append('description', docDesc);
+      formData.append('file', selectedUploadFile);
 
       try {
         const result = await new Promise((resolve, reject) => {

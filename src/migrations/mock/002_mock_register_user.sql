@@ -11,31 +11,35 @@ INSERT INTO users (
     password_hash,
     name,
     role,
+    position,
     is_active
 )
 VALUES
 (
-    2,
-    'user_jakpro',
+    (SELECT id FROM companies WHERE name = 'BPBUMD'),
+    'hsyaeful397',
     '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
-    'User Jakpro',
-    'user',
+    'Syaefuloh Hidayat',
+    'admin',
+    'Kepala BPBUMD',
     TRUE
 ),
 (
-    2,
-    'approver_jakpro_1',
+    (SELECT id FROM companies WHERE name = 'Garuda Indonesia (Persero) Tbk'),
+    'bimatesdayu',
     '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
-    'Approver Jakpro 1',
-    'user',
+    'Bima Tesdayu',
+    'admin',
+    'Direktur Keuangan',
     TRUE
 ),
 (
-    2,
-    'approver_jakpro_2',
+    (SELECT id FROM companies WHERE name = 'PT Jakarta Propertindo (Jakpro)'),
+    'tito.hadi',
     '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
-    'Approver Jakpro 2',
-    'user',
+    'Tito Hadi Dewan',
+    'admin',
+    'VP Strategic Plan & Program',
     TRUE
 )
 ON CONFLICT (username) DO NOTHING;

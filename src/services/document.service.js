@@ -79,7 +79,8 @@ async function uploadDocument(user, file, body) {
     const fileType = ext.replace(".", "") || "unknown";
 
     // Build relative file path for storage
-    const relativePath = `/uploads/${file.filename}`;
+    const relativeDir = path.basename(file.destination);
+    const relativePath = `/uploads/${relativeDir}/${file.filename}`;
 
     const result = await client.query(
       `
@@ -195,24 +196,25 @@ async function updateDocument(user, documentId, file, body) {
     if (file) {
       const ext = path.extname(file.originalname).toLowerCase();
       const fileType = ext.replace(".", "") || "unknown";
-      const relativePath = `/uploads/${file.filename}`;
+      const relativeDir = path.basename(file.destination);
+      const relativePath = `/uploads/${relativeDir}/${file.filename}`;
 
       sets.push(`original_file_name = $${paramIndex++}`);
       values.push(file.originalname);
-      
+
       sets.push(`file_type = $${paramIndex++}`);
       values.push(fileType);
-      
+
       sets.push(`file_size = $${paramIndex++}`);
       values.push(file.size);
-      
+
       sets.push(`file_path = $${paramIndex++}`);
       values.push(relativePath);
 
       // Status goes back to 'diunggah' if file changed
       sets.push(`status = $${paramIndex++}`);
       values.push("diunggah");
-      
+
       sets.push(`verified_by_user_id = NULL`);
       sets.push(`verified_at = NULL`);
       sets.push(`rejection_reason = NULL`);
@@ -278,7 +280,7 @@ async function updateDocument(user, documentId, file, body) {
   } catch (error) {
     await client.query("ROLLBACK");
     if (file && fs.existsSync(file.path)) {
-      try { fs.unlinkSync(file.path); } catch (e) {}
+      try { fs.unlinkSync(file.path); } catch (e) { }
     }
     throw error;
   } finally {
@@ -488,6 +490,12 @@ async function deleteDocument(user, documentId) {
       );
       if (fs.existsSync(absolutePath)) {
         fs.unlinkSync(absolutePath);
+
+        // Remove the folder if it's empty
+        const dirPath = path.dirname(absolutePath);
+        if (fs.existsSync(dirPath) && fs.readdirSync(dirPath).length === 0) {
+          fs.rmdirSync(dirPath);
+        }
       }
     } catch (fsErr) {
       console.error("Failed to delete file from disk:", fsErr.message);

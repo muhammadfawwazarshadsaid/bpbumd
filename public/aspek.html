@@ -2058,7 +2058,14 @@
       document.getElementById('cardTotal').textContent = cards.total_aktivitas;
       document.getElementById('cardSelesai').textContent = cards.selesai;
       document.getElementById('cardSelesaiTerlambat').textContent = cards.selesai_terlambat || 0;
-      document.getElementById('cardDalamProgres').textContent = cards.dalam_progres;
+      
+      const dalamProgresCard = document.getElementById('cardDalamProgres');
+      if (cards.ditolak_count > 0) {
+        dalamProgresCard.innerHTML = `${cards.dalam_progres} <span style="font-size: 13px; font-weight: 600; color: var(--rose); margin-left: 6px; padding: 2px 6px; background: #FEE2E2; border-radius: 4px; vertical-align: middle;">${cards.ditolak_count} Ditolak</span>`;
+      } else {
+        dalamProgresCard.textContent = cards.dalam_progres;
+      }
+      
       document.getElementById('cardTerlambat').textContent = cards.terlambat;
       document.getElementById('cardBelumMulai').textContent = cards.belum_mulai;
     }
@@ -2173,7 +2180,13 @@
             const apSelesaiSub = ap.rencana_aksi ? ap.rencana_aksi.selesai : 0;
             const apTotalSub = ap.rencana_aksi ? ap.rencana_aksi.total : 0;
 
-            const badgeHtml = ap.needs_my_verification ? `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>` : '';
+            let badgeHtml = '';
+            if (ap.ditolak_sub > 0) {
+              badgeHtml += `<span class="badge" style="background: #FEE2E2; color: var(--rose); font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 600;">Perlu Revisi</span>`;
+            }
+            if (ap.needs_my_verification) {
+              badgeHtml += `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>`;
+            }
 
             return `
               <div class="ra-row">
@@ -2202,15 +2215,22 @@
               </div>`;
           }).join('');
 
-          const badgeHtml = ag.needs_my_verification ? `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>` : '';
+          let badgeHtml = '';
+          if (ag.ditolak_sub > 0) {
+            badgeHtml += `<span class="badge" style="background: #FEE2E2; color: var(--rose); font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 600;">Ada Revisi</span>`;
+          }
+          if (ag.needs_my_verification) {
+            badgeHtml += `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>`;
+          }
 
           return `
             <div class="activity-group">
               <div class="ag-header" onclick="toggleAG('${agKey}')">
                 <div class="ag-name">
                   <div class="ag-tag">Activity Group</div>
-                  <div style="display:flex; align-items:center;">
-                    <strong>${escapeHtml(ag.code_order || '')}:</strong>&nbsp;${escapeHtml(ag.activity_group_name)}
+                  <div style="line-height: 1.4; margin-top: 4px;">
+                    <strong style="color: var(--slate-900); margin-right: 4px;">${escapeHtml(ag.code_order || '')}</strong>
+                    <span style="color: var(--slate-700);">${escapeHtml(ag.activity_group_name)}</span>
                     ${badgeHtml}
                   </div>
                 </div>
@@ -2246,14 +2266,20 @@
             </div>`;
         }).join('');
 
-        const badgeHtml = s.needs_my_verification ? `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>` : '';
+        let badgeHtml = '';
+        if (s.ditolak_sub > 0) {
+          badgeHtml += `<span class="badge" style="background: #FEE2E2; color: var(--rose); font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 600;">Ada Revisi</span>`;
+        }
+        if (s.needs_my_verification) {
+          badgeHtml += `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>`;
+        }
 
         return `
           <div class="strategy-row" id="row-${sKey}">
             <div class="strategy-main" onclick="toggleStrategy('${sKey}')">
-              <div class="strategy-name" style="display:flex; align-items:center; flex-wrap:wrap;">
-                <strong>${escapeHtml(s.code_order || 'Strategi ' + (sIdx + 1))}</strong>&nbsp;
-                ${escapeHtml(s.strategy_name)}
+              <div class="strategy-name" style="line-height: 1.4;">
+                <strong style="color: var(--slate-900); margin-right: 4px;">${escapeHtml(s.code_order || 'Strategi ' + (sIdx + 1))}</strong>
+                <span style="color: var(--slate-700);">${escapeHtml(s.strategy_name)}</span>
                 ${badgeHtml}
               </div>
               <div class="prog-cell">

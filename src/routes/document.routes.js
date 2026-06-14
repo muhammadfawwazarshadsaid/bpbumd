@@ -12,7 +12,16 @@ const { authMiddleware } = require("../middleware/auth.middleware");
 // ── Multer configuration ──
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../../uploads"));
+    const id = req.body.action_plan_id || 'unknown';
+    const uploadPath = path.join(__dirname, "../../uploads", String(id));
+    
+    // Create directory if it doesn't exist
+    const fs = require("fs");
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
+    cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = crypto.randomBytes(8).toString("hex");
