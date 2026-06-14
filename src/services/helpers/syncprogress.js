@@ -82,9 +82,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
     UPDATE activity_groups ag
     SET 
       progress_percentage = COALESCE(
-        (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
-         FROM sub_action_plans sap
-         JOIN action_plans ap ON ap.id = sap.action_plan_id
+        (SELECT ROUND(SUM((ap.progress_percentage * COALESCE(ap.weight, 0)) / 100.0), 2)
+         FROM action_plans ap
          WHERE ap.activity_group_id = ag.id), 0
       ),
       status = CASE
@@ -102,10 +101,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
     UPDATE strategies s
     SET 
       progress_percentage = COALESCE(
-        (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
-         FROM sub_action_plans sap
-         JOIN action_plans ap ON ap.id = sap.action_plan_id
-         JOIN activity_groups ag ON ag.id = ap.activity_group_id
+        (SELECT ROUND(SUM((ag.progress_percentage * COALESCE(ag.weight, 0)) / 100.0), 2)
+         FROM activity_groups ag
          WHERE ag.strategy_id = s.id), 0
       ),
       status = CASE
@@ -123,11 +120,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
     UPDATE aspects a
     SET 
       progress_percentage = COALESCE(
-        (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
-         FROM sub_action_plans sap
-         JOIN action_plans ap ON ap.id = sap.action_plan_id
-         JOIN activity_groups ag ON ag.id = ap.activity_group_id
-         JOIN strategies s ON s.id = ag.strategy_id
+        (SELECT ROUND(SUM((s.progress_percentage * COALESCE(s.weight, 0)) / 100.0), 2)
+         FROM strategies s
          WHERE s.aspect_id = a.id), 0
       ),
       status = CASE

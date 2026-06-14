@@ -772,10 +772,155 @@ function formatAspect(row) {
   };
 }
 
+/**
+ * Bulk update weights for strategies, activity_groups, and action_plans
+ */
+async function bulkUpdateWeights(user, aspectId, payload) {
+  const companyScopeId = getCompanyScope(user);
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // 1. Verify aspect exists
+    const aspect = await getAspect(client, aspectId, companyScopeId);
+    if (!aspect) {
+      const error = new Error("Aspek tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const { strategies = [], activity_groups = [], action_plans = [] } = payload;
+
+    // 2. Update strategies
+    if (strategies.length > 0) {
+      const sum = strategies.reduce((acc, curr) => acc + toNumber(curr.weight), 0);
+      if (Math.round(sum) !== 100 && Math.round(sum) !== 0) {
+        const error = new Error("Total bobot strategi harus 100%");
+        error.statusCode = 400;
+        throw error;
+      }
+      for (const s of strategies) {
+        const verifySql = `SELECT id FROM strategies WHERE id = $1 AND aspect_id = $2`;
+        const verifyRes = await client.query(verifySql, [s.id, aspectId]);
+        if (verifyRes.rows.length === 0) continue;
+        await client.query(`UPDATE strategies SET weight = $1 WHERE id = $2`, [toNumber(s.weight), s.id]);
+      }
+    }
+
+    // 3. Update activity groups
+    if (activity_groups.length > 0) {
+      const agIds = activity_groups.map(ag => ag.id);
+      if (agIds.length > 0) {
+        const verifySql = `SELECT id, strategy_id FROM activity_groups WHERE id = ANY($1::bigint[])`;
+        const verifyRes = await client.query(verifySql, [agIds]);
+        const agMap = new Map();
+        verifyRes.rows.forEach(row => {
+          agMap.set(Number(row.id), Number(row.strategy_id));
+        });
+
+        const grouped = {};
+        for (const ag of activity_groups) {
+          const sid = agMap.get(Number(ag.id));
+          if (!sid) continue;
+          if (!grouped[sid]) grouped[sid] = 0;
+          grouped[sid] += toNumber(ag.weight);
+        }
+
+        for (const sid in grouped) {
+          const sum = Math.round(grouped[sid]);
+          if (sum !== 100 && sum !== 0) {
+            const error = new Error("Total bobot activity group dalam satu strategi harus 100%");
+            error.statusCode = 400;
+            throw error;
+          }
+        }
+
+        for (const ag of activity_groups) {
+          await client.query(`UPDATE activity_groups SET weight = $1 WHERE id = $2`, [toNumber(ag.weight), ag.id]);
+        }
+      }
+    }
+
+    // 4. Update action plans
+    if (action_plans.length > 0) {
+      const apIds = action_plans.map(ap => ap.id);
+      if (apIds.length > 0) {
+        const verifySql = `SELECT id, activity_group_id FROM action_plans WHERE id = ANY($1::bigint[])`;
+        const verifyRes = await client.query(verifySql, [apIds]);
+        const apMap = new Map();
+        verifyRes.rows.forEach(row => {
+          apMap.set(Number(row.id), Number(row.activity_group_id));
+        });
+
+        const grouped = {};
+        for (const ap of action_plans) {
+          const agid = apMap.get(Number(ap.id));
+          if (!agid) continue;
+          if (!grouped[agid]) grouped[agid] = 0;
+          grouped[agid] += toNumber(ap.weight);
+        }
+
+        for (const agid in grouped) {
+          const sum = Math.round(grouped[agid]);
+          if (sum !== 100 && sum !== 0) {
+            const error = new Error("Total bobot rencana aksi dalam satu activity group harus 100%");
+            error.statusCode = 400;
+            throw error;
+          }
+        }
+
+        for (const ap of action_plans) {
+          await client.query(`UPDATE action_plans SET weight = $1 WHERE id = $2`, [toNumber(ap.weight), ap.id]);
+        }
+      }
+    }
+
+    // 5. Sinkronisasi ulang progress_percentage bottom-up
+    await client.query(`
+      UPDATE activity_groups ag
+      SET progress_percentage = COALESCE(
+        (SELECT ROUND(SUM((ap.progress_percentage * COALESCE(ap.weight, 0)) / 100.0), 2)
+         FROM action_plans ap
+         WHERE ap.activity_group_id = ag.id), 0
+      )
+      WHERE ag.strategy_id IN (SELECT id FROM strategies WHERE aspect_id = $1)
+    `, [aspectId]);
+
+    await client.query(`
+      UPDATE strategies s
+      SET progress_percentage = COALESCE(
+        (SELECT ROUND(SUM((ag.progress_percentage * COALESCE(ag.weight, 0)) / 100.0), 2)
+         FROM activity_groups ag
+         WHERE ag.strategy_id = s.id), 0
+      )
+      WHERE s.aspect_id = $1
+    `, [aspectId]);
+
+    await client.query(`
+      UPDATE aspects a
+      SET progress_percentage = COALESCE(
+        (SELECT ROUND(SUM((s.progress_percentage * COALESCE(s.weight, 0)) / 100.0), 2)
+         FROM strategies s
+         WHERE s.aspect_id = a.id), 0
+      )
+      WHERE a.id = $1
+    `, [aspectId]);
+
+    await client.query("COMMIT");
+    return { updated: true };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   getAspectDetail,
   createAspect,
   updateAspect,
   deleteAspect,
+  bulkUpdateWeights,
 };
-

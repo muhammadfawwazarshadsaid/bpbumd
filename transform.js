@@ -39,7 +39,7 @@ const topbarTitle = `
       <!-- PAGE HEADING -->
       <div class="page-heading" style="margin-bottom: 24px;">
         <div>
-          <div class="page-heading-title" style="font-size: 20px; font-weight: 800; color: var(--slate-900); letter-spacing: -0.3px;">Daftar BUMD</div>
+          <div class="page-heading-title" style="font-size: 20px; font-weight: 800; color: var(--slate-900); ">Daftar BUMD</div>
           <div style="font-size: 12px; color: var(--slate-400); margin-top: 4px;">Kelola data Badan Usaha Milik Daerah</div>
         </div>
         <div style="margin-left: auto;">
@@ -49,11 +49,11 @@ const topbarTitle = `
 `;
 
 // Let's replace the whole structure
-daftarBumd = daftarBumd.substring(0, oldHtmlStart) + 
-             '\n  ' + newNavHtml + 
-             '\n    <main class="main-area">\n' + 
-             topbarTitle + 
-             daftarBumd.substring(contentStart + 21); // skip <div class="content">
+daftarBumd = daftarBumd.substring(0, oldHtmlStart) +
+  '\n  ' + newNavHtml +
+  '\n    <main class="main-area">\n' +
+  topbarTitle +
+  daftarBumd.substring(contentStart + 21); // skip <div class="content">
 
 // We also need to close the main-area and body-wrap instead of the old closing tags
 // old structure ends with:
@@ -61,9 +61,9 @@ daftarBumd = daftarBumd.substring(0, oldHtmlStart) +
 //   </div> <!-- end main -->
 // We should find the closing tags of content and main.
 const scriptStart = daftarBumd.indexOf('<!-- MODAL: CREATE/EDIT -->');
-daftarBumd = daftarBumd.substring(0, scriptStart) + 
-             '    </main>\n  </div><!-- /body-wrap -->\n\n  ' + 
-             daftarBumd.substring(scriptStart);
+daftarBumd = daftarBumd.substring(0, scriptStart) +
+  '    </main>\n  </div><!-- /body-wrap -->\n\n  ' +
+  daftarBumd.substring(scriptStart);
 
 // Remove the extra </div></div> before the modal
 daftarBumd = daftarBumd.replace('    </div>\n  </div>\n\n  <!-- MODAL: CREATE/EDIT -->', '\n\n  <!-- MODAL: CREATE/EDIT -->');

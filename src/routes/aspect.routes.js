@@ -144,5 +144,36 @@ router.delete("/:aspectId", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * PUT /api/aspects/:aspectId/bulk-weights
+ */
+router.put("/:aspectId/bulk-weights", authMiddleware, async (req, res) => {
+  try {
+    const aspectId = Number(req.params.aspectId);
+
+    if (!aspectId || isNaN(aspectId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Parameter aspectId harus berupa angka",
+      });
+    }
+
+    const data = await aspectService.bulkUpdateWeights(req.user, aspectId, req.body);
+
+    res.json({
+      success: true,
+      message: "Bobot berhasil diperbarui secara menyeluruh",
+      data,
+    });
+  } catch (error) {
+    console.error("Bulk update weights error:", error);
+
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal memperbarui bobot",
+    });
+  }
+});
+
 module.exports = router;
 

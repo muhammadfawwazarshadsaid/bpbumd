@@ -93,7 +93,6 @@
       font-size: 14px;
       font-weight: 800;
       color: var(--navy);
-      letter-spacing: 0.3px;
     }
 
     .brand-text .t2 {
@@ -377,7 +376,6 @@
       font-size: 20px;
       font-weight: 800;
       color: var(--slate-900);
-      letter-spacing: -0.3px;
     }
 
     /* SUMMARY CARDS */
@@ -505,7 +503,6 @@
       font-size: 24px;
       font-weight: 800;
       color: var(--slate-900);
-      letter-spacing: -0.5px;
     }
 
     .sum-card-value.green {
@@ -528,7 +525,6 @@
       font-size: 32px;
       font-weight: 800;
       color: var(--slate-900);
-      letter-spacing: -1px;
       margin-bottom: 8px;
     }
 
@@ -570,7 +566,6 @@
       font-size: 13px;
       font-weight: 700;
       text-transform: capitalize;
-      letter-spacing: 0.6px;
       color: var(--slate-600);
       display: flex;
       justify-content: space-between;
@@ -587,7 +582,6 @@
       font-size: 11px;
       font-weight: 700;
       text-transform: capitalize;
-      letter-spacing: 0.5px;
       color: var(--slate-400);
     }
 
@@ -918,7 +912,6 @@
       font-size: 10px;
       font-weight: 700;
       text-transform: capitalize;
-      letter-spacing: 0.5px;
       color: var(--slate-400);
       margin-bottom: 2px;
     }
@@ -1212,7 +1205,6 @@
       font-size: 20px;
       font-weight: 800;
       color: var(--slate-900);
-      letter-spacing: -0.5px;
     }
 
     .modal-kpi-val.green {
@@ -1390,6 +1382,57 @@
       outline: none;
       border-color: var(--sky);
       box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    /* Custom Checkbox */
+    .chk-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--slate-800);
+      user-select: none;
+    }
+
+    .chk-box {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--slate-300);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      background: white;
+    }
+
+    .chk-input {
+      display: none;
+    }
+
+    .chk-input:checked+.chk-box {
+      background: var(--slate-900);
+      border-color: var(--slate-900);
+    }
+
+    .chk-icon {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: white;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.2s;
+    }
+
+    .chk-input:checked+.chk-box .chk-icon {
+      opacity: 1;
+      transform: scale(1);
     }
 
     /* Scrollbar */
@@ -1680,15 +1723,26 @@
         <div class="strategy-section" id="strategiSection">
           <div class="strategy-header">
             <div>Daftar Strategi</div>
-            <button class="btn-primary"
-              style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px;"
-              onclick="openAddStrategyModal()">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Tambah Strategi
-            </button>
+            <div style="display:flex; gap:8px;">
+              <button class="btn-secondary"
+                style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px;"
+                onclick="openAturBobotModal()">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12">
+                  </path>
+                </svg>
+                Atur Bobot
+              </button>
+              <button class="btn-primary"
+                style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px;"
+                onclick="openAddStrategyModal()">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Tambah Strategi
+              </button>
+            </div>
           </div>
           <div class="strategy-col-header">
             <div>Strategi</div>
@@ -1864,6 +1918,24 @@
     </div>
   </div>
 
+  <!-- MODAL ATUR BOBOT -->
+  <div class="modal-overlay" id="modalAturBobot">
+    <div class="modal-container"
+      style="max-width: 800px; width: 100%; background: white; border-radius: 12px; box-shadow: none; margin: auto; max-height: 90vh; display:flex; flex-direction:column; overflow: hidden;">
+      <div class="modal-header">
+        <h3 style="font-size: 18px; font-weight: 700; color: var(--slate-900);">Atur Bobot Secara Menyeluruh</h3>
+      </div>
+      <div class="modal-body" style="flex:1; overflow-y:auto; padding: 24px; background: #F8FAFC;">
+        <div id="aturBobotContainer"></div>
+      </div>
+      <div class="modal-footer"
+        style="padding: 16px 24px; border-top: 1px solid var(--slate-200); display: flex; justify-content: flex-end; gap: 8px; background: #fff;">
+        <button class="btn-secondary" onclick="closeAturBobotModal()" type="button">Batal</button>
+        <button class="btn-primary" id="btnSubmitBobot" onclick="submitAturBobot()">Simpan Bobot</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL KONFIRMASI HAPUS -->
   <div class="modal-overlay" id="modalDeleteConfirm">
     <div class="modal-container"
@@ -2025,18 +2097,49 @@
         return;
       }
 
-      const totalWeight = strategies.reduce((sum, s) => sum + (parseFloat(s.weight) || 0), 0);
       let calloutHtml = '';
-      if (strategies.length > 0 && totalWeight === 0) {
-        calloutHtml = `
-          <div style="background-color: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px;">
-            <svg style="flex-shrink:0; margin-top:2px;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-            <div>
-              <strong style="display:block; margin-bottom:4px; font-size: 14px;">Informasi Bobot</strong>
-              Bobot seluruh strategi pada aspek ini belum diatur (total 0%). Persentase progres saat ini dikalkulasikan secara otomatis berdasarkan pemerataan jumlah item tanpa mempedulikan bobot prioritas.
+      if (strategies.length > 0) {
+        let isWeightValid = true;
+        let stratSum = 0;
+
+        strategies.forEach(s => {
+          stratSum += parseFloat(s.weight) || 0;
+          if (s.activity_groups && s.activity_groups.length > 0) {
+            let agSum = 0;
+            s.activity_groups.forEach(ag => {
+              agSum += parseFloat(ag.weight) || 0;
+              if (ag.action_plans && ag.action_plans.length > 0) {
+                let apSum = 0;
+                ag.action_plans.forEach(ap => apSum += parseFloat(ap.weight) || 0);
+                if (Math.round(apSum) !== 100) isWeightValid = false;
+              }
+            });
+            if (Math.round(agSum) !== 100) isWeightValid = false;
+          }
+        });
+        if (Math.round(stratSum) !== 100) isWeightValid = false;
+
+        if (isWeightValid) {
+          calloutHtml = `
+            <div style="background-color: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px;">
+              <svg style="flex-shrink:0; margin-top:2px;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+              <div>
+                <strong style="display:block; margin-bottom:4px; font-size: 14px;">Bobot Sudah Terkonfigurasi</strong>
+                Bobot prioritas telah diatur secara menyeluruh (total 100%). Persentase progres dihitung berdasarkan bobot yang telah ditentukan.
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        } else {
+          calloutHtml = `
+            <div style="background-color: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px;">
+              <svg style="flex-shrink:0; margin-top:2px;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              <div>
+                <strong style="display:block; margin-bottom:4px; font-size: 14px;">Informasi Bobot</strong>
+                Terdapat hierarki yang total bobotnya belum mencapai 100% atau data baru saja ditambahkan. Pastikan Anda mengkonfigurasi bobot melalui tombol "Atur Bobot".
+              </div>
+            </div>
+          `;
+        }
       }
 
       container.innerHTML = calloutHtml + strategies.map((s, sIdx) => {
@@ -2614,6 +2717,288 @@
       } finally {
         btn.disabled = false;
         btn.textContent = 'Ya, Hapus';
+      }
+    }
+
+    // ── ATUR BOBOT LOGIC ───────────────────────────────────────
+    function openAturBobotModal() {
+      const container = document.getElementById('aturBobotContainer');
+      const strategies = aspectData.daftar_strategi || [];
+
+      if (strategies.length === 0) {
+        container.innerHTML = `<div style="padding: 20px; text-align:center; color: var(--slate-500);">Tidak ada strategi untuk diatur bobotnya.</div>`;
+        document.getElementById('modalAturBobot').classList.add('open');
+        return;
+      }
+
+      let html = `
+        <div class="strategy-col-header" style="display: grid; grid-template-columns: 1fr 100px; border-radius: 8px 8px 0 0; background: var(--slate-50); border: 1px solid var(--slate-200); border-bottom: none; padding: 12px 16px; font-size:12px; font-weight:600; color:var(--slate-600); ">
+          <div>Hierarki Rencana Aksi</div>
+          <div style="text-align:center;">Bobot (%)</div>
+        </div>
+        <div style="border: 1px solid var(--slate-200); border-radius: 0 0 8px 8px; background: #fff; overflow:hidden;">
+          <div style="display: grid; grid-template-columns: 1fr 100px; background: var(--slate-100); padding: 8px 16px; font-size:12px; font-weight:700; color:var(--slate-800); align-items:center; border-bottom: 2px solid var(--slate-200);">
+            <div>Total Bobot Seluruh Strategi</div>
+            <div id="tot-strat" style="font-size:14px; text-align:center;">0%</div>
+          </div>
+          <div style="padding: 12px 16px; background: #fafafa; border-bottom: 1px solid var(--slate-200);">
+            <label class="chk-wrapper">
+              <input type="checkbox" id="chkBagiRata" class="chk-input" onchange="toggleBagiRata(this.checked)">
+              <div class="chk-box">
+                <svg class="chk-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              Bagi sama rata untuk semuanya
+            </label>
+          </div>
+      `;
+
+      strategies.forEach((s) => {
+        const hasAG = s.activity_groups && s.activity_groups.length > 0;
+        const valS = s.weight || 0;
+
+        html += `
+          <div style="border-bottom: 1px solid var(--slate-300);">
+            <div style="display: grid; grid-template-columns: 1fr 100px; padding: 12px 16px; background: #fff; align-items:center; cursor:pointer;" onclick="toggleBobot('s-${s.strategy_id}')">
+              <div style="font-weight:600; color:var(--slate-900); font-size:14px; display:flex; align-items:center; gap:8px;">
+                <button class="expand-btn" id="expand-bobot-s-${s.strategy_id}" onclick="event.stopPropagation(); toggleBobot('s-${s.strategy_id}')" style="margin-right:4px;">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9" /></svg>
+                </button>
+                <div style="width:24px; height:24px; border-radius:6px; background:var(--blue-50); color:var(--blue-600); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0;">S</div>
+                <div style="line-height:1.4;">${escapeHtml(s.strategy_name)}</div>
+              </div>
+              <div style="display:flex; justify-content:center;" onclick="event.stopPropagation()">
+                <input type="number" step="0.01" class="form-input bobot-input-strat" data-id="${s.strategy_id}" value="${valS}" style="width:70px; text-align:center; font-weight:600; padding-left:0; padding-right:0;" oninput="calcBobot()" min="0" max="100">
+              </div>
+            </div>
+        `;
+
+        if (hasAG) {
+          html += `<div id="body-bobot-s-${s.strategy_id}" style="display:none;">`;
+          html += `
+            <div style="display: grid; grid-template-columns: 1fr 100px; background: var(--slate-50); border-top: 1px dashed var(--slate-200); padding: 6px 16px 6px 48px; font-size:11px; font-weight:600; color:var(--slate-500); align-items:center;">
+              <div>Total Activity Group di Strategi ini</div>
+              <div id="tot-ag-${s.strategy_id}" style="text-align:center;">0%</div>
+            </div>
+          `;
+
+          s.activity_groups.forEach(ag => {
+            const hasAP = ag.action_plans && ag.action_plans.length > 0;
+            const valAG = ag.weight || 0;
+
+            html += `
+              <div style="display: grid; grid-template-columns: 1fr 100px; padding: 10px 16px 10px 48px; background: var(--slate-50); border-top: 1px solid var(--slate-100); align-items:center; cursor:pointer;" onclick="toggleBobot('ag-${ag.activity_group_id}')">
+                <div style="font-weight:500; color:var(--slate-700); font-size:13px; display:flex; align-items:center; gap:8px;">
+                  <button class="expand-btn" id="expand-bobot-ag-${ag.activity_group_id}" onclick="event.stopPropagation(); toggleBobot('ag-${ag.activity_group_id}')" style="margin-right:4px;">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9" /></svg>
+                  </button>
+                  <div style="width:22px; height:22px; border-radius:4px; background:var(--indigo-50); color:var(--indigo-600); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0;">AG</div>
+                  <div style="line-height:1.4;">${escapeHtml(ag.activity_group_name)}</div>
+                </div>
+                <div style="display:flex; justify-content:center;" onclick="event.stopPropagation()">
+                  <input type="number" step="0.01" class="form-input bobot-input-ag" data-id="${ag.activity_group_id}" data-parent="${s.strategy_id}" value="${valAG}" style="width:70px; text-align:center; font-weight:500; padding-left:0; padding-right:0;" oninput="calcBobot()" min="0" max="100">
+                </div>
+              </div>
+            `;
+
+            if (hasAP) {
+              html += `<div id="body-bobot-ag-${ag.activity_group_id}" style="display:none;">`;
+              html += `
+                <div style="display: grid; grid-template-columns: 1fr 100px; background: #fff; border-top: 1px dashed var(--slate-200); padding: 4px 16px 4px 78px; font-size:10px; font-weight:600; color:var(--slate-400); align-items:center;">
+                  <div>Total Rencana Aksi di AG ini</div>
+                  <div id="tot-ap-${ag.activity_group_id}" style="text-align:center;">0%</div>
+                </div>
+              `;
+
+              ag.action_plans.forEach(ap => {
+                const valAP = ap.weight || 0;
+                html += `
+                  <div style="display: grid; grid-template-columns: 1fr 100px; padding: 8px 16px 8px 78px; background: #fff; border-top: 1px solid var(--slate-50); align-items:center;">
+                    <div style="color:var(--slate-600); font-size:12px; display:flex; align-items:center; gap:8px;">
+                      <span class="ra-chip" style="margin:0; flex-shrink:0;">${escapeHtml(ap.code_order || 'RA')}</span>
+                      <div style="line-height:1.4;">${escapeHtml(ap.action_plan_name)}</div>
+                    </div>
+                    <div style="display:flex; justify-content:center;">
+                      <input type="number" class="form-input bobot-input-ap" data-id="${ap.action_plan_id}" data-parent="${ag.activity_group_id}" value="${valAP}" style="width:70px; text-align:center; padding:4px; font-size:12px;" oninput="calcBobot()" min="0" max="100">
+                    </div>
+                  </div>
+                `;
+              });
+              html += `</div>`;
+            }
+          });
+          html += `</div>`;
+        }
+        html += `</div>`;
+      });
+      html += `</div>`;
+
+      container.innerHTML = html;
+      document.getElementById('modalAturBobot').classList.add('open');
+      calcBobot();
+    }
+
+    function closeAturBobotModal() {
+      document.getElementById('modalAturBobot').classList.remove('open');
+    }
+
+    function toggleBagiRata(checked) {
+      if (!checked) return;
+
+      const distributeEqually = (nodeList) => {
+        const n = nodeList.length;
+        if (n === 0) return;
+        const base = Math.floor((100 / n) * 100) / 100;
+        nodeList.forEach((inp) => {
+          inp.value = base.toFixed(2).replace(/\.00$/, '');
+        });
+      };
+
+      // 1. Strategies
+      distributeEqually(document.querySelectorAll('.bobot-input-strat:not([disabled])'));
+
+      // 2. Activity Groups
+      document.querySelectorAll('.bobot-input-strat').forEach(inp => {
+        const sId = inp.dataset.id;
+        distributeEqually(document.querySelectorAll(`.bobot-input-ag[data-parent="${sId}"]:not([disabled])`));
+      });
+
+      // 3. Action Plans
+      document.querySelectorAll('.bobot-input-ag').forEach(inp => {
+        const agId = inp.dataset.id;
+        distributeEqually(document.querySelectorAll(`.bobot-input-ap[data-parent="${agId}"]:not([disabled])`));
+      });
+
+      calcBobot();
+    }
+
+    function toggleBobot(id) {
+      const type = id.split('-')[0]; // 's' or 'ag'
+
+      // Accordion logic: close others of same type
+      if (type === 's') {
+        document.querySelectorAll('[id^="body-bobot-s-"]').forEach(el => {
+          if (el.id !== 'body-bobot-' + id) {
+            el.style.display = 'none';
+            const btnId = el.id.replace('body-bobot-', 'expand-bobot-');
+            const btn = document.getElementById(btnId);
+            if (btn) btn.classList.remove('open');
+          }
+        });
+      } else if (type === 'ag') {
+        document.querySelectorAll('[id^="body-bobot-ag-"]').forEach(el => {
+          if (el.id !== 'body-bobot-' + id) {
+            el.style.display = 'none';
+            const btnId = el.id.replace('body-bobot-', 'expand-bobot-');
+            const btn = document.getElementById(btnId);
+            if (btn) btn.classList.remove('open');
+          }
+        });
+      }
+
+      const body = document.getElementById('body-bobot-' + id);
+      const btn = document.getElementById('expand-bobot-' + id);
+      if (!body || !btn) return;
+      const isHidden = body.style.display === 'none';
+      body.style.display = isHidden ? 'block' : 'none';
+      if (isHidden) {
+        btn.classList.add('open');
+      } else {
+        btn.classList.remove('open');
+      }
+    }
+
+    function calcBobot() {
+      let allValid = true;
+
+      const safeSum = (inputs) => {
+        let sum = 0;
+        inputs.forEach(inp => sum += Number(inp.value || 0));
+        if (Math.abs(sum - 100) < 0.1) return 100; // Round 99.99 or 100.01 to exactly 100
+        return Math.round(sum * 100) / 100;
+      };
+
+      // Strat
+      const stratInputs = document.querySelectorAll('.bobot-input-strat');
+      const stratSum = safeSum(stratInputs);
+      const elTotStrat = document.getElementById('tot-strat');
+      if (elTotStrat) {
+        elTotStrat.textContent = stratSum + '%';
+        if (stratSum !== 100 && stratSum !== 0) { elTotStrat.style.color = 'var(--rose)'; allValid = false; }
+        else { elTotStrat.style.color = 'var(--emerald)'; }
+      }
+
+      // AG
+      const agInputs = document.querySelectorAll('.bobot-input-ag');
+      const agSums = {};
+      agInputs.forEach(inp => {
+        const parent = inp.getAttribute('data-parent');
+        if (!agSums[parent]) agSums[parent] = [];
+        agSums[parent].push(inp);
+      });
+      for (const parent in agSums) {
+        const sum = safeSum(agSums[parent]);
+        const elTotAg = document.getElementById('tot-ag-' + parent);
+        if (elTotAg) {
+          elTotAg.textContent = sum + '%';
+          if (sum !== 100 && sum !== 0) { elTotAg.style.color = 'var(--rose)'; allValid = false; }
+          else { elTotAg.style.color = 'var(--emerald)'; }
+        }
+      }
+
+      // AP
+      const apInputs = document.querySelectorAll('.bobot-input-ap');
+      const apSums = {};
+      apInputs.forEach(inp => {
+        const parent = inp.getAttribute('data-parent');
+        if (!apSums[parent]) apSums[parent] = [];
+        apSums[parent].push(inp);
+      });
+      for (const parent in apSums) {
+        const sum = safeSum(apSums[parent]);
+        const elTotAp = document.getElementById('tot-ap-' + parent);
+        if (elTotAp) {
+          elTotAp.textContent = sum + '%';
+          if (sum !== 100 && sum !== 0) { elTotAp.style.color = 'var(--rose)'; allValid = false; }
+          else { elTotAp.style.color = 'var(--emerald)'; }
+        }
+      }
+
+      document.getElementById('btnSubmitBobot').disabled = !allValid;
+    }
+
+    async function submitAturBobot() {
+      const payload = { strategies: [], activity_groups: [], action_plans: [] };
+
+      document.querySelectorAll('.bobot-input-strat').forEach(inp => {
+        payload.strategies.push({ id: Number(inp.getAttribute('data-id')), weight: Number(inp.value || 0) });
+      });
+      document.querySelectorAll('.bobot-input-ag').forEach(inp => {
+        payload.activity_groups.push({ id: Number(inp.getAttribute('data-id')), weight: Number(inp.value || 0) });
+      });
+      document.querySelectorAll('.bobot-input-ap').forEach(inp => {
+        payload.action_plans.push({ id: Number(inp.getAttribute('data-id')), weight: Number(inp.value || 0) });
+      });
+
+      const btn = document.getElementById('btnSubmitBobot');
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+
+      try {
+        const response = await fetch('/api/aspects/' + currentAspectId + '/bulk-weights', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const res = await response.json();
+        if (!res.success) throw new Error(res.message);
+
+        closeAturBobotModal();
+        loadAspectData();
+      } catch (err) {
+        alert('Gagal menyimpan bobot: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Simpan Bobot';
       }
     }
 
