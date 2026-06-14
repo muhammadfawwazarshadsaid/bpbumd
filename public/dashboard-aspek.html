@@ -354,20 +354,13 @@
       height: 3px;
     }
 
-    .kpi-card.progress-card {
-      border-left: 4px solid var(--amber);
-    }
-
     .kpi-card.progress-card::before {
-      display: none;
+      background: linear-gradient(90deg, #F59E0B, #FCD34D);
     }
 
-    .kpi-card.late-card {
-      border-left: 4px solid var(--rose);
-    }
-
+    .kpi-card.rose::before,
     .kpi-card.late-card::before {
-      display: none;
+      background: linear-gradient(90deg, #EF4444, #F87171);
     }
 
     .kpi-card.blue::before {
@@ -612,14 +605,17 @@
     }
 
     .company-logo-icon {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, var(--amber), #FCD34D);
-      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      background: var(--slate-100);
+      color: var(--slate-500);
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 18px;
+      font-weight: 700;
     }
 
     /* Overall company progress */
@@ -1148,6 +1144,15 @@
         </svg>
       </a>
 
+      <a class="icon-btn" href="/pengguna.html" title="Manajemen Pengguna">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      </a>
+
       <div class="icon-sidebar-bottom">
         <a class="icon-btn" title="Bantuan">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1191,9 +1196,9 @@
       <!-- KPI CARDS -->
       <div class="kpi-grid" id="kpiGrid">
         <!-- Card: Progres -->
-        <div class="kpi-card progress-card">
+        <div class="kpi-card progress-card" id="progressCard">
           <div class="kpi-top">
-            <div class="kpi-icon amber">
+            <div class="kpi-icon amber" id="progressIcon">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
@@ -1227,7 +1232,7 @@
             </div>
             <span class="kpi-trend down">Perhatian</span>
           </div>
-          <div class="kpi-value" id="terlambatValue" style="color: var(--rose);">0</div>
+          <div class="kpi-value" id="terlambatValue">0</div>
           <div class="kpi-label">Terlambat</div>
           <div class="kpi-sub">Rencana Aksi melebihi tenggat</div>
         </div>
@@ -1467,6 +1472,13 @@
             const companyId = dashboardData.companies[0].company_id;
             document.getElementById('companyDropdown').value = companyId;
             selectCompany(companyId);
+          } else {
+            // Restore previously selected company
+            const savedId = localStorage.getItem('dashboardAspekSelectedCompany');
+            if (savedId && dashboardData.companies.some(c => c.company_id == savedId)) {
+              document.getElementById('companyDropdown').value = savedId;
+              selectCompany(savedId);
+            }
           }
         }
       } catch (error) {
@@ -1480,11 +1492,23 @@
 
       // Progress donut
       const pct = Math.round(cards.progress_percentage);
+      const targetPct = Math.round(cards.target_percentage);
       const circumference = 2 * Math.PI * 32; // r=32
       const fillLength = (pct / 100) * circumference;
-      document.getElementById('donutFill').setAttribute('stroke-dasharray', `${fillLength} ${circumference}`);
+
+      const donutFill = document.getElementById('donutFill');
+      donutFill.setAttribute('stroke-dasharray', `${fillLength} ${circumference}`);
+      donutFill.style.stroke = getBarColor(pct, targetPct);
+
+      let colorClass = 'rose';
+      if (pct >= targetPct) colorClass = 'green';
+      else if (pct >= targetPct * 0.8) colorClass = 'amber';
+
+      document.getElementById('progressCard').className = 'kpi-card ' + colorClass;
+      document.getElementById('progressIcon').className = 'kpi-icon ' + colorClass;
+
       document.getElementById('donutPct').textContent = pct + '%';
-      document.getElementById('progressTarget').textContent = 'Target: ' + Math.round(cards.target_percentage) + '%';
+      document.getElementById('progressTarget').textContent = 'Target: ' + targetPct + '%';
 
       // Terlambat
       document.getElementById('terlambatValue').textContent = cards.terlambat;
@@ -1516,18 +1540,31 @@
         document.getElementById('companyOverall').style.display = 'none';
         document.getElementById('aspectTable').style.display = 'none';
         document.getElementById('emptyState').style.display = '';
+        localStorage.removeItem('dashboardAspekSelectedCompany');
         return;
       }
 
       selectedCompanyId = Number(companyId);
       const company = dashboardData.companies.find(c => c.company_id === selectedCompanyId);
       if (!company) return;
+      
+      localStorage.setItem('dashboardAspekSelectedCompany', companyId);
 
       // Company name display
       const logoName = document.getElementById('companyLogoName');
       logoName.style.display = 'flex';
       document.getElementById('companyDisplayName').textContent = company.company_name.toUpperCase();
-      document.getElementById('companyLogoIcon').textContent = company.company_name.charAt(0);
+      
+      const logoIcon = document.getElementById('companyLogoIcon');
+      if (company.logo) {
+        logoIcon.innerHTML = `<img src="${company.logo}" style="width:100%;height:100%;object-fit:contain;background-color:var(--slate-50);border-radius:inherit;" />`;
+        logoIcon.style.background = 'transparent';
+        logoIcon.style.color = 'inherit';
+      } else {
+        logoIcon.innerHTML = company.company_name.charAt(0);
+        logoIcon.style.background = ''; // reset to default css
+        logoIcon.style.color = '';
+      }
 
       // Overall progress
       const overallEl = document.getElementById('companyOverall');

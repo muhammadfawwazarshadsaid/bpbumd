@@ -3,7 +3,7 @@
 const { pool } = require("../config/database");
 
 function isHqUser(user) {
-  return user.company_type === "bpbumd";
+  return user.company_type === "bpbumd" || user.company_type === "lainnya";
 }
 
 function getCompanyScope(user) {
@@ -35,6 +35,7 @@ async function getDashboardSummary(user) {
       company_id: company.company_id,
       company_name: company.company_name,
       company_code: company.company_code,
+      logo: company.logo,
       sector_name: company.sector_name,
 
       cards: {
@@ -197,7 +198,8 @@ async function getCompanyCards(client, companyScopeId) {
           c.id,
           c.name,
           c.company_code,
-          c.sector_id
+          c.sector_id,
+          c.logo
         FROM companies c
         WHERE
           c.company_type = 'bumd'
@@ -282,6 +284,7 @@ async function getCompanyCards(client, companyScopeId) {
         sc.id AS company_id,
         sc.name AS company_name,
         sc.company_code,
+        sc.logo,
         sec.name AS sector_name,
 
         COALESCE(aa.total_aspek, 0) AS total_aspek,
@@ -315,6 +318,7 @@ async function getCompanyCards(client, companyScopeId) {
     company_id: Number(row.company_id),
     company_name: row.company_name,
     company_code: row.company_code,
+    logo: row.logo,
     sector_name: row.sector_name,
 
     progress_percentage: toNumber(row.progress_percentage),

@@ -1491,6 +1491,15 @@
         </svg>
       </a>
 
+      <a class="icon-btn" href="/pengguna.html" title="Manajemen Pengguna">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      </a>
+
       <div class="icon-sidebar-bottom">
         <a class="icon-btn" title="Bantuan">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1660,7 +1669,7 @@
             </button>
           </div>
           <div class="strategy-col-header">
-            <div>Strategi / Activity Group</div>
+            <div>Strategi</div>
             <div>Progres</div>
             <div>Rencana Aksi</div>
             <div>Bobot</div>
@@ -1808,15 +1817,9 @@
             </select>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div class="form-group">
-              <label class="form-label">Tanggal Mulai</label>
-              <input type="date" id="addAPStart" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Target Selesai</label>
-              <input type="date" id="addAPEnd" class="form-input" />
-            </div>
+          <div class="form-group">
+            <label class="form-label">Target Selesai</label>
+            <input type="date" id="addAPEnd" class="form-input" />
           </div>
 
           <div class="form-group">
@@ -2407,7 +2410,7 @@
         code_order: document.getElementById('addAPCode').value,
         target_percentage: Number(document.getElementById('addAPTarget').value),
         pic_user_id: document.getElementById('addAPPic').value || null,
-        start_date: document.getElementById('addAPStart').value || null,
+        // start_date is auto-calculated from Sub Action Plans
         target_end_date: document.getElementById('addAPEnd').value || null,
         output: document.getElementById('addAPOutput').value,
         indicator: document.getElementById('addAPIndicator').value
@@ -2505,7 +2508,7 @@
         document.getElementById('addAPCode').value = foundAP.code_order || '';
         document.getElementById('addAPTarget').value = Math.round(foundAP.target_percentage);
         document.getElementById('addAPPic').value = foundAP.pic_user_id || '';
-        if (foundAP.start_date) document.getElementById('addAPStart').value = foundAP.start_date.split('T')[0];
+        // start_date is auto-calculated
         if (foundAP.target_end_date) document.getElementById('addAPEnd').value = foundAP.target_end_date.split('T')[0];
         document.getElementById('addAPOutput').value = foundAP.output || '';
         document.getElementById('addAPIndicator').value = foundAP.indicator || '';
@@ -2575,15 +2578,18 @@
           const select = document.getElementById('addAPPic');
           select.innerHTML = '<option value="">Pilih PIC</option>';
 
-          // Filter: only users from the same BUMD company
+          // Filter: only users from the same BUMD company, or bpbumd, or lainnya
           const filtered = data.data.filter(user => {
+            if (user.company_type === 'bpbumd' || user.company_type === 'lainnya') return true;
             if (user.company_type !== 'bumd') return false;
             if (targetCompanyId && Number(user.company_id) !== Number(targetCompanyId)) return false;
             return true;
           });
 
           filtered.forEach(user => {
-            select.innerHTML += `<option value="${user.id}">${user.name} (${user.role})</option>`;
+            const cName = user.company_name || 'BPBUMD';
+            const pos = user.position || 'Tidak ada posisi';
+            select.innerHTML += `<option value="${user.id}">${escapeHtml(user.name)} (${escapeHtml(cName)} - ${escapeHtml(pos)})</option>`;
           });
         }
       } catch (err) {

@@ -8,7 +8,7 @@ const { pool } = require("../config/database");
 
 async function getAllBumds(user, query) {
   const { search, sector_id } = query || {};
-  const isBpbumd = user && user.company_type === 'bpbumd';
+  const isBpbumd = user && (user.company_type === 'bpbumd' || user.company_type === 'lainnya');
 
   let sql = `
     SELECT
@@ -18,6 +18,7 @@ async function getAllBumds(user, query) {
       c.sector_id,
       s.name AS sector_name,
       s.code AS sector_code,
+      c.logo,
       c.created_at,
       c.updated_at,
       COALESCE(
@@ -30,7 +31,7 @@ async function getAllBumds(user, query) {
           )
           ORDER BY u.name
         ) FILTER (WHERE u.id IS NOT NULL),
-        '[]'
+        '[]'::json
       ) AS users
     FROM companies c
     LEFT JOIN sectors s ON s.id = c.sector_id
@@ -59,7 +60,7 @@ async function getAllBumds(user, query) {
 
   sql += `
     GROUP BY c.id, c.name, c.company_code, c.sector_id,
-             s.name, s.code, c.created_at, c.updated_at
+             s.name, s.code, c.logo, c.created_at, c.updated_at
     ORDER BY c.name ASC
   `;
 
@@ -82,6 +83,7 @@ async function getBumdById(bumdId) {
         c.sector_id,
         s.name AS sector_name,
         s.code AS sector_code,
+        c.logo,
         c.created_at,
         c.updated_at,
         COALESCE(
@@ -94,14 +96,14 @@ async function getBumdById(bumdId) {
             )
             ORDER BY u.name
           ) FILTER (WHERE u.id IS NOT NULL),
-          '[]'
+          '[]'::json
         ) AS users
       FROM companies c
       LEFT JOIN sectors s ON s.id = c.sector_id
       LEFT JOIN users u ON u.company_id = c.id AND u.is_active = TRUE
       WHERE c.id = $1 AND c.company_type = 'bumd'
       GROUP BY c.id, c.name, c.company_code, c.sector_id,
-               s.name, s.code, c.created_at, c.updated_at
+               s.name, s.code, c.logo, c.created_at, c.updated_at
     `,
     [bumdId],
   );
@@ -120,7 +122,7 @@ async function getBumdById(bumdId) {
 // ═════════════════════════════════════════════
 
 async function createBumd(user, payload) {
-  const { name, sector_id, user_ids } = payload;
+  const { name, sector_id, user_ids, logo } = payload;
 
   if (!name) {
     const error = new Error("Nama BUMD wajib diisi");
@@ -139,27 +141,48 @@ async function createBumd(user, payload) {
   try {
     await client.query("BEGIN");
 
-    // Verify sector exists if provided
-    if (sector_id) {
-      const sectorCheck = await client.query(
-        "SELECT id FROM sectors WHERE id = $1",
-        [sector_id],
-      );
+    let finalSectorId = null;
 
-      if (sectorCheck.rowCount === 0) {
-        const error = new Error("Sektor tidak ditemukan");
-        error.statusCode = 404;
-        throw error;
+    if (sector_id) {
+      if (!isNaN(Number(sector_id))) {
+        // verify sector exists
+        const sectorCheck = await client.query(
+          "SELECT id FROM sectors WHERE id = $1",
+          [Number(sector_id)],
+        );
+        if (sectorCheck.rowCount === 0) {
+          const error = new Error("Sektor tidak ditemukan");
+          error.statusCode = 404;
+          throw error;
+        }
+        finalSectorId = Number(sector_id);
+      } else {
+        // Sector passed as name, check if exists or create
+        const sectorCheck = await client.query(
+          "SELECT id FROM sectors WHERE name ILIKE $1",
+          [sector_id]
+        );
+        if (sectorCheck.rowCount > 0) {
+          finalSectorId = sectorCheck.rows[0].id;
+        } else {
+          // create new
+          const code = String(sector_id).toUpperCase().replace(/\s+/g, '_');
+          const newSector = await client.query(
+            "INSERT INTO sectors (name, code) VALUES ($1, $2) RETURNING id",
+            [sector_id, code]
+          );
+          finalSectorId = newSector.rows[0].id;
+        }
       }
     }
 
     const result = await client.query(
       `
-        INSERT INTO companies (name, sector_id, company_type)
-        VALUES ($1, $2, 'bumd')
+        INSERT INTO companies (name, sector_id, company_type, logo)
+        VALUES ($1, $2, 'bumd', $3)
         RETURNING *
       `,
-      [name, sector_id || null],
+      [name, finalSectorId, logo || null],
     );
 
     const bumdId = result.rows[0].id;
@@ -191,7 +214,7 @@ async function createBumd(user, payload) {
 // ═════════════════════════════════════════════
 
 async function updateBumd(user, bumdId, payload) {
-  const { name, sector_id, user_ids } = payload;
+  const { name, sector_id, user_ids, logo } = payload;
 
   if (user_ids && user_ids.length > 3) {
     const error = new Error("Maksimal 3 user per BUMD");
@@ -227,22 +250,45 @@ async function updateBumd(user, bumdId, payload) {
     }
 
     if (sector_id !== undefined) {
-      // Verify sector exists if not null
-      if (sector_id) {
-        const sectorCheck = await client.query(
-          "SELECT id FROM sectors WHERE id = $1",
-          [sector_id],
-        );
+      let finalSectorId = null;
 
-        if (sectorCheck.rowCount === 0) {
-          const error = new Error("Sektor tidak ditemukan");
-          error.statusCode = 404;
-          throw error;
+      if (sector_id) {
+        if (!isNaN(Number(sector_id))) {
+          const sectorCheck = await client.query(
+            "SELECT id FROM sectors WHERE id = $1",
+            [Number(sector_id)],
+          );
+          if (sectorCheck.rowCount === 0) {
+            const error = new Error("Sektor tidak ditemukan");
+            error.statusCode = 404;
+            throw error;
+          }
+          finalSectorId = Number(sector_id);
+        } else {
+          const sectorCheck = await client.query(
+            "SELECT id FROM sectors WHERE name ILIKE $1",
+            [sector_id]
+          );
+          if (sectorCheck.rowCount > 0) {
+            finalSectorId = sectorCheck.rows[0].id;
+          } else {
+            const code = String(sector_id).toUpperCase().replace(/\s+/g, '_');
+            const newSector = await client.query(
+              "INSERT INTO sectors (name, code) VALUES ($1, $2) RETURNING id",
+              [sector_id, code]
+            );
+            finalSectorId = newSector.rows[0].id;
+          }
         }
       }
 
       sets.push(`sector_id = $${paramIndex++}`);
-      values.push(sector_id || null);
+      values.push(finalSectorId);
+    }
+
+    if (logo !== undefined) {
+      sets.push(`logo = $${paramIndex++}`);
+      values.push(logo);
     }
 
     if (sets.length > 0) {
@@ -271,7 +317,7 @@ async function updateBumd(user, bumdId, payload) {
 
       // Cari user yang perlu di-unassign
       const usersToUnassign = currentUserIds.filter(id => !newUserIds.includes(id));
-      
+
       if (usersToUnassign.length > 0) {
         for (const uid of usersToUnassign) {
           await client.query("UPDATE users SET company_id = NULL WHERE id = $1", [uid]);
@@ -321,33 +367,109 @@ async function deleteBumd(user, bumdId) {
       throw error;
     }
 
-    // Check if BUMD has aspects
-    const childCheck = await client.query(
-      "SELECT COUNT(*)::INT AS count FROM aspects WHERE company_id = $1",
-      [bumdId],
-    );
+    // Cascade delete all children manually to bypass ON DELETE RESTRICT
+    await client.query(`
+      DELETE FROM history_activities WHERE sub_action_plan_id IN (
+        SELECT id FROM sub_action_plans WHERE action_plan_id IN (
+          SELECT id FROM action_plans WHERE activity_group_id IN (
+            SELECT id FROM activity_groups WHERE strategy_id IN (
+              SELECT id FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+            )
+          )
+        )
+      )
+    `, [bumdId]);
 
-    if (Number(childCheck.rows[0].count) > 0) {
-      const error = new Error(
-        `BUMD tidak bisa dihapus karena masih memiliki ${childCheck.rows[0].count} aspek`,
-      );
-      error.statusCode = 422;
-      throw error;
-    }
+    await client.query(`
+      DELETE FROM history_activities WHERE action_plan_id IN (
+        SELECT id FROM action_plans WHERE activity_group_id IN (
+          SELECT id FROM activity_groups WHERE strategy_id IN (
+            SELECT id FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+          )
+        )
+      )
+    `, [bumdId]);
 
-    // Cek apakah masih ada user yang terikat ke BUMD ini
-    const userCheck = await client.query(
-      "SELECT COUNT(*)::INT AS count FROM users WHERE company_id = $1",
+    await client.query(`
+      DELETE FROM documents WHERE sub_action_plan_id IN (
+        SELECT id FROM sub_action_plans WHERE action_plan_id IN (
+          SELECT id FROM action_plans WHERE activity_group_id IN (
+            SELECT id FROM activity_groups WHERE strategy_id IN (
+              SELECT id FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+            )
+          )
+        )
+      )
+    `, [bumdId]);
+
+    await client.query(`
+      DELETE FROM documents WHERE action_plan_id IN (
+        SELECT id FROM action_plans WHERE activity_group_id IN (
+          SELECT id FROM activity_groups WHERE strategy_id IN (
+            SELECT id FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+          )
+        )
+      )
+    `, [bumdId]);
+
+    await client.query(`
+      DELETE FROM kpis WHERE action_plan_id IN (
+        SELECT id FROM action_plans WHERE activity_group_id IN (
+          SELECT id FROM activity_groups WHERE strategy_id IN (
+            SELECT id FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+          )
+        )
+      )
+    `, [bumdId]);
+
+    await client.query(`
+      DELETE FROM sub_action_plan_approvals WHERE sub_action_plan_id IN (
+        SELECT id FROM sub_action_plans WHERE action_plan_id IN (
+          SELECT id FROM action_plans WHERE activity_group_id IN (
+            SELECT id FROM activity_groups WHERE strategy_id IN (
+              SELECT id FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+            )
+          )
+        )
+      )
+    `, [bumdId]);
+
+    await client.query(`
+      DELETE FROM sub_action_plans WHERE action_plan_id IN (
+        SELECT id FROM action_plans WHERE activity_group_id IN (
+          SELECT id FROM activity_groups WHERE strategy_id IN (
+            SELECT id FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+          )
+        )
+      )
+    `, [bumdId]);
+
+    await client.query(`
+      DELETE FROM action_plans WHERE activity_group_id IN (
+        SELECT id FROM activity_groups WHERE strategy_id IN (
+          SELECT id FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+        )
+      )
+    `, [bumdId]);
+
+    await client.query(`
+      DELETE FROM activity_groups WHERE strategy_id IN (
+        SELECT id FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+      )
+    `, [bumdId]);
+
+    await client.query(`
+      DELETE FROM strategies WHERE aspect_id IN (SELECT id FROM aspects WHERE company_id = $1)
+    `, [bumdId]);
+
+    await client.query("DELETE FROM aspects WHERE company_id = $1", [bumdId]);
+
+    // Lepaskan semua user dari BUMD ini dan nonaktifkan mereka
+    // agar foreign key fk_users_company tidak mencegah penghapusan
+    await client.query(
+      "UPDATE users SET company_id = NULL, is_active = FALSE WHERE company_id = $1",
       [bumdId]
     );
-
-    if (Number(userCheck.rows[0].count) > 0) {
-      const error = new Error(
-        `BUMD tidak bisa dihapus karena masih memiliki ${userCheck.rows[0].count} user. Pindahkan user terlebih dahulu.`
-      );
-      error.statusCode = 422;
-      throw error;
-    }
 
     // Delete the BUMD
     await client.query("DELETE FROM companies WHERE id = $1", [bumdId]);
@@ -372,7 +494,10 @@ async function deleteBumd(user, bumdId) {
 
 async function getAllSectors() {
   const result = await pool.query(
-    "SELECT id, name, code FROM sectors ORDER BY name ASC",
+    `SELECT DISTINCT s.id, s.name, s.code 
+     FROM sectors s
+     JOIN companies c ON c.sector_id = s.id AND c.company_type = 'bumd'
+     ORDER BY s.name ASC`
   );
 
   return result.rows;
@@ -388,6 +513,7 @@ function formatBumd(row) {
     sector_id: row.sector_id ? Number(row.sector_id) : null,
     sector_name: row.sector_name || null,
     sector_code: row.sector_code || null,
+    logo: row.logo || null,
     users: row.users || [],
     created_at: row.created_at,
     updated_at: row.updated_at,

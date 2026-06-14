@@ -13,10 +13,27 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
   if (actionPlanId) {
     await client.query(`
       UPDATE action_plans ap
-      SET progress_percentage = COALESCE(
-        (SELECT ROUND((COUNT(*) FILTER (WHERE status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
-         FROM sub_action_plans WHERE action_plan_id = ap.id), 0
-      )
+      SET 
+        progress_percentage = COALESCE(
+          (SELECT ROUND((COUNT(*) FILTER (WHERE status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+           FROM sub_action_plans WHERE action_plan_id = ap.id), 0
+        ),
+        start_date = COALESCE(
+          (SELECT MIN(created_at) FROM sub_action_plans WHERE action_plan_id = ap.id), 
+          ap.start_date
+        ),
+        end_date = CASE 
+          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id) > 0 
+               AND (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND status != 'selesai') = 0 
+          THEN (SELECT MAX(updated_at) FROM sub_action_plans WHERE action_plan_id = ap.id AND status = 'selesai')
+          ELSE NULL
+        END,
+        status = CASE
+          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND status != 'selesai') = 0 THEN 'selesai'
+          WHEN ap.target_end_date < CURRENT_DATE THEN 'terlambat'
+          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id) = 0 THEN 'belum mulai'
+          ELSE 'dalam progres'
+        END
       WHERE id = $1
     `, [actionPlanId]);
 
@@ -31,9 +48,9 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
     `, [actionPlanId]);
 
     if (rel.rowCount > 0) {
-      agId = rel.rows.ag_id;
-      sId = rel.rows.s_id;
-      aId = rel.rows.a_id;
+      agId = rel.rows[0].ag_id;
+      sId = rel.rows[0].s_id;
+      aId = rel.rows[0].a_id;
     }
   }
 
@@ -48,8 +65,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
     `, [fallbackActivityGroupId]);
 
     if (rel.rowCount > 0) {
-      sId = rel.rows.s_id;
-      aId = rel.rows.a_id;
+      sId = rel.rows[0].s_id;
+      aId = rel.rows[0].a_id;
     }
   }
 
@@ -59,35 +76,60 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
   // ── 2. Update Activity Group berdasarkan Rencana Aksi ──
   await client.query(`
     UPDATE activity_groups ag
-    SET progress_percentage = COALESCE(
-      (SELECT ROUND((COUNT(*) FILTER (WHERE status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
-       FROM action_plans WHERE activity_group_id = ag.id), 0
-    )
+    SET 
+      progress_percentage = COALESCE(
+        (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+         FROM sub_action_plans sap
+         JOIN action_plans ap ON ap.id = sap.action_plan_id
+         WHERE ap.activity_group_id = ag.id), 0
+      ),
+      status = CASE
+        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id AND sap.status != 'selesai') = 0 THEN 'selesai'
+        WHEN (SELECT COUNT(*) FROM action_plans WHERE activity_group_id = ag.id AND status = 'terlambat') > 0 THEN 'terlambat'
+        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id) = 0 THEN 'belum mulai'
+        ELSE 'dalam progres'
+      END
     WHERE id = $1
   `, [agId]);
 
   // ── 3. Update Strategi berdasarkan Rencana Aksi ──
   await client.query(`
     UPDATE strategies s
-    SET progress_percentage = COALESCE(
-      (SELECT ROUND((COUNT(ap.*) FILTER (WHERE ap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(ap.*), 0)::NUMERIC * 100, 2)
-       FROM action_plans ap
-       JOIN activity_groups ag ON ag.id = ap.activity_group_id
-       WHERE ag.strategy_id = s.id), 0
-    )
+    SET 
+      progress_percentage = COALESCE(
+        (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+         FROM sub_action_plans sap
+         JOIN action_plans ap ON ap.id = sap.action_plan_id
+         JOIN activity_groups ag ON ag.id = ap.activity_group_id
+         WHERE ag.strategy_id = s.id), 0
+      ),
+      status = CASE
+        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND sap.status != 'selesai') = 0 THEN 'selesai'
+        WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND ap.status = 'terlambat') > 0 THEN 'terlambat'
+        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id) = 0 THEN 'belum mulai'
+        ELSE 'dalam progres'
+      END
     WHERE id = $1
   `, [sId]);
 
   // ── 4. Update Aspek berdasarkan Rencana Aksi ──
   await client.query(`
     UPDATE aspects a
-    SET progress_percentage = COALESCE(
-      (SELECT ROUND((COUNT(ap.*) FILTER (WHERE ap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(ap.*), 0)::NUMERIC * 100, 2)
-       FROM action_plans ap
-       JOIN activity_groups ag ON ag.id = ap.activity_group_id
-       JOIN strategies s ON s.id = ag.strategy_id
-       WHERE s.aspect_id = a.id), 0
-    )
+    SET 
+      progress_percentage = COALESCE(
+        (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+         FROM sub_action_plans sap
+         JOIN action_plans ap ON ap.id = sap.action_plan_id
+         JOIN activity_groups ag ON ag.id = ap.activity_group_id
+         JOIN strategies s ON s.id = ag.strategy_id
+         WHERE s.aspect_id = a.id), 0
+      ),
+      status = CASE
+        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND sap.status != 'selesai') = 0 THEN 'selesai'
+        WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND ap.status = 'terlambat') > 0 THEN 'terlambat'
+        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id) = 0 THEN 'belum mulai'
+        ELSE 'dalam progres'
+      END
     WHERE id = $1
   `, [aId]);
 }

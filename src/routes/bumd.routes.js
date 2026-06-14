@@ -5,6 +5,19 @@ const router = express.Router();
 
 const bumdService = require("../services/bumd.service");
 const { authMiddleware } = require("../middleware/auth.middleware");
+const multer = require("multer");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/uploads/logos/");
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, "logo-" + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage: storage });
 
 /**
  * GET /api/bumds
@@ -83,9 +96,24 @@ router.get("/:id", authMiddleware, async (req, res) => {
  * POST /api/bumds
  * Body: { name, sector_id, user_ids: [] }
  */
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, upload.single("logo"), async (req, res) => {
   try {
-    const data = await bumdService.createBumd(req.user, req.body);
+    const payload = { ...req.body };
+    if (req.file) {
+      payload.logo = "/uploads/logos/" + req.file.filename;
+    }
+    
+    // Parse user_ids if sent as string from FormData
+    if (payload.user_ids && typeof payload.user_ids === 'string') {
+      try {
+        payload.user_ids = JSON.parse(payload.user_ids);
+      } catch (e) {
+        // Assume comma separated
+        payload.user_ids = payload.user_ids.split(',').map(s => s.trim());
+      }
+    }
+
+    const data = await bumdService.createBumd(req.user, payload);
 
     res.status(201).json({
       success: true,
@@ -105,7 +133,7 @@ router.post("/", authMiddleware, async (req, res) => {
  * PUT /api/bumds/:id
  * Body: { name, sector_id, user_ids: [] }
  */
-router.put("/:id", authMiddleware, async (req, res) => {
+router.put("/:id", authMiddleware, upload.single("logo"), async (req, res) => {
   try {
     const id = Number(req.params.id);
 
@@ -116,7 +144,22 @@ router.put("/:id", authMiddleware, async (req, res) => {
       });
     }
 
-    const data = await bumdService.updateBumd(req.user, id, req.body);
+    const payload = { ...req.body };
+    if (req.file) {
+      payload.logo = "/uploads/logos/" + req.file.filename;
+    }
+    
+    // Parse user_ids if sent as string from FormData
+    if (payload.user_ids && typeof payload.user_ids === 'string') {
+      try {
+        payload.user_ids = JSON.parse(payload.user_ids);
+      } catch (e) {
+        // Assume comma separated
+        payload.user_ids = payload.user_ids.split(',').map(s => s.trim());
+      }
+    }
+
+    const data = await bumdService.updateBumd(req.user, id, payload);
 
     res.json({
       success: true,

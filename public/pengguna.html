@@ -1522,7 +1522,7 @@
           <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
       </a>
-      <a class="icon-btn active" href="/daftar-bumd.html" title="Daftar BUMD">
+      <a class="icon-btn" href="/daftar-bumd.html" title="Daftar BUMD">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14,2 14,8 20,8" />
@@ -1532,7 +1532,7 @@
         </svg>
       </a>
 
-      <a class="icon-btn" href="/pengguna.html" title="Manajemen Pengguna">
+      <a class="icon-btn active" href="/pengguna.html" title="Manajemen Pengguna">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
@@ -1573,12 +1573,12 @@
         <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
         </svg>
-        <span class="current">Daftar BUMD</span>
+        <span class="current">Manajemen Pengguna</span>
       </nav>
 
       <!-- PAGE HEADING -->
       <div class="page-heading">
-        <div class="page-heading-title">Daftar BUMD</div>
+        <div class="page-heading-title">Manajemen Pengguna</div>
       </div>
 
       <!-- KPI SUMMARY -->
@@ -1593,7 +1593,7 @@
             </div>
           </div>
           <div class="kpi-value" id="kpiTotal">-</div>
-          <div class="kpi-label">Total BUMD</div>
+          <div class="kpi-label">Total Pengguna</div>
         </div>
 
         <div class="kpi-card green">
@@ -1608,7 +1608,7 @@
             </div>
           </div>
           <div class="kpi-value" id="kpiUsers">-</div>
-          <div class="kpi-label">Total User Terdaftar</div>
+          <div class="kpi-label">Admin BPBUMD</div>
         </div>
 
         <div class="kpi-card amber">
@@ -1622,7 +1622,7 @@
             </div>
           </div>
           <div class="kpi-value" id="kpiSectors">-</div>
-          <div class="kpi-label">Jumlah Sektor</div>
+          <div class="kpi-label">User BUMD</div>
         </div>
       </div>
 
@@ -1630,8 +1630,8 @@
       <div class="table-card">
         <div class="card-header">
           <div>
-            <div class="card-title">Data BUMD</div>
-            <div class="card-sub">Kelola daftar badan usaha dan penugasan user</div>
+            <div class="card-title">Data Pengguna</div>
+            <div class="card-sub">Kelola daftar pengguna sistem</div>
           </div>
         </div>
 
@@ -1642,18 +1642,20 @@
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <input class="search-input" id="searchInput" type="text" placeholder="Cari nama BUMD..."
+            <input class="search-input" id="searchInput" type="text" placeholder="Cari nama atau username..."
               autocomplete="off" />
           </div>
-          <select class="filter-select" id="filterSector">
-            <option value="">Semua Sektor</option>
+          <select class="filter-select" id="filterRole">
+            <option value="">Semua Role</option>
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
           </select>
-          <button class="btn-primary" id="btnTambah" onclick="openModal()">
+          <button class="btn-primary" id="btnTambah" onclick="openCreateUserModal(null, null)">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Tambah BUMD
+            Tambah Pengguna
           </button>
         </div>
 
@@ -1667,80 +1669,6 @@
   </div>
 
   <!-- MODAL: CREATE/EDIT -->
-  <div class="modal-overlay" id="bumdModal">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title" id="modalTitle">Tambah BUMD</div>
-        <button class="modal-close" onclick="closeModal()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label" for="inputName">Nama BUMD <span class="required">*</span></label>
-          <input class="form-input" id="inputName" type="text" placeholder="Contoh: PT Tirta Maju Sejahtera" />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="inputLogo">Logo BUMD</label>
-          <input type="file" id="inputLogo" style="display:none"
-            accept="image/png, image/jpeg, image/jpg, image/webp" />
-          <div class="upload-dropzone" id="logoDropzone">
-            <div class="upload-dropzone-icon">
-              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17,8 12,3 7,8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-            </div>
-            <div class="upload-dropzone-text">
-              Seret file ke sini atau <span class="upload-dropzone-link">pilih file</span>
-            </div>
-            <div class="upload-dropzone-hint">JPG, PNG, WEBP — maks. 2 MB</div>
-          </div>
-          <div id="logoFilePreview" style="display:none;"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="inputSector">Sektor</label>
-
-          <select class="form-select" id="inputSectorSelect"
-            onchange="toggleNewInput('inputSectorSelect', 'inputSectorNew')">
-            <option value="">Pilih sektor...</option>
-          </select>
-          <input class="form-input" id="inputSectorNew" type="text" placeholder="Ketik sektor baru..."
-            style="display:none; margin-top:8px;" />
-
-        </div>
-        <div class="form-group">
-          <label class="form-label">User Terdaftar <span style="font-weight:400;color:var(--slate-400)">(maks.
-              3)</span></label>
-          <div class="chip-selector-wrap">
-            <div class="chip-selector" id="chipSelector" onclick="focusChipInput()">
-              <div class="selected-chips" id="selectedChips"></div>
-              <input class="chip-search-input" id="chipSearchInput" type="text" placeholder="Cari user..."
-                autocomplete="off" />
-            </div>
-            <div class="chip-dropdown" id="chipDropdown"></div>
-          </div>
-          <div class="chip-limit-hint" id="chipHint">0 / 3 user dipilih</div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal()">Batal</button>
-        <button class="btn-submit" id="btnSave" onclick="saveBumd()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17,21 17,13 7,13 7,21" />
-            <polyline points="7,3 7,8 15,8" />
-          </svg>
-          Simpan
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL: DELETE CONFIRM -->
   <div class="modal-overlay confirm-modal" id="deleteModal">
     <div class="modal">
@@ -1770,6 +1698,40 @@
       <div class="modal-footer">
         <button class="btn-cancel" onclick="closeDeleteModal()">Batal</button>
         <button class="btn-danger" id="btnDelete" onclick="confirmDelete()">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: HAPUS PENGGUNA -->
+  <div class="modal-overlay confirm-modal" id="deleteUserModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Hapus Pengguna</div>
+        <button class="modal-close" onclick="closeDeleteUserModal()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="confirm-body">
+        <div class="confirm-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <polyline points="3,6 5,6 21,6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <line x1="10" y1="11" x2="10" y2="17" />
+            <line x1="14" y1="11" x2="14" y2="17" />
+          </svg>
+        </div>
+        <div class="confirm-text">
+          Apakah Anda yakin ingin menghapus pengguna<br /><strong id="deleteUserName">-</strong>?
+          <br /><small style="color:var(--slate-400)">Tindakan ini tidak dapat dibatalkan.</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeDeleteUserModal()">Batal</button>
+        <button class="btn-danger" id="btnDeleteUser" onclick="confirmDeleteUser()">Hapus</button>
       </div>
     </div>
   </div>
@@ -1821,6 +1783,23 @@
 
         </div>
         <div class="form-group">
+          <label class="form-label" for="createUserCompanyType">Tipe Instansi</label>
+          <select class="form-select" id="createUserCompanyType" onchange="toggleCompany('create')">
+            <option value="bpbumd">BPBUMD (Pusat)</option>
+            <option value="bumd">BUMD</option>
+            <option value="lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="form-group" id="createCompanyLainnyaWrapper" style="display:none;">
+          <label class="form-label" for="createUserCompanyLainnyaSelect">Nama Instansi</label>
+          <select class="form-select" id="createUserCompanyLainnyaSelect"
+            onchange="toggleNewInput('createUserCompanyLainnyaSelect', 'createUserCompanyLainnyaNew')">
+            <option value="">Pilih instansi...</option>
+          </select>
+          <input class="form-input" id="createUserCompanyLainnyaNew" type="text" placeholder="Ketik instansi baru..."
+            style="display:none; margin-top:8px;" />
+        </div>
+        <div class="form-group" id="createCompanyWrapper" style="display:none;">
           <label class="form-label" for="createUserCompany">Perusahaan (BUMD)</label>
           <select class="form-select" id="createUserCompany">
             <option value="">Belum ditugaskan</option>
@@ -1894,6 +1873,23 @@
 
         </div>
         <div class="form-group">
+          <label class="form-label" for="editUserCompanyType">Tipe Instansi</label>
+          <select class="form-select" id="editUserCompanyType" onchange="toggleCompany('edit')">
+            <option value="bpbumd">BPBUMD (Pusat)</option>
+            <option value="bumd">BUMD</option>
+            <option value="lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="form-group" id="editCompanyLainnyaWrapper" style="display:none;">
+          <label class="form-label" for="editUserCompanyLainnyaSelect">Nama Instansi</label>
+          <select class="form-select" id="editUserCompanyLainnyaSelect"
+            onchange="toggleNewInput('editUserCompanyLainnyaSelect', 'editUserCompanyLainnyaNew')">
+            <option value="">Pilih instansi...</option>
+          </select>
+          <input class="form-input" id="editUserCompanyLainnyaNew" type="text" placeholder="Ketik instansi baru..."
+            style="display:none; margin-top:8px;" />
+        </div>
+        <div class="form-group" id="editCompanyWrapper" style="display:none;">
           <label class="form-label" for="editUserCompany">Perusahaan (BUMD)</label>
           <select class="form-select" id="editUserCompany">
             <option value="">Belum ditugaskan</option>
@@ -1946,150 +1942,46 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       currentUser = await BPBUMDAuth.requireAuth();
-      if (currentUser && currentUser.company_type !== 'bpbumd') {
+
+      initUserInfo(currentUser);
+
+      // If user is not admin, they can only see themselves and cannot add new users
+      if (currentUser && currentUser.role !== 'admin') {
         const btnTambah = document.getElementById('btnTambah');
         if (btnTambah) btnTambah.style.display = 'none';
       }
-      initUserInfo(currentUser);
-      initDate();
 
-      const savedSearch = localStorage.getItem('daftarBumdSearch');
+      const savedSearch = localStorage.getItem('penggunaSearch');
       if (savedSearch) document.getElementById('searchInput').value = savedSearch;
 
+      const savedRole = localStorage.getItem('penggunaFilterRole');
+      if (savedRole) document.getElementById('filterRole').value = savedRole;
+
       initEventListeners();
-
-      await Promise.all([loadSectors(), loadUsers()]);
-
-      const savedSector = localStorage.getItem('daftarBumdFilterSector');
-      if (savedSector) document.getElementById('filterSector').value = savedSector;
-
-      await loadBumds();
+      await Promise.all([loadBumds(), loadUsersList()]);
     });
 
     function initUserInfo(user) {
       if (!user) return;
-      const avatar = user.name ? user.name.charAt(0).toUpperCase() : 'U';
       const avatarBtn = document.getElementById('userAvatarBtn');
-      if (avatarBtn) avatarBtn.textContent = avatar;
-    }
-
-    function initDate() {
-      // Date display handled by topnav
+      if (avatarBtn) avatarBtn.textContent = user.name ? user.name.charAt(0).toUpperCase() : 'U';
     }
 
     function initEventListeners() {
       const searchInput = document.getElementById('searchInput');
       searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => loadBumds(), 300);
+        searchTimeout = setTimeout(() => renderTable(), 300);
       });
 
-      document.getElementById('filterSector').addEventListener('change', () => loadBumds());
+      document.getElementById('filterRole').addEventListener('change', () => renderTable());
 
-      // Chip search
-      const chipInput = document.getElementById('chipSearchInput');
-      chipInput.addEventListener('input', () => renderChipDropdown());
-      chipInput.addEventListener('focus', () => renderChipDropdown());
-
-      // Close dropdown when clicking outside
-      document.addEventListener('click', (e) => {
-        const wrap = document.querySelector('.chip-selector-wrap');
-        if (wrap && !wrap.contains(e.target)) {
-          document.getElementById('chipDropdown').classList.remove('show');
-        }
-      });
-
-      // ESC to close modals
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-          closeModal();
-          closeDeleteModal();
           closeCreateUserModal();
+          closeEditUserModal();
         }
       });
-
-      setupLogoDropzone();
-    }
-
-    // ════════════════════════════════════════════
-    //  LOGO DROPZONE
-    // ════════════════════════════════════════════
-
-    let selectedLogoFile = null;
-
-    function setupLogoDropzone() {
-      const dropzone = document.getElementById('logoDropzone');
-      const fileInput = document.getElementById('inputLogo');
-
-      dropzone.onclick = () => fileInput.click();
-
-      fileInput.onchange = (e) => {
-        if (e.target.files.length > 0) {
-          handleLogoSelect(e.target.files[0]);
-        }
-      };
-
-      dropzone.ondragover = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.add('dragover');
-      };
-
-      dropzone.ondragleave = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.remove('dragover');
-      };
-
-      dropzone.ondrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.remove('dragover');
-        if (e.dataTransfer.files.length > 0) {
-          handleLogoSelect(e.dataTransfer.files[0]);
-        }
-      };
-    }
-
-    function handleLogoSelect(file) {
-      if (file.size > 2 * 1024 * 1024) {
-        showToast('Ukuran file maksimal 2 MB', 'error');
-        return;
-      }
-
-      selectedLogoFile = file;
-
-      const sizeStr = file.size < 1024
-        ? `${file.size} B`
-        : file.size < 1024 * 1024
-          ? `${(file.size / 1024).toFixed(1)} KB`
-          : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
-
-      const preview = document.getElementById('logoFilePreview');
-      preview.innerHTML = `
-        <div class="upload-file-preview">
-          <div class="upload-file-icon img">IMG</div>
-          <div class="upload-file-info">
-            <div class="upload-file-name">${escapeHtml(file.name)}</div>
-            <div class="upload-file-size">${sizeStr}</div>
-          </div>
-          <button type="button" class="upload-file-remove" onclick="removeLogoFile()">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-      `;
-      preview.style.display = 'block';
-      document.getElementById('logoDropzone').style.display = 'none';
-    }
-
-    function removeLogoFile() {
-      selectedLogoFile = null;
-      document.getElementById('logoFilePreview').style.display = 'none';
-      document.getElementById('logoFilePreview').innerHTML = '';
-      document.getElementById('logoDropzone').style.display = '';
-      document.getElementById('inputLogo').value = '';
     }
 
     // ════════════════════════════════════════════
@@ -2099,105 +1991,71 @@
     async function apiFetch(url, options = {}) {
       const isFormData = options.body instanceof FormData;
       const headers = { ...options.headers };
-      if (!isFormData) {
-        headers['Content-Type'] = 'application/json';
-      }
-
-      const res = await fetch(url, {
-        ...options,
-        credentials: 'same-origin',
-        headers
-      });
+      if (!isFormData) headers['Content-Type'] = 'application/json';
+      const res = await fetch(url, { ...options, credentials: 'same-origin', headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Terjadi kesalahan');
       return data;
     }
 
     async function loadBumds() {
-      const search = document.getElementById('searchInput').value.trim();
-      const sectorId = document.getElementById('filterSector').value;
-
-      localStorage.setItem('daftarBumdSearch', search);
-      localStorage.setItem('daftarBumdFilterSector', sectorId);
-
-      let url = '/api/bumds?';
-      if (search) url += `search=${encodeURIComponent(search)}&`;
-      if (sectorId) url += `sector_id=${sectorId}&`;
-
       try {
-        const res = await apiFetch(url);
+        const res = await apiFetch('/api/bumds');
         allBumds = res.data || [];
-        renderTable();
-        updateKPIs();
-      } catch (err) {
-        showToast(err.message, 'error');
-        document.getElementById('tableContainer').innerHTML = renderEmpty('Gagal memuat data');
-      }
+      } catch (err) { }
     }
 
-    async function loadSectors() {
-      try {
-        const res = await apiFetch('/api/bumds/sectors');
-        allSectors = res.data || [];
-        renderSectorOptions();
-        updateKPIs();
-      } catch {
-        // silently fail
-      }
-    }
-
-    async function loadUsers() {
+    async function loadUsersList() {
       try {
         const res = await apiFetch('/api/auth/users');
         allUsers = res.data || [];
         const positions = [...new Set(allUsers.map(u => u.position).filter(Boolean))].sort();
+        const lainnya = [...new Set(allUsers.filter(u => u.company_type === 'lainnya').map(u => u.company_name).filter(Boolean))].sort();
 
         const posOptions = positions.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+        const lainOptions = lainnya.map(l => `<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('');
         const createSel = document.getElementById('createUserPositionSelect');
         const editSel = document.getElementById('editUserPositionSelect');
         const defaultOptions = '<option value="">Pilih posisi...</option>' + posOptions + '<option value="__NEW__">+ Tambah Posisi Baru...</option>';
         if (createSel) createSel.innerHTML = defaultOptions;
         if (editSel) editSel.innerHTML = defaultOptions;
-      } catch {
-        // silently fail
+
+        const lainDefaultOptions = '<option value="">Pilih instansi...</option>' + lainOptions + '<option value="__NEW__" style="font-weight:600;color:var(--brand)">+ Tambah Baru</option>';
+        const createLainSel = document.getElementById('createUserCompanyLainnyaSelect');
+        const editLainSel = document.getElementById('editUserCompanyLainnyaSelect');
+        if (createLainSel) createLainSel.innerHTML = lainDefaultOptions;
+        if (editLainSel) editLainSel.innerHTML = lainDefaultOptions;
+
+        updateKPIs();
+        renderTable();
+      } catch (err) {
+        showToast(err.message, 'error');
+        document.getElementById('tableContainer').innerHTML = `<div class="empty-state"><div class="empty-title">Gagal memuat data</div></div>`;
       }
     }
 
-    // ════════════════════════════════════════════
-    //  RENDER
-    // ════════════════════════════════════════════
-
     function updateKPIs() {
-      document.getElementById('kpiTotal').textContent = allBumds.length;
-
-      const uniqueUsers = new Set();
-      allBumds.forEach(b => (b.users || []).forEach(u => uniqueUsers.add(u.user_id)));
-      document.getElementById('kpiUsers').textContent = uniqueUsers.size;
-
-      document.getElementById('kpiSectors').textContent = allSectors.length;
-    }
-
-    function renderSectorOptions() {
-      const filterSelect = document.getElementById('filterSector');
-      const formSelect = document.getElementById('inputSectorSelect');
-
-      // Keep first option
-      if (filterSelect) filterSelect.innerHTML = '<option value="">Semua Sektor</option>';
-      if (formSelect) formSelect.innerHTML = '<option value="">Pilih sektor...</option>';
-
-      allSectors.forEach(s => {
-        if (filterSelect) filterSelect.innerHTML += `<option value="${s.id}">${escapeHtml(s.name)}</option>`;
-        if (formSelect) formSelect.innerHTML += `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`;
-      });
-
-      if (formSelect) formSelect.innerHTML += '<option value="__NEW__">+ Tambah Sektor Baru...</option>';
+      document.getElementById('kpiTotal').textContent = allUsers.length;
+      document.getElementById('kpiUsers').textContent = allUsers.filter(u => u.role === 'admin').length;
+      document.getElementById('kpiSectors').textContent = allUsers.filter(u => u.role === 'user').length;
     }
 
     function renderTable() {
-      const container = document.getElementById('tableContainer');
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const roleFilter = document.getElementById('filterRole').value;
 
-      if (allBumds.length === 0) {
-        container.innerHTML = renderEmpty('Belum ada data BUMD');
+      localStorage.setItem('penggunaSearch', search);
+      localStorage.setItem('penggunaFilterRole', roleFilter);
+
+      let filtered = allUsers.filter(u => {
+        if (search && !u.name.toLowerCase().includes(search) && !u.username.toLowerCase().includes(search)) return false;
+        if (roleFilter && u.role !== roleFilter) return false;
+        return true;
+      });
+
+      const container = document.getElementById('tableContainer');
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state"><div class="empty-title">Belum ada data pengguna</div></div>`;
         return;
       }
 
@@ -2206,230 +2064,106 @@
           <thead>
             <tr>
               <th style="width:40px">No</th>
-              <th>Nama BUMD</th>
-              <th>Sektor</th>
-              <th>User Terdaftar</th>
+              <th>Username</th>
+              <th>Nama Lengkap</th>
+              <th>Posisi / Jabatan</th>
+              <th>Perusahaan</th>
+              <th>Role</th>
               <th style="width:120px">Aksi</th>
             </tr>
           </thead>
           <tbody>
       `;
 
-      const isBpbumd = currentUser && currentUser.company_type === 'bpbumd';
-      const isLainnya = currentUser && currentUser.company_type === 'lainnya';
-
-      allBumds.forEach((bumd, i) => {
-        const users = bumd.users || [];
-        let chipsHtml = users.map(u => {
-          const isMe = currentUser && Number(u.user_id) === Number(currentUser.id);
-          const isSameCompany = currentUser && Number(bumd.id) === Number(currentUser.company_id);
-          const isAdminCanEdit = currentUser && currentUser.role === 'admin' && (currentUser.company_type === 'bpbumd' || isSameCompany);
-          const canEdit = isMe || isAdminCanEdit;
-          return `
-              <div class="user-chip ${isMe ? 'is-me' : ''}" onclick="openEditUserModal(${u.user_id}, ${canEdit})" style="cursor:pointer;" title="${isMe ? 'Profil Anda' : (canEdit ? 'Edit Pengguna' : 'Lihat Profil')}">
-                <span class="chip-avatar">${getInitials(u.name)}</span>
-                ${escapeHtml(u.name)} ${isMe ? '<span style="color:var(--sky);font-weight:600;margin-left:4px">(Anda)</span>' : ''}
-              </div>
-            `;
-        }).join('');
-
-        if (isBpbumd) {
-          const emptyCount = 3 - users.length;
-          for (let j = 0; j < emptyCount; j++) {
-            chipsHtml += `
-              <div class="user-chip empty-slot" onclick="openCreateUserModal(${bumd.id}, '${escapeHtml(bumd.name).replace(/'/g, "\\'")}')" title="Tambah Pengguna">
-                <span class="chip-avatar" style="background: transparent; border: 1px dashed var(--slate-400); color: var(--slate-500);">
-                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </span>
-                Tambah Pengguna
-              </div>
-            `;
-          }
-        }
-
-        let actionBtns = '-';
-        if (isBpbumd) {
-          actionBtns = `
-            <div class="action-btns">
-              <button class="action-btn" onclick="openEditModal(${bumd.id})" title="Edit">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-                Edit
-              </button>
-              <button class="action-btn delete" onclick="openDeleteModal(${bumd.id}, '${escapeHtml(bumd.name).replace(/'/g, "\\'")}')" title="Hapus">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <polyline points="3,6 5,6 21,6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-                Hapus
-              </button>
-            </div>
-          `;
-        }
+      filtered.forEach((u, i) => {
+        const isMe = currentUser && Number(u.id) === Number(currentUser.id);
+        const isSameCompany = currentUser && Number(u.company_id) === Number(currentUser.company_id);
+        const isAdminCanEdit = currentUser && currentUser.role === 'admin' && (currentUser.company_type === 'bpbumd' || isSameCompany);
+        const canEdit = isMe || isAdminCanEdit;
+        const roleBadge = u.role === 'admin' ? `<span style="background:#DBEAFE;color:#1E3A8A;padding:2px 8px;border-radius:12px;font-size:11px;">Admin</span>` : `<span style="background:#F3F4F6;color:#4B5563;padding:2px 8px;border-radius:12px;font-size:11px;">User</span>`;
+        const activeBadge = u.is_active ? `<span style="color:#059669;font-weight:600;">Aktif</span>` : `<span style="color:#DC2626;font-weight:600;">Tidak Aktif</span>`;
 
         html += `
           <tr>
-            <td style="color:var(--slate-400);font-weight:600">${i + 1}</td>
+            <td>${i + 1}</td>
+            <td>${escapeHtml(u.username)}</td>
             <td>
-              <div class="bumd-name" style="display:flex;align-items:center;gap:10px">
-                ${bumd.logo
-            ? `<img src="${bumd.logo}" style="width:32px;height:32px;border-radius:6px;object-fit:contain;background-color:var(--slate-50);border:1px solid var(--slate-200);">`
-            : `<div style="width:32px;height:32px;border-radius:6px;background:var(--slate-100);display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--slate-500);font-size:12px;border:1px solid var(--slate-200);">${escapeHtml(bumd.name).charAt(0)}</div>`
-          }
-                ${escapeHtml(bumd.name)}
+              <div class="user-chips">
+                <div class="user-chip ${isMe ? 'is-me' : ''}" onclick="openEditUserModal(${u.id}, ${canEdit})" style="cursor:pointer; width:max-content;" title="${isMe ? 'Profil Anda' : (canEdit ? 'Edit Pengguna' : 'Lihat Profil')}">
+                  <span class="chip-avatar">${u.name ? u.name.charAt(0).toUpperCase() : 'U'}</span>
+                  ${escapeHtml(u.name)} ${isMe ? '<span style="color:var(--sky);font-weight:600;margin-left:4px">(Anda)</span>' : ''}
+                </div>
               </div>
             </td>
+            <td>${escapeHtml(u.position || '-')}</td>
+            <td>${escapeHtml(u.company_name || 'Belum ditugaskan')}</td>
+            <td>${roleBadge}</td>
             <td>
-              ${bumd.sector_name
-            ? `<span class="sector-badge">${escapeHtml(bumd.sector_name)}</span>`
-            : '<span class="no-users">-</span>'}
-            </td>
-            <td>
-              <div class="user-chips">${chipsHtml}</div>
-            </td>
-            <td>
-              ${actionBtns}
+              <div class="action-btns">
+                <button class="action-btn" onclick="openEditUserModal(${u.id}, ${canEdit})" title="${canEdit ? 'Edit' : 'Lihat Profil'}">
+                  ${canEdit ? 'Edit' : 'Lihat'}
+                </button>
+                ${(canEdit && !isMe) ? `<button class="action-btn delete" onclick="openDeleteUserModal(${u.id}, '${escapeHtml(u.name).replace(/'/g, "\\'")}')" title="Hapus">
+                  Hapus
+                </button>` : ''}
+              </div>
             </td>
           </tr>
         `;
       });
 
-      html += '</tbody></table>';
+      html += `</tbody></table>`;
       container.innerHTML = html;
     }
 
-    function renderEmpty(msg) {
-      return `
-        <div class="empty-state">
-          <div class="empty-icon">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9,22 9,12 15,12 15,22" />
-            </svg>
-          </div>
-          <div class="empty-title">${msg}</div>
-          <div class="empty-desc">Klik tombol "Tambah BUMD" untuk menambahkan data baru</div>
-        </div>
-      `;
-    }
 
-    // ════════════════════════════════════════════
-    //  MODAL: CREATE / EDIT
-    // ════════════════════════════════════════════
-
-    function openModal() {
-      editingId = null;
-      selectedUsers = [];
-      document.getElementById('modalTitle').textContent = 'Tambah BUMD';
-      document.getElementById('inputName').value = '';
-      document.getElementById('inputSectorSelect').value = '';
-      document.getElementById('inputSectorNew').style.display = 'none';
-      document.getElementById('inputSectorNew').value = '';
-      removeLogoFile();
-      document.getElementById('chipSearchInput').value = '';
-      renderSelectedChips();
-      updateChipHint();
-      document.getElementById('bumdModal').classList.add('show');
-      setTimeout(() => document.getElementById('inputName').focus(), 100);
-    }
-
-    function openEditModal(id) {
-      const bumd = allBumds.find(b => b.id === id);
-      if (!bumd) return;
-
-      editingId = id;
-      selectedUsers = (bumd.users || []).map(u => ({
-        id: u.user_id,
-        name: u.name,
-        username: u.username,
-        role: u.role,
-      }));
-
-      document.getElementById('modalTitle').textContent = 'Edit BUMD';
-      document.getElementById('inputName').value = bumd.name;
-      const s = document.getElementById('inputSectorSelect');
-      const n = document.getElementById('inputSectorNew');
-      if (bumd.sector_name) {
-        if (Array.from(s.options).some(o => o.value === bumd.sector_name)) {
-          s.value = bumd.sector_name;
-          n.style.display = 'none';
-          n.value = '';
-        } else {
-          s.value = '__NEW__';
-          n.style.display = 'block';
-          n.value = bumd.sector_name;
-        }
+    function toggleNewInput(selectId, inputId) {
+      const select = document.getElementById(selectId);
+      const input = document.getElementById(inputId);
+      if (select.value === '__NEW__') {
+        input.style.display = 'block';
+        input.focus();
       } else {
-        s.value = '';
-        n.style.display = 'none';
-        n.value = '';
+        input.style.display = 'none';
       }
-      removeLogoFile();
-      document.getElementById('chipSearchInput').value = '';
-      renderSelectedChips();
-      updateChipHint();
-      document.getElementById('bumdModal').classList.add('show');
-      setTimeout(() => document.getElementById('inputName').focus(), 100);
     }
 
-    function closeModal() {
-      document.getElementById('bumdModal').classList.remove('show');
-      document.getElementById('chipDropdown').classList.remove('show');
+    function toggleNewInput(selectId, inputId) {
+      const select = document.getElementById(selectId);
+      const input = document.getElementById(inputId);
+      if (select.value === '__NEW__') {
+        input.style.display = 'block';
+        input.focus();
+      } else {
+        input.style.display = 'none';
+      }
     }
 
-    async function saveBumd() {
-      const name = document.getElementById('inputName').value.trim();
-      let sectorId = document.getElementById('inputSectorSelect').value;
-      if (sectorId === '__NEW__') sectorId = document.getElementById('inputSectorNew').value.trim();
-      const userIds = selectedUsers.map(u => u.id);
 
-      if (!name) {
-        showToast('Nama BUMD wajib diisi', 'error');
-        document.getElementById('inputName').focus();
-        return;
+    function toggleCompany(mode) {
+      const type = document.getElementById(mode + 'UserCompanyType').value;
+      const bumdWrapper = document.getElementById(mode + 'CompanyWrapper');
+      const lainnyaWrapper = document.getElementById(mode + 'CompanyLainnyaWrapper');
+      if (type === 'bumd') {
+        bumdWrapper.style.display = 'block';
+        lainnyaWrapper.style.display = 'none';
+      } else if (type === 'lainnya') {
+        bumdWrapper.style.display = 'none';
+        lainnyaWrapper.style.display = 'block';
+      } else {
+        bumdWrapper.style.display = 'none';
+        lainnyaWrapper.style.display = 'none';
       }
+    }
 
-      const btn = document.getElementById('btnSave');
-      btn.disabled = true;
-
-      const payload = new FormData();
-      payload.append('name', name);
-      if (sectorId) {
-        payload.append('sector_id', sectorId);
-      }
-      payload.append('user_ids', JSON.stringify(userIds));
-
-      if (selectedLogoFile) {
-        payload.append('logo', selectedLogoFile);
-      }
-
-      try {
-        if (editingId) {
-          await apiFetch(`/api/bumds/${editingId}`, {
-            method: 'PUT',
-            body: payload,
-          });
-          showToast('BUMD berhasil diubah', 'success');
-        } else {
-          await apiFetch('/api/bumds', {
-            method: 'POST',
-            body: payload,
-          });
-          showToast('BUMD berhasil ditambahkan', 'success');
-        }
-
-        closeModal();
-        await loadBumds();
-      } catch (err) {
-        showToast(err.message, 'error');
-      } finally {
-        btn.disabled = false;
-      }
+    function escapeHtml(unsafe) {
+      if (!unsafe) return '';
+      return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
 
     // ════════════════════════════════════════════
@@ -2457,13 +2191,46 @@
         await apiFetch(`/api/bumds/${deletingId}`, { method: 'DELETE' });
         showToast('BUMD berhasil dihapus', 'success');
         closeDeleteModal();
-        await loadBumds();
+        await loadUsersList();
       } catch (err) {
         showToast(err.message, 'error');
       } finally {
         btn.disabled = false;
       }
     }
+
+
+    let deletingUserId = null;
+
+    function openDeleteUserModal(id, name) {
+      deletingUserId = id;
+      document.getElementById('deleteUserName').textContent = name;
+      document.getElementById('deleteUserModal').classList.add('show');
+    }
+
+    function closeDeleteUserModal() {
+      document.getElementById('deleteUserModal').classList.remove('show');
+      deletingUserId = null;
+    }
+
+    async function confirmDeleteUser() {
+      if (!deletingUserId) return;
+
+      const btn = document.getElementById('btnDeleteUser');
+      btn.disabled = true;
+
+      try {
+        await apiFetch(`/api/auth/users/${deletingUserId}`, { method: 'DELETE' });
+        showToast('Pengguna berhasil dihapus', 'success');
+        closeDeleteUserModal();
+        await loadUsersList();
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
 
     // ════════════════════════════════════════════
     //  MODAL: CREATE PENGGUNA
@@ -2479,19 +2246,47 @@
       document.getElementById('createUserPositionNew').value = '';
 
       const companySelect = document.getElementById('createUserCompany');
+      const companyTypeSelect = document.getElementById('createUserCompanyType');
+      const companyLainnyaSelect = document.getElementById('createUserCompanyLainnyaSelect');
+      const companyLainnyaNew = document.getElementById('createUserCompanyLainnyaNew');
+
       if (currentUser && currentUser.company_type !== 'bpbumd') {
-        companySelect.innerHTML = `<option value="${currentUser.company_id}">${escapeHtml(currentUser.company_name)}</option>`;
-        companySelect.value = currentUser.company_id;
+        companyTypeSelect.value = currentUser.company_type;
+        if (currentUser.company_type === 'bumd') {
+          companySelect.innerHTML = `<option value="${currentUser.company_id}">${escapeHtml(currentUser.company_name)}</option>`;
+          companySelect.value = currentUser.company_id;
+        } else if (currentUser.company_type === 'lainnya') {
+          companyLainnyaSelect.innerHTML = `<option value="${escapeHtml(currentUser.company_name)}">${escapeHtml(currentUser.company_name)}</option>`;
+          companyLainnyaSelect.value = currentUser.company_name;
+        }
+
+        companyTypeSelect.disabled = true;
         companySelect.disabled = true;
-        companySelect.style.backgroundColor = '#f3f4f6';
-        companySelect.style.cursor = 'not-allowed';
+        companyLainnyaSelect.disabled = true;
+        companyLainnyaNew.style.display = 'none';
+
+        [companyTypeSelect, companySelect, companyLainnyaSelect].forEach(el => {
+          el.style.backgroundColor = '#f3f4f6';
+          el.style.cursor = 'not-allowed';
+        });
       } else {
-        companySelect.innerHTML = '<option value="">Belum ditugaskan</option>' + allBumds.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('');
-        companySelect.value = bumdId || '';
+        companyTypeSelect.value = 'bpbumd';
+        companySelect.innerHTML = '<option value="">Pilih BUMD...</option>' + allBumds.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('');
+        companySelect.value = '';
+        companyLainnyaSelect.value = '';
+        companyLainnyaNew.style.display = 'none';
+        companyLainnyaNew.value = '';
+
+        companyTypeSelect.disabled = false;
         companySelect.disabled = false;
-        companySelect.style.backgroundColor = '';
-        companySelect.style.cursor = '';
+        companyLainnyaSelect.disabled = false;
+
+        [companyTypeSelect, companySelect, companyLainnyaSelect].forEach(el => {
+          el.style.backgroundColor = '';
+          el.style.cursor = '';
+        });
       }
+      toggleCompany('create');
 
       document.getElementById('createUserRole').value = 'user';
       document.getElementById('createUserModal').classList.add('show');
@@ -2509,7 +2304,19 @@
       const password = document.getElementById('createUserPassword').value;
       let position = document.getElementById('createUserPositionSelect').value;
       if (position === '__NEW__') position = document.getElementById('createUserPositionNew').value.trim();
-      const company_id = document.getElementById('createUserCompany').value;
+      const cType = document.getElementById('createUserCompanyType').value;
+      let company_id = null;
+      let lainnya_company_name = null;
+      if (cType === 'bpbumd') company_id = 1;
+      else if (cType === 'lainnya') {
+        let lName = document.getElementById('createUserCompanyLainnyaSelect').value;
+        if (lName === '__NEW__') lName = document.getElementById('createUserCompanyLainnyaNew').value.trim();
+        lainnya_company_name = lName;
+        if (!lainnya_company_name) { showToast('Nama instansi wajib diisi', 'error'); return; }
+      } else {
+        company_id = document.getElementById('createUserCompany').value;
+        if (!company_id) { showToast('BUMD wajib dipilih', 'error'); return; }
+      }
       const role = document.getElementById('createUserRole').value;
 
       if (!name || !username || !password) {
@@ -2530,6 +2337,7 @@
           method: 'POST',
           body: JSON.stringify({
             company_id: company_id || null,
+            lainnya_company_name,
             name,
             username,
             password,
@@ -2539,8 +2347,7 @@
         });
         showToast('Pengguna berhasil dibuat', 'success');
         closeCreateUserModal();
-        await loadBumds();
-        await loadUsers(); // So the newly created user is available elsewhere if needed
+        await loadUsersList(); // So the newly created user is available elsewhere if needed
       } catch (err) {
         showToast(err.message, 'error');
       } finally {
@@ -2625,7 +2432,7 @@
       dropdown.innerHTML = filtered.map(u => {
         const isSelected = selectedIds.has(Number(u.id));
         const isAlreadyRegistered = u.company_type === 'bumd' && u.company_id && Number(u.company_id) !== Number(editingId);
-        const isAdmin = u.company_type === 'bpbumd' || u.company_type === 'lainnya';
+        const isAdmin = u.company_type === 'bpbumd';
         const isUnavailable = !isSelected && (isAlreadyRegistered || isAdmin);
         const isDisabled = (atLimit && !isSelected) || isUnavailable;
 
@@ -2678,17 +2485,12 @@
       document.getElementById('editUserPositionNew').value = '';
 
       const companySelect = document.getElementById('editUserCompany');
-      companySelect.innerHTML = '<option value="">Belum ditugaskan</option>' + allBumds.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('');
+      companySelect.innerHTML = '<option value="">Pilih BUMD...</option>' + allBumds.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('');
 
       document.getElementById('editUserModal').classList.add('show');
 
       try {
-        let user = allUsers.find(u => Number(u.id) === Number(userId));
-        if (!user) {
-          const res = await apiFetch(`/api/auth/users/${userId}`);
-          user = res.data;
-        }
-
+        const user = allUsers.find(u => Number(u.id) === Number(userId));
         if (user) {
           document.getElementById('editUserName').value = user.name;
           document.getElementById('editUserUsername').value = user.username;
@@ -2709,14 +2511,42 @@
             eN.style.display = 'none';
             eN.value = '';
           }
-          document.getElementById('editUserCompany').value = user.company_id || '';
+          if (user.company_type === 'bpbumd') {
+            document.getElementById('editUserCompanyType').value = 'bpbumd';
+          } else if (user.company_type === 'bumd') {
+            document.getElementById('editUserCompanyType').value = 'bumd';
+          } else {
+            document.getElementById('editUserCompanyType').value = 'lainnya';
+          }
+          toggleCompany('edit');
+          document.getElementById('editUserCompany').value = user.company_type === 'bumd' ? (user.company_id || '') : '';
+
+          const clS = document.getElementById('editUserCompanyLainnyaSelect');
+          const clN = document.getElementById('editUserCompanyLainnyaNew');
+          if (user.company_type === 'lainnya') {
+            if (Array.from(clS.options).some(o => o.value === user.company_name)) {
+              clS.value = user.company_name;
+              clN.style.display = 'none';
+              clN.value = '';
+            } else {
+              clS.value = '__NEW__';
+              clN.style.display = 'block';
+              clN.value = user.company_name || '';
+            }
+          } else {
+            clS.value = '';
+            clN.style.display = 'none';
+            clN.value = '';
+          }
           document.getElementById('editUserRole').value = user.role;
 
           // View Only logic
           const fields = [
             'editUserName', 'editUserUsername', 'editUserPassword',
             'editUserPositionSelect', 'editUserPositionNew',
-            'editUserCompany', 'editUserRole'
+            'editUserCompanyType', 'editUserCompany',
+            'editUserCompanyLainnyaSelect', 'editUserCompanyLainnyaNew',
+            'editUserRole'
           ];
           fields.forEach(id => {
             const el = document.getElementById(id);
@@ -2726,11 +2556,17 @@
               if (id === 'editUserRole' && (currentUser.role !== 'admin' || isMe)) {
                 shouldDisable = true;
               }
-              if (id === 'editUserCompany' && (currentUser.company_type !== 'bpbumd' || isMe)) {
+              const bpbumdOnlyFields = [
+                'editUserCompanyType',
+                'editUserCompany',
+                'editUserCompanyLainnyaSelect',
+                'editUserCompanyLainnyaNew'
+              ];
+              if (bpbumdOnlyFields.includes(id) && (currentUser.company_type !== 'bpbumd' || isMe)) {
                 shouldDisable = true;
               }
               el.disabled = shouldDisable;
-              // Add visual cue for disabled selects
+              // Add visual cue for disabled selects so they don't look broken
               if (shouldDisable) {
                 el.style.backgroundColor = '#f3f4f6';
                 el.style.cursor = 'not-allowed';
@@ -2740,9 +2576,9 @@
               }
             }
           });
-          const btnSave = document.getElementById('btnEditUser');
+          const btnSave = document.getElementById('btnUpdateUser');
           if (btnSave) btnSave.style.display = canEdit ? 'block' : 'none';
-          
+
           const modalTitle = document.querySelector('#editUserModal .modal-title');
           if (modalTitle) modalTitle.textContent = canEdit ? 'Ubah Pengguna' : 'Profil Pengguna';
 
@@ -2769,7 +2605,19 @@
       const password = document.getElementById('editUserPassword').value;
       let position = document.getElementById('editUserPositionSelect').value;
       if (position === '__NEW__') position = document.getElementById('editUserPositionNew').value.trim();
-      const company_id = document.getElementById('editUserCompany').value;
+      const cType = document.getElementById('editUserCompanyType').value;
+      let company_id = null;
+      let lainnya_company_name = null;
+      if (cType === 'bpbumd') company_id = 1;
+      else if (cType === 'lainnya') {
+        let lName = document.getElementById('editUserCompanyLainnyaSelect').value;
+        if (lName === '__NEW__') lName = document.getElementById('editUserCompanyLainnyaNew').value.trim();
+        lainnya_company_name = lName;
+        if (!lainnya_company_name) { showToast('Nama instansi wajib diisi', 'error'); return; }
+      } else {
+        company_id = document.getElementById('editUserCompany').value;
+        if (!company_id) { showToast('BUMD wajib dipilih', 'error'); return; }
+      }
       const role = document.getElementById('editUserRole').value;
 
       if (!name || !username) {
@@ -2786,14 +2634,16 @@
       btn.disabled = true;
 
       const payload = { name, username, position };
-      
+
       if (currentUser.role === 'admin' && Number(editingUserId) !== Number(currentUser.id)) {
         payload.role = role;
       }
+
       if (currentUser.company_type === 'bpbumd' && Number(editingUserId) !== Number(currentUser.id)) {
         if (company_id !== undefined) payload.company_id = company_id || null;
+        if (lainnya_company_name !== null) payload.lainnya_company_name = lainnya_company_name;
       }
-      
+
       if (password) payload.password = password;
 
       try {
@@ -2803,8 +2653,7 @@
         });
         showToast('Pengguna berhasil diubah', 'success');
         closeEditUserModal();
-        await loadBumds();
-        await loadUsers();
+        await loadUsersList();
       } catch (err) {
         showToast(err.message, 'error');
       } finally {
@@ -2859,24 +2708,12 @@
       return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
-    function toggleNewInput(selectId, inputId) {
-      const select = document.getElementById(selectId);
-      const input = document.getElementById(inputId);
-      if (select.value === '__NEW__') {
-        input.style.display = 'block';
-        input.focus();
-      } else {
-        input.style.display = 'none';
-      }
-    }
-
     function escapeHtml(str) {
       if (!str) return '';
       const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
       return String(str).replace(/[&<>"']/g, c => map[c]);
     }
   </script>
-
 
 
 

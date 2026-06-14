@@ -18,7 +18,8 @@ function generateToken(user) {
       company_id: user.company_id,
       username: user.username,
       role: user.role,
-      company_type: user.company_type,
+      position: user.position,
+      company_type: user.company_type || null,
     },
     JWT_SECRET,
     {
@@ -28,11 +29,11 @@ function generateToken(user) {
 }
 
 async function registerUser(payload) {
-  const { company_id, username, password, name, role } = payload;
+  const { company_id, username, password, name, role, position } = payload;
 
-  if (!company_id || !username || !password || !name) {
+  if (!username || !password || !name) {
     const error = new Error(
-      "company_id, username, password, and name are required",
+      "username, password, and name are required",
     );
     error.statusCode = 400;
     throw error;
@@ -52,19 +53,37 @@ async function registerUser(payload) {
     throw error;
   }
 
-  const companyCheck = await pool.query(
-    `
-      SELECT id, name, company_type
-      FROM companies
-      WHERE id = $1
-    `,
-    [company_id],
-  );
+  let finalCompanyId = company_id || null;
 
-  if (companyCheck.rowCount === 0) {
-    const error = new Error("Company tidak ditemukan");
-    error.statusCode = 404;
-    throw error;
+  if (payload.lainnya_company_name) {
+    const checkLainnya = await pool.query(
+      "SELECT id FROM companies WHERE name = $1 AND company_type = 'lainnya'",
+      [payload.lainnya_company_name]
+    );
+    if (checkLainnya.rowCount > 0) {
+      finalCompanyId = checkLainnya.rows[0].id;
+    } else {
+      const insert = await pool.query(
+        "INSERT INTO companies (name, company_type) VALUES ($1, 'lainnya') RETURNING id",
+        [payload.lainnya_company_name]
+      );
+      finalCompanyId = insert.rows[0].id;
+    }
+  } else if (finalCompanyId) {
+    const companyCheck = await pool.query(
+      `
+        SELECT id, name, company_type
+        FROM companies
+        WHERE id = $1
+      `,
+      [finalCompanyId],
+    );
+
+    if (companyCheck.rowCount === 0) {
+      const error = new Error("Company tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
@@ -78,20 +97,22 @@ async function registerUser(payload) {
           password_hash,
           name,
           role,
+          position,
           is_active
         )
-        VALUES ($1, $2, $3, $4, $5, TRUE)
+        VALUES ($1, $2, $3, $4, $5, $6, TRUE)
         RETURNING
           id,
           company_id,
           username,
           name,
           role,
+          position,
           is_active,
           created_at,
           updated_at
       `,
-      [company_id, username, passwordHash, name, finalRole],
+      [finalCompanyId, username, passwordHash, name, finalRole, position || null],
     );
 
     return result.rows[0];
@@ -124,11 +145,12 @@ async function loginUser(payload) {
         u.password_hash,
         u.name,
         u.role,
+        u.position,
         u.is_active,
         c.name AS company_name,
         c.company_type
       FROM users u
-      JOIN companies c ON c.id = u.company_id
+      LEFT JOIN companies c ON c.id = u.company_id
       WHERE u.username = $1
       LIMIT 1
     `,
@@ -177,11 +199,12 @@ async function getCurrentUser(userId) {
         u.username,
         u.name,
         u.role,
+        u.position,
         u.is_active,
         c.name AS company_name,
         c.company_type
       FROM users u
-      JOIN companies c ON c.id = u.company_id
+      LEFT JOIN companies c ON c.id = u.company_id
       WHERE u.id = $1
       LIMIT 1
     `,
@@ -206,6 +229,8 @@ async function getAllUsers(user) {
       u.username,
       u.name,
       u.role,
+      u.position,
+      u.is_active,
       u.company_id,
       c.name AS company_name,
       c.company_type
@@ -215,8 +240,9 @@ async function getAllUsers(user) {
   `;
 
   const values = [];
-  
+
   if (!isBpbumd && user) {
+    // BUMD users (admin and regular) can see everyone in their BUMD
     sql += ` AND u.company_id = $1`;
     values.push(user.company_id);
   }
@@ -237,11 +263,12 @@ async function getUserById(userId) {
         u.username,
         u.name,
         u.role,
+        u.position,
         u.is_active,
         c.name AS company_name,
         c.company_type
       FROM users u
-      JOIN companies c ON c.id = u.company_id
+      LEFT JOIN companies c ON c.id = u.company_id
       WHERE u.id = $1
       LIMIT 1
     `,
@@ -258,13 +285,13 @@ async function getUserById(userId) {
 }
 
 async function updateUser(requestingUser, userId, payload) {
-  const { name, username, password, role } = payload;
+  const { name, username, password, role, position, company_id } = payload;
 
   // Check user exists
   const existing = await pool.query(
-    `SELECT u.id, u.company_id, c.company_type
+    `SELECT u.id, u.company_id, u.role, c.company_type
      FROM users u
-     JOIN companies c ON c.id = u.company_id
+     LEFT JOIN companies c ON c.id = u.company_id
      WHERE u.id = $1`,
     [userId],
   );
@@ -291,8 +318,10 @@ async function updateUser(requestingUser, userId, payload) {
       error.statusCode = 403;
       throw error;
     }
-    
-    if (!isBpbumd && Number(targetUser.company_id) !== Number(requestingUser.company_id)) {
+
+    // BPBUMD admin can edit anyone. BUMD admin can only edit if target user's company is same.
+    // If targetUser has NO company, only BPBUMD can edit? Let's say BUMD admin can't edit users with no company.
+    if (!isBpbumd && (!targetUser.company_id || Number(targetUser.company_id) !== Number(requestingUser.company_id))) {
       const error = new Error("Anda tidak memiliki akses untuk mengedit user ini");
       error.statusCode = 403;
       throw error;
@@ -314,6 +343,16 @@ async function updateUser(requestingUser, userId, payload) {
   }
 
   if (role !== undefined) {
+    if (!isAdmin && role !== targetUser.role) {
+      const error = new Error("Hanya admin yang dapat mengubah role");
+      error.statusCode = 403;
+      throw error;
+    }
+    if (isSelf && role !== targetUser.role) {
+      const error = new Error("Anda tidak dapat mengubah role diri sendiri");
+      error.statusCode = 403;
+      throw error;
+    }
     if (!['admin', 'user'].includes(role)) {
       const error = new Error("Role harus admin atau user");
       error.statusCode = 400;
@@ -321,6 +360,46 @@ async function updateUser(requestingUser, userId, payload) {
     }
     sets.push(`role = $${paramIndex++}`);
     values.push(role);
+  }
+
+  if (position !== undefined) {
+    sets.push(`position = $${paramIndex++}`);
+    values.push(position);
+  }
+
+  let finalCompanyId = company_id !== undefined ? company_id : targetUser.company_id;
+
+  if (!isBpbumd && (Number(finalCompanyId) !== Number(targetUser.company_id) || payload.lainnya_company_name)) {
+    const error = new Error("Hanya admin BPBUMD yang dapat mengubah instansi");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (isSelf && (Number(finalCompanyId) !== Number(targetUser.company_id) || payload.lainnya_company_name)) {
+    const error = new Error("Anda tidak dapat mengubah instansi diri sendiri");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (payload.lainnya_company_name) {
+    const checkLainnya = await pool.query(
+      "SELECT id FROM companies WHERE name = $1 AND company_type = 'lainnya'",
+      [payload.lainnya_company_name]
+    );
+    if (checkLainnya.rowCount > 0) {
+      finalCompanyId = checkLainnya.rows[0].id;
+    } else {
+      const insert = await pool.query(
+        "INSERT INTO companies (name, company_type) VALUES ($1, 'lainnya') RETURNING id",
+        [payload.lainnya_company_name]
+      );
+      finalCompanyId = insert.rows[0].id;
+    }
+  }
+
+  if (company_id !== undefined || payload.lainnya_company_name !== undefined) {
+    sets.push(`company_id = $${paramIndex++}`);
+    values.push(finalCompanyId);
   }
 
   if (password !== undefined) {
@@ -347,7 +426,7 @@ async function updateUser(requestingUser, userId, payload) {
   try {
     const result = await pool.query(
       `UPDATE users SET ${sets.join(', ')} WHERE id = $${paramIndex}
-       RETURNING id, company_id, username, name, role, is_active`,
+       RETURNING id, company_id, username, name, role, position, is_active`,
       values,
     );
 
@@ -362,7 +441,41 @@ async function updateUser(requestingUser, userId, payload) {
   }
 }
 
+async function deleteUser(requestingUser, userId) {
+  // Authorization:
+  // 1. BPBUMD admin can delete anyone
+  // 2. BUMD admin can delete users in their own company
+  const isAdmin = requestingUser.role === 'admin';
+  const isBpbumd = requestingUser.company_type === 'bpbumd';
+
+  if (!isAdmin) {
+    const error = new Error("Anda tidak memiliki akses untuk menghapus user");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const existing = await pool.query(
+    "SELECT company_id FROM users WHERE id = $1",
+    [userId]
+  );
+
+  if (existing.rowCount === 0) {
+    const error = new Error("User tidak ditemukan");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (!isBpbumd && Number(existing.rows[0].company_id) !== Number(requestingUser.company_id)) {
+    const error = new Error("Anda tidak memiliki akses untuk menghapus user ini");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  await pool.query("UPDATE users SET is_active = FALSE WHERE id = $1", [userId]);
+}
+
 module.exports = {
+  deleteUser,
   registerUser,
   loginUser,
   getCurrentUser,

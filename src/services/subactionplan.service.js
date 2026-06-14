@@ -323,7 +323,7 @@ async function deleteSubActionPlan(user, subActionPlanId) {
       throw error;
     }
 
-    if (sap.status !== "pengajuan") {
+    if (!["pengajuan", "ditolak"].includes(sap.status)) {
       const error = new Error(
         `Sub rencana aksi tidak bisa dihapus saat status "${sap.status}"`,
       );
@@ -367,8 +367,8 @@ async function deleteSubActionPlan(user, subActionPlanId) {
  * Approve sub action plan.
  *
  * Flow:
- *   pengajuan  → approver 1 setujui → verif_1
- *   verif_1    → approver 2 setujui → verif_2
+ *   pengajuan  → approver 1 setujui → verifikasi
+ *   verifikasi → approver 2 setujui → selesai
  *
  * Body:
  *  - notes (optional)
@@ -400,8 +400,8 @@ async function approveSubActionPlan(user, subActionPlanId, payload) {
 
     const sap = sapResult.rows[0];
 
-    // ── Only approve when pengajuan or verif_1 ──
-    if (!["pengajuan", "verif_1"].includes(sap.status)) {
+    // ── Only approve when pengajuan or verifikasi ──
+    if (!["pengajuan", "verifikasi"].includes(sap.status)) {
       const error = new Error(
         `Sub rencana aksi tidak bisa disetujui saat status "${sap.status}"`,
       );
@@ -462,7 +462,7 @@ async function approveSubActionPlan(user, subActionPlanId, payload) {
     );
 
     // ── Advance sub action plan status ──
-    const newStatus = sap.status === "pengajuan" ? "verif_1" : "verif_2";
+    const newStatus = sap.status === "pengajuan" ? "verifikasi" : "selesai";
 
     const updated = await client.query(
       `
@@ -549,7 +549,7 @@ async function rejectSubActionPlan(user, subActionPlanId, payload) {
 
     const sap = sapResult.rows[0];
 
-    if (!["pengajuan", "verif_1"].includes(sap.status)) {
+    if (!["pengajuan", "verifikasi"].includes(sap.status)) {
       const error = new Error(
         `Sub rencana aksi tidak bisa ditolak saat status "${sap.status}"`,
       );

@@ -115,6 +115,33 @@ router.get("/users", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/users/:id", authMiddleware, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Parameter id harus berupa angka",
+      });
+    }
+
+    const user = await authService.getCurrentUser(id);
+
+    res.json({
+      success: true,
+      message: "Berhasil mendapatkan user",
+      data: user,
+    });
+  } catch (error) {
+    console.error("Get User by ID error:", error);
+
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal mengambil data user",
+    });
+  }
+});
+
 /**
  * PUT /api/auth/users/:id
  * Body: { name, username, password, role }
@@ -146,3 +173,22 @@ router.put("/users/:id", authMiddleware, async (req, res) => {
 });
 
 module.exports = router;
+
+/**
+ * DELETE /api/auth/users/:id
+ */
+router.delete("/users/:id", authMiddleware, async (req, res) => {
+  try {
+    await authService.deleteUser(req.user, req.params.id);
+    res.json({
+      success: true,
+      message: "Berhasil menghapus pengguna",
+    });
+  } catch (error) {
+    console.error("Delete User error:", error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal menghapus pengguna",
+    });
+  }
+});

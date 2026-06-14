@@ -449,6 +449,10 @@
       background: linear-gradient(90deg, #0F2044, #1B3A6B);
     }
 
+    .sum-card.slate::before {
+      background: linear-gradient(90deg, #94A3B8, #CBD5E1);
+    }
+
     .kpi-top {
       display: flex;
       align-items: center;
@@ -488,6 +492,11 @@
     .kpi-icon.navy {
       background: #E0E7FF;
       color: #3730A3;
+    }
+
+    .kpi-icon.slate {
+      background: #F1F5F9;
+      color: #64748B;
     }
 
     .kpi-icon svg {
@@ -1955,6 +1964,15 @@
           <polyline points="10,9 9,9 8,9" />
         </svg>
       </a>
+
+      <a class="icon-btn" href="/pengguna.html" title="Manajemen Pengguna">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      </a>
       <div class="icon-sidebar-bottom">
         <a class="icon-btn" title="Bantuan">
           <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -2017,10 +2035,10 @@
       <!-- SUMMARY ROW -->
       <div class="summary-row">
         <!-- Status -->
-        <div class="sum-card amber">
+        <div class="sum-card amber" id="statusCard">
           <div class="kpi-top">
             <div class="sum-card-label">Status Rencana Aksi</div>
-            <div class="kpi-icon amber">
+            <div class="kpi-icon amber" id="statusIcon">
               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round"
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -2032,7 +2050,7 @@
           <div class="kpi-sub" id="lastUpdated">Terakhir diperbarui<br>10 Mei 2024, 10:30</div>
         </div>
         <!-- Progres Donut -->
-        <div class="sum-card blue">
+        <div class="sum-card green">
           <div class="kpi-top">
             <div class="sum-card-label">Progres Rencana Aksi</div>
           </div>
@@ -2041,7 +2059,7 @@
               <svg width="84" height="84" viewBox="0 0 72 72">
                 <circle cx="36" cy="36" r="28" fill="none" stroke="#F1F5F9" stroke-width="9" />
                 <circle id="donutSelesai" cx="36" cy="36" r="28" fill="none" stroke="#10B981" stroke-width="9"
-                  stroke-dasharray="175.9 175.9" stroke-dashoffset="87.96" stroke-linecap="round" />
+                  stroke-linecap="round" transform="rotate(-90 36 36)" />
               </svg>
               <div class="donut-label" id="donutLabel" style="font-size: 18px;">0%</div>
             </div>
@@ -2052,6 +2070,10 @@
               </div>
               <div class="dl-row">
                 <div class="dl-dot" style="background:#0EA5E9"></div>Dalam Proses<div class="dl-val" id="legProgress">0%
+                </div>
+              </div>
+              <div class="dl-row">
+                <div class="dl-dot" style="background:#F43F5E"></div>Ditolak<div class="dl-val" id="legDitolak">0%
                 </div>
               </div>
               <div class="dl-row">
@@ -2158,7 +2180,6 @@
                   <td>Tanggal Mulai</td>
                   <td id="infoTglMulai">
                     <span id="infoTglMulaiView">01 Februari 2026</span>
-                    <input class="info-input" id="infoTglMulaiInput" style="display:none" type="date" />
                   </td>
                 </tr>
                 <tr>
@@ -2172,7 +2193,6 @@
                   <td>Aktual Tanggal Selesai</td>
                   <td id="infoAktual">
                     <span id="infoAktualView" style="color:var(--slate-400)">–</span>
-                    <input class="info-input" id="infoAktualInput" style="display:none" type="date" />
                   </td>
                 </tr>
                 <tr>
@@ -2393,15 +2413,15 @@
             <input type="number" class="form-input" id="sraWeight" placeholder="0-100" min="0" max="100" />
           </div>
           <div class="form-group">
-            <label class="form-label">Approver 1</label>
+            <label class="form-label">Verifikator 1</label>
             <select class="form-select" id="sraApprover1" required>
-              <option value="">Pilih Approver 1</option>
+              <option value="">Pilih Verifikator 1</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Approver 2</label>
+            <label class="form-label">Verifikator 2</label>
             <select class="form-select" id="sraApprover2" required>
-              <option value="">Pilih Approver 2</option>
+              <option value="">Pilih Verifikator 2</option>
             </select>
           </div>
         </form>
@@ -2820,8 +2840,7 @@
         'selesai': 'selesai',
         'terlambat': 'terlambat',
         'pengajuan': 'dalam-progress',
-        'verif_1': 'dalam-progress',
-        'verif_2': 'dalam-progress',
+        'verifikasi': 'dalam-progress',
         'ditolak': 'terlambat',
       };
       return map[status] || 'belum-mulai';
@@ -2834,8 +2853,7 @@
         'selesai': 'Selesai',
         'terlambat': 'Terlambat',
         'pengajuan': 'Pengajuan',
-        'verif_1': 'Verifikasi 1',
-        'verif_2': 'Verifikasi 2',
+        'verifikasi': 'Verifikasi',
         'ditolak': 'Ditolak',
       };
       return map[status] || status || '–';
@@ -2915,6 +2933,24 @@
       // ── Status Card ──
       const statusCSS = mapStatusToCSS(cards.status_rencana_aksi.status);
       const statusLabel = mapStatusToLabel(cards.status_rencana_aksi.status);
+
+      const statusCard = document.getElementById('statusCard');
+      const statusIcon = document.getElementById('statusIcon');
+      if (statusCard && statusIcon) {
+        statusCard.classList.remove('amber', 'green', 'rose', 'blue', 'navy', 'slate');
+        statusIcon.classList.remove('amber', 'green', 'rose', 'blue', 'navy', 'slate');
+
+        let cardColor = 'slate';
+        if (statusCSS === 'selesai') cardColor = 'green';
+        else if (statusCSS === 'dalam-progress') cardColor = 'blue';
+        else if (statusCSS === 'terlambat') cardColor = 'rose';
+        else if (statusCSS === 'belum-mulai') cardColor = 'slate';
+        else cardColor = 'amber';
+
+        statusCard.classList.add(cardColor);
+        statusIcon.classList.add(cardColor);
+      }
+
       document.getElementById('statusBadge').innerHTML = `<span class="status-big ${statusCSS}">${statusLabel}</span>`;
       document.getElementById('lastUpdated').innerHTML = cards.status_rencana_aksi.updated_at
         ? `Terakhir diperbarui<br>${formatDateTime(cards.status_rencana_aksi.updated_at)}`
@@ -2924,28 +2960,31 @@
       const breakdown = cards.progres.breakdown;
       const total = breakdown.total || 1;
       const selesaiPct = breakdown.selesai_percentage || 0;
-      const progressPct = (breakdown.pengajuan_percentage || 0) + (breakdown.verif_1_percentage || 0) + (breakdown.verif_2_percentage || 0);
-      const belumPct = 100 - selesaiPct - progressPct - (breakdown.terlambat_percentage || 0) - (breakdown.ditolak_percentage || 0);
+      const ditolakPct = breakdown.ditolak_percentage || 0;
+      const progressPct = (total === 0) ? 0 : (breakdown.pengajuan_percentage || 0) + (breakdown.verifikasi_percentage || 0) + (breakdown.terlambat_percentage || 0);
+      const belumPct = (total === 0) ? 100 : 0;
 
       const circ = 2 * Math.PI * 28;
-      const selesaiDash = (selesaiPct / 100) * circ;
-      const progressDash = (progressPct / 100) * circ;
+      const selesaiLen = (selesaiPct / 100) * circ;
 
-      document.getElementById('donutSelesai').setAttribute('stroke-dasharray', selesaiDash + ' ' + circ);
-      document.getElementById('donutSelesai').setAttribute('stroke-dashoffset', circ * 0.25);
+      // Draw Selesai starting from the top
+      document.getElementById('donutSelesai').setAttribute('stroke-dasharray', `${selesaiLen} ${circ}`);
+      document.getElementById('donutSelesai').setAttribute('stroke-dashoffset', 0);
+
       document.getElementById('donutLabel').textContent = Math.round(selesaiPct) + '%';
-      document.getElementById('legSelesai').textContent = selesaiPct + '%';
-      document.getElementById('legProgress').textContent = progressPct + '%';
-      document.getElementById('legBelum').textContent = Math.max(0, belumPct) + '%';
+      document.getElementById('legSelesai').textContent = Math.round(selesaiPct) + '%';
+      document.getElementById('legProgress').textContent = Math.round(progressPct) + '%';
+      document.getElementById('legDitolak').textContent = Math.round(ditolakPct) + '%';
+      document.getElementById('legBelum').textContent = Math.max(0, Math.round(belumPct)) + '%';
 
       // ── PIC Card ──
       const pic = cards.pic_utama;
       if (pic) {
-        document.getElementById('picAvatar').textContent = getInitials(pic.name);
+        document.getElementById('picAvatar').innerHTML = getInitials(pic.name);
         document.getElementById('picName').textContent = pic.name;
         document.getElementById('picRole').textContent = pic.role || '–';
       } else {
-        document.getElementById('picAvatar').textContent = '?';
+        document.getElementById('picAvatar').innerHTML = `<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
         document.getElementById('picName').textContent = 'Belum ditentukan';
         document.getElementById('picRole').textContent = '–';
       }
@@ -2999,8 +3038,21 @@
         aktualView.textContent = formatDateDisplay(info.aktual_tanggal_selesai);
         aktualView.style.color = 'var(--slate-800)';
       } else {
-        aktualView.textContent = '–';
-        aktualView.style.color = 'var(--slate-400)';
+        const breakdown = cards.progres.breakdown;
+        if (breakdown.total > 0 && breakdown.selesai < breakdown.total) {
+          let inProgress = (breakdown.pengajuan || 0) + (breakdown.verifikasi || 0) + (breakdown.terlambat || 0);
+          let ditolak = breakdown.ditolak || 0;
+          let textParts = [];
+          if (inProgress > 0) textParts.push(`${inProgress} dalam proses verifikasi`);
+          if (ditolak > 0) textParts.push(`${ditolak} ditolak`);
+          aktualView.textContent = `Masih ada ${textParts.join(', ')}`;
+          aktualView.style.color = 'var(--rose)';
+          aktualView.style.fontSize = '12px';
+          aktualView.style.fontWeight = '500';
+        } else {
+          aktualView.textContent = '–';
+          aktualView.style.color = 'var(--slate-400)';
+        }
       }
 
       // Blocked
@@ -3033,9 +3085,16 @@
       const name = escapeHtml(approval.approver.name);
       const isMe = currentUser && (String(approval.approver.user_id) === String(currentUser.id) || approval.approver.name === currentUser.name);
 
-      const nameDisplay = isMe
+      let nameDisplay = isMe
         ? `<span style="color:var(--blue-600); font-weight:600;">${name} (Anda)</span>`
         : name;
+
+      const userObj = allUsers.find(u => Number(u.id) === Number(approval.approver.user_id));
+      if (userObj) {
+        const cName = userObj.company_name || 'BPBUMD';
+        const pos = userObj.position || 'Tidak ada posisi';
+        nameDisplay += `<div style="font-size:10px; color:var(--slate-500); font-weight:normal; margin-top:2px; white-space:normal; max-width:150px; line-height:1.3;">(${escapeHtml(cName)} - ${escapeHtml(pos)})</div>`;
+      }
 
       let statusCSS = 'belum-mulai';
       let statusText = 'Menunggu';
@@ -3047,7 +3106,7 @@
         statusCSS = 'terlambat';
         statusText = 'Ditolak';
       } else if (String(approval.status).toLowerCase() === 'menunggu') {
-        const expectedOrder = currentSraStatus === 'pengajuan' ? 1 : (currentSraStatus === 'verif_1' ? 2 : null);
+        const expectedOrder = currentSraStatus === 'pengajuan' ? 1 : (currentSraStatus === 'verifikasi' ? 2 : null);
 
         if (expectedOrder !== null && expectedOrder < order) {
           statusCSS = 'belum-mulai';
@@ -3100,7 +3159,7 @@
           </button>
         `;
 
-        const expectedOrder = r.status === 'pengajuan' ? 1 : (r.status === 'verif_1' ? 2 : null);
+        const expectedOrder = r.status === 'pengajuan' ? 1 : (r.status === 'verifikasi' ? 2 : null);
         if (expectedOrder) {
           const currentApproval = r.approvals.find(a => a.approval_order === expectedOrder && a.status === 'menunggu');
           if (currentApproval && currentApproval.approver && Number(currentApproval.approver.user_id) === Number(currentUser.id)) {
@@ -3112,14 +3171,36 @@
           }
         }
 
+        let picHtml = '<span class="sra-pic" style="color:var(--slate-400)">–</span>';
+        if (r.pic) {
+          const picObj = allUsers.find(u => Number(u.id) === Number(r.pic.user_id));
+          let picName = escapeHtml(r.pic.name);
+          if (picObj) {
+            const cName = picObj.company_name || 'BPBUMD';
+            const pos = picObj.position || 'Tidak ada posisi';
+            picName += `<div style="font-size:10px; color:var(--slate-500); font-weight:normal; margin-top:2px; white-space:normal; max-width:150px; line-height:1.3;">(${escapeHtml(cName)} - ${escapeHtml(pos)})</div>`;
+          }
+          picHtml = `<div style="display:flex; flex-direction:column; line-height:1.2;">
+                       <span class="sra-pic">${picName}</span>
+                     </div>`;
+        }
+
+        let tanggalSelesai = '–';
+        if (r.status === 'selesai') {
+          const finalApproval = r.approvals.find(a => a.approval_order === 2 && a.status === 'setujui');
+          if (finalApproval && finalApproval.approved_at) {
+            tanggalSelesai = formatDateShort(finalApproval.approved_at);
+          }
+        }
+
         return `
           <tr>
             <td><div class="sra-num">${r.no}</div></td>
             <td><span class="sra-desc">${escapeHtml(r.sub_action_plan_name)}</span></td>
             <td><span class="sra-status ${mapStatusToCSS(r.status)}">${mapStatusToLabel(r.status)}</span></td>
             <td><span class="sra-date">${formatDateShort(r.created_at)}</span></td>
-            <td><span class="sra-date">${r.submitted_at ? formatDateShort(r.submitted_at) : '–'}</span></td>
-            <td><span class="sra-pic">${r.pic ? escapeHtml(r.pic.name) : '–'}</span></td>
+            <td><span class="sra-date">${tanggalSelesai}</span></td>
+            <td>${picHtml}</td>
             <td>${getApproverChip(r.approvals, 1, r.status, currentUser)}</td>
             <td>${getApproverChip(r.approvals, 2, r.status, currentUser)}</td>
             <td>${actionBtn}</td>
@@ -3375,19 +3456,14 @@
       if (info) {
         document.getElementById('infoOutputInput').value = info.output || '';
         document.getElementById('infoPenilaianInput').value = info.penilaian_rencana_aksi || '';
-        document.getElementById('infoTglMulaiInput').value = toISODateStr(info.tanggal_mulai);
         document.getElementById('infoTargetSelesaiInput').value = toISODateStr(info.target_tanggal_selesai);
-        document.getElementById('infoAktualInput').value = toISODateStr(info.aktual_tanggal_selesai);
         document.getElementById('infoBlockedInput').value = info.is_blocked ? 'Yes' : 'No';
       } else {
         // Fallback: parse from display
         const outputLines = Array.from(document.querySelectorAll('#infoOutputView li')).map(li => li.textContent).join('\n');
         document.getElementById('infoOutputInput').value = outputLines;
         document.getElementById('infoPenilaianInput').value = document.getElementById('infoPenilaianView').textContent;
-        document.getElementById('infoTglMulaiInput').value = parseDisplayDate(document.getElementById('infoTglMulaiView').textContent);
         document.getElementById('infoTargetSelesaiInput').value = parseDisplayDate(document.getElementById('infoTargetSelesaiView').textContent);
-        const aktual = document.getElementById('infoAktualView').textContent.trim();
-        document.getElementById('infoAktualInput').value = aktual === '–' ? '' : parseDisplayDate(aktual);
         document.getElementById('infoBlockedInput').value = document.getElementById('infoBlockedView').textContent;
       }
 
@@ -3396,12 +3472,8 @@
       document.getElementById('infoOutputEdit').style.display = 'block';
       document.getElementById('infoPenilaianView').style.display = 'none';
       document.getElementById('infoPenilaianInput').style.display = '';
-      document.getElementById('infoTglMulaiView').style.display = 'none';
-      document.getElementById('infoTglMulaiInput').style.display = '';
       document.getElementById('infoTargetSelesaiView').style.display = 'none';
       document.getElementById('infoTargetSelesaiInput').style.display = '';
-      document.getElementById('infoAktualView').style.display = 'none';
-      document.getElementById('infoAktualInput').style.display = '';
       document.getElementById('infoBlockedView').style.display = 'none';
       document.getElementById('infoBlockedInput').style.display = '';
 
@@ -3413,18 +3485,14 @@
     async function saveInfoEdit() {
       const outputRaw = document.getElementById('infoOutputInput').value.trim();
       const penilaian = document.getElementById('infoPenilaianInput').value.trim();
-      const tglMulai = document.getElementById('infoTglMulaiInput').value;
       const tgtSelesai = document.getElementById('infoTargetSelesaiInput').value;
-      const aktual = document.getElementById('infoAktualInput').value;
       const blocked = document.getElementById('infoBlockedInput').value;
 
       // Build payload for backend
       const payload = {
         output: outputRaw || null,
         indicator: penilaian || null,
-        start_date: tglMulai || null,
         target_end_date: tgtSelesai || null,
-        end_date: aktual || null,
         is_blocked: blocked === 'Yes',
       };
 
@@ -3457,11 +3525,7 @@
         ul.innerHTML = lines.map(l => `<li>${escapeHtml(l)}</li>`).join('');
 
         document.getElementById('infoPenilaianView').textContent = penilaian || '–';
-        document.getElementById('infoTglMulaiView').textContent = tglMulai ? formatISODate(tglMulai) : '–';
         document.getElementById('infoTargetSelesaiView').textContent = tgtSelesai ? formatISODate(tgtSelesai) : '–';
-        const aktualView = document.getElementById('infoAktualView');
-        aktualView.textContent = aktual ? formatISODate(aktual) : '–';
-        aktualView.style.color = aktual ? 'var(--slate-800)' : 'var(--slate-400)';
         document.getElementById('infoBlockedView').textContent = blocked;
 
         exitInfoEditMode();
@@ -3477,12 +3541,8 @@
       document.getElementById('infoOutputEdit').style.display = 'none';
       document.getElementById('infoPenilaianView').style.display = '';
       document.getElementById('infoPenilaianInput').style.display = 'none';
-      document.getElementById('infoTglMulaiView').style.display = '';
-      document.getElementById('infoTglMulaiInput').style.display = 'none';
       document.getElementById('infoTargetSelesaiView').style.display = '';
       document.getElementById('infoTargetSelesaiInput').style.display = 'none';
-      document.getElementById('infoAktualView').style.display = '';
-      document.getElementById('infoAktualInput').style.display = 'none';
       document.getElementById('infoBlockedView').style.display = '';
       document.getElementById('infoBlockedInput').style.display = 'none';
 
@@ -3501,14 +3561,16 @@
       const currentVal = select.value;
       const targetCompanyId = currentData?.action_plan?.company_id;
 
-      // Only show users from the same BUMD company (exclude BPBUMD users)
+      // Show users from the same BUMD company AND all bpbumd and lainnya users
       const filteredUsers = targetCompanyId
-        ? allUsers.filter(u => Number(u.company_id) === Number(targetCompanyId) && u.company_type === 'bumd')
-        : allUsers.filter(u => u.company_type === 'bumd');
+        ? allUsers.filter(u => (Number(u.company_id) === Number(targetCompanyId) && u.company_type === 'bumd') || u.company_type === 'bpbumd' || u.company_type === 'lainnya')
+        : allUsers.filter(u => u.company_type === 'bumd' || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
 
-      select.innerHTML = '<option value="">Pilih...</option>' + filteredUsers.map(u =>
-        `<option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(u.role)})</option>`
-      ).join('');
+      select.innerHTML = '<option value="">Pilih...</option>' + filteredUsers.map(u => {
+        const cName = u.company_name || 'BPBUMD';
+        const pos = u.position || 'Tidak ada posisi';
+        return `<option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(cName)} - ${escapeHtml(pos)})</option>`;
+      }).join('');
       select.value = currentVal;
     }
 
@@ -3538,12 +3600,12 @@
       };
 
       if (!payload.approver_user_id_1 || !payload.approver_user_id_2) {
-        alert("Approver 1 dan Approver 2 harus diisi.");
+        alert("Verifikator 1 dan Verifikator 2 harus diisi.");
         return;
       }
 
       if (payload.approver_user_id_1 === payload.approver_user_id_2) {
-        alert("Approver 1 dan Approver 2 tidak boleh sama.");
+        alert("Verifikator 1 dan Verifikator 2 tidak boleh sama.");
         return;
       }
 
@@ -3599,14 +3661,14 @@
 
       // Check if current user can approve
       // Sub rencana aksi status map:
-      // 'pengajuan' -> menunggu approver 1
-      // 'verif_1' -> menunggu approver 2
+      // 'pengajuan' -> menunggu Verifikator 1
+      // 'verifikasi' -> menunggu Verifikator 2
       let canApprove = false;
 
       // We need approvals info. Since the action_plans/:id response might not include detailed approval steps
       // Let's assume we can determine based on approver list if provided in selectedSRA.
       if (selectedSRA.approvals && selectedSRA.approvals.length > 0) {
-        const expectedOrder = selectedSRA.status === 'pengajuan' ? 1 : (selectedSRA.status === 'verif_1' ? 2 : null);
+        const expectedOrder = selectedSRA.status === 'pengajuan' ? 1 : (selectedSRA.status === 'verifikasi' ? 2 : null);
 
         if (expectedOrder) {
           const currentApproval = selectedSRA.approvals.find(a => a.approval_order === expectedOrder && String(a.status).toLowerCase() === 'menunggu');
@@ -3622,6 +3684,17 @@
           <button class="btn btn-outline" onclick="closeDetailSRAModal()">Batal</button>
           <button class="btn btn-primary" onclick="submitVerifikasi(${id})">Verifikasi</button>
         `;
+      } else {
+        const isSubmitter = selectedSRA.submitted_by && String(selectedSRA.submitted_by.user_id) === String(currentUser.id);
+        if (isSubmitter && (selectedSRA.status === 'ditolak' || selectedSRA.status === 'pengajuan')) {
+          footer.innerHTML = `
+            <button class="btn btn-outline" onclick="closeDetailSRAModal()">Tutup</button>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-outline" style="color:var(--rose); border-color:var(--rose);" onclick="deleteSRA(${id})">Hapus</button>
+              <button class="btn btn-primary" onclick="resubmitSRA(${id})">Ajukan Ulang</button>
+            </div>
+          `;
+        }
       }
 
       document.getElementById('modalDetailSRA').classList.add('active');
@@ -3666,6 +3739,41 @@
     function closeDetailSRAModal() {
       document.getElementById('modalDetailSRA').classList.remove('active');
       selectedSRA = null;
+    }
+
+    async function deleteSRA(id) {
+      if (!confirm('Apakah Anda yakin ingin menghapus Sub Rencana Aksi ini?')) return;
+      try {
+        await apiFetch(`/api/sub-action-plans/${id}`, { method: 'DELETE' });
+        closeDetailSRAModal();
+        await loadActionPlanDetail(currentActionPlanId);
+      } catch (err) {
+        alert("Gagal menghapus: " + err.message);
+      }
+    }
+
+    async function resubmitSRA(id) {
+      if (!confirm('Ajukan ulang Sub Rencana Aksi ini?')) return;
+      if (!selectedSRA) return;
+
+      try {
+        // Resubmitting means calling PUT with the same fields to trigger status reset in the backend
+        const payload = {
+          name: selectedSRA.sub_action_plan_name,
+          pic_user_id: selectedSRA.pic ? selectedSRA.pic.user_id : null,
+          weight: selectedSRA.weight || 0
+        };
+
+        await apiFetch(`/api/sub-action-plans/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+
+        closeDetailSRAModal();
+        await loadActionPlanDetail(currentActionPlanId);
+      } catch (err) {
+        alert("Gagal mengajukan ulang: " + err.message);
+      }
     }
 
     function showNoteModal(note) {

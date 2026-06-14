@@ -21,6 +21,7 @@ CREATE TABLE companies (
     company_type VARCHAR(50) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    logo VARCHAR(255),
 
     CONSTRAINT fk_companies_sector
         FOREIGN KEY (sector_id)
@@ -28,7 +29,7 @@ CREATE TABLE companies (
         ON DELETE SET NULL,
 
     CONSTRAINT chk_companies_company_type
-        CHECK (company_type IN ('bpbumd', 'bumd'))
+        CHECK (company_type IN ('bpbumd', 'bumd', 'lainnya'))
 );
 
 
@@ -42,6 +43,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL,
+    position VARCHAR(255),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -220,8 +222,7 @@ CREATE TABLE sub_action_plans (
     CONSTRAINT chk_sub_action_plans_status
         CHECK (status IN (
             'pengajuan',
-            'verif_1',
-            'verif_2',
+            'verifikasi',
             'selesai',
             'terlambat',
             'ditolak'

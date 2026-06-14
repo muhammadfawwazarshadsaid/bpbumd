@@ -3,7 +3,7 @@
 const { pool } = require("../config/database");
 
 function isHqUser(user) {
-  return user.company_type === "bpbumd";
+  return user.company_type === "bpbumd" || user.company_type === "lainnya";
 }
 
 function getCompanyScope(user) {
@@ -118,13 +118,15 @@ async function getAspect(client, aspectId, companyScopeId) {
 async function getAspectCards(client, aspectId) {
   const result = await client.query(
     `
-      WITH action_plan_rows AS (
+      WITH sub_action_plan_rows AS (
         SELECT
-          ap.id,
-          ap.status,
+          sap.id,
+          sap.status,
           ap.progress_percentage,
           ap.target_percentage
-        FROM action_plans ap
+        FROM sub_action_plans sap
+        JOIN action_plans ap
+          ON ap.id = sap.action_plan_id
         JOIN activity_groups ag
           ON ag.id = ap.activity_group_id
         JOIN strategies s
@@ -133,44 +135,33 @@ async function getAspectCards(client, aspectId) {
           s.aspect_id = $1
       )
       SELECT
-        COALESCE(
-          ROUND((SELECT AVG(progress_percentage) FROM action_plan_rows), 2),
-          0
-        ) AS progress_percentage,
-
-        COALESCE(
-          ROUND((SELECT AVG(target_percentage) FROM action_plan_rows), 2),
-          0
-        ) AS target_percentage,
+        (SELECT COALESCE(progress_percentage, 0) FROM aspects WHERE id = $1) AS progress_percentage,
+        (SELECT COALESCE(target_percentage, 0) FROM aspects WHERE id = $1) AS target_percentage,
 
         (
           SELECT COUNT(*)
-          FROM action_plan_rows
+          FROM sub_action_plan_rows
         )::INT AS total_aktivitas,
 
         (
           SELECT COUNT(*)
-          FROM action_plan_rows
+          FROM sub_action_plan_rows
           WHERE status = 'selesai'
         )::INT AS selesai,
 
         (
           SELECT COUNT(*)
-          FROM action_plan_rows
-          WHERE status = 'dalam progres'
+          FROM sub_action_plan_rows
+          WHERE status IN ('pengajuan', 'verifikasi', 'ditolak')
         )::INT AS dalam_progres,
 
         (
           SELECT COUNT(*)
-          FROM action_plan_rows
+          FROM sub_action_plan_rows
           WHERE status = 'terlambat'
         )::INT AS terlambat,
 
-        (
-          SELECT COUNT(*)
-          FROM action_plan_rows
-          WHERE status = 'belum mulai'
-        )::INT AS belum_mulai
+        0::INT AS belum_mulai
     `,
     [aspectId],
   );
@@ -205,29 +196,29 @@ async function getStrategies(client, aspectId) {
         COALESCE(s.progress_percentage, 0) AS progress_percentage,
         COALESCE(s.target_percentage, 0)   AS target_percentage,
 
-        COUNT(DISTINCT ap.id)::INT AS total_rencana_aksi,
+        COUNT(DISTINCT sap.id)::INT AS total_rencana_aksi,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'selesai'
+        COUNT(DISTINCT sap.id) FILTER (
+          WHERE sap.status = 'selesai'
         )::INT AS selesai,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'dalam progres'
+        COUNT(DISTINCT sap.id) FILTER (
+          WHERE sap.status IN ('pengajuan', 'verifikasi', 'ditolak')
         )::INT AS dalam_progres,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'terlambat'
+        COUNT(DISTINCT sap.id) FILTER (
+          WHERE sap.status = 'terlambat'
         )::INT AS terlambat,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'belum mulai'
-        )::INT AS belum_mulai
+        0::INT AS belum_mulai
 
       FROM strategies s
       LEFT JOIN activity_groups ag
         ON ag.strategy_id = s.id
       LEFT JOIN action_plans ap
         ON ap.activity_group_id = ag.id
+      LEFT JOIN sub_action_plans sap
+        ON sap.action_plan_id = ap.id
       WHERE
         s.aspect_id = $1
       GROUP BY
@@ -279,29 +270,29 @@ async function getActivityGroups(client, aspectId) {
         COALESCE(ag.progress_percentage, 0) AS progress_percentage,
         COALESCE(ag.target_percentage, 0)   AS target_percentage,
 
-        COUNT(DISTINCT ap.id)::INT AS total_rencana_aksi,
+        COUNT(DISTINCT sap.id)::INT AS total_rencana_aksi,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'selesai'
+        COUNT(DISTINCT sap.id) FILTER (
+          WHERE sap.status = 'selesai'
         )::INT AS selesai,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'dalam progres'
+        COUNT(DISTINCT sap.id) FILTER (
+          WHERE sap.status IN ('pengajuan', 'verifikasi', 'ditolak')
         )::INT AS dalam_progres,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'terlambat'
+        COUNT(DISTINCT sap.id) FILTER (
+          WHERE sap.status = 'terlambat'
         )::INT AS terlambat,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'belum mulai'
-        )::INT AS belum_mulai
+        0::INT AS belum_mulai
 
       FROM activity_groups ag
       JOIN strategies s
         ON s.id = ag.strategy_id
       LEFT JOIN action_plans ap
         ON ap.activity_group_id = ag.id
+      LEFT JOIN sub_action_plans sap
+        ON sap.action_plan_id = ap.id
       WHERE
         s.aspect_id = $1
       GROUP BY

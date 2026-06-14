@@ -4,7 +4,7 @@ const { pool } = require("../config/database");
 const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
 
 function isHqUser(user) {
-  return user.company_type === "bpbumd";
+  return user.company_type === "bpbumd" || user.company_type === "lainnya";
 }
 
 function getCompanyScope(user) {
@@ -227,12 +227,8 @@ async function getProgressBreakdown(client, actionPlanId) {
         )::INT AS pengajuan,
 
         COUNT(*) FILTER (
-          WHERE status = 'verif_1'
-        )::INT AS verif_1,
-
-        COUNT(*) FILTER (
-          WHERE status = 'verif_2'
-        )::INT AS verif_2,
+          WHERE status = 'verifikasi'
+        )::INT AS verifikasi,
 
         COUNT(*) FILTER (
           WHERE status = 'selesai'
@@ -259,22 +255,19 @@ async function getProgressBreakdown(client, actionPlanId) {
 
   const selesai = toNumber(row.selesai);
   const pengajuan = toNumber(row.pengajuan);
-  const verif_1 = toNumber(row.verif_1);
-  const verif_2 = toNumber(row.verif_2);
+  const verifikasi = toNumber(row.verifikasi);
   const terlambat = toNumber(row.terlambat);
   const ditolak = toNumber(row.ditolak);
 
   return {
     total,
     pengajuan,
-    verif_1,
-    verif_2,
+    verifikasi,
     selesai,
     terlambat,
     ditolak,
     pengajuan_percentage: pct(pengajuan),
-    verif_1_percentage: pct(verif_1),
-    verif_2_percentage: pct(verif_2),
+    verifikasi_percentage: pct(verifikasi),
     selesai_percentage: pct(selesai),
     terlambat_percentage: pct(terlambat),
     ditolak_percentage: pct(ditolak),
@@ -896,19 +889,7 @@ async function deleteActionPlan(user, actionPlanId) {
     }
 
     // Delete related data (cascades handle documents, kpis, history)
-    // But we log first before deleting
-    await logHistory(
-      client,
-      null, // action_plan will be deleted, set null to avoid FK violation
-      user.id,
-      `Menghapus rencana aksi: ${ap.name} (ID: ${ap.id})`,
-    );
-
-    // Clean up history pointing to this action_plan (set to null)
-    await client.query(
-      "UPDATE history_activities SET action_plan_id = NULL WHERE action_plan_id = $1",
-      [actionPlanId],
-    );
+    // History is cascade-deleted automatically due to ON DELETE CASCADE.
 
     await client.query("DELETE FROM action_plans WHERE id = $1", [
       actionPlanId,
