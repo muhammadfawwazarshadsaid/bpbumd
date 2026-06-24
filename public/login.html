@@ -286,10 +286,10 @@
   <div class="login-card">
     <div class="logo-wrap">
       <div class="logo-icon">
-        <img src="/logo.png" alt="Logo" />
+        <img src="/diagnosticreview-demo/logo.png" alt="Logo" />
       </div>
       <div class="logo-title">BPBUMD Control Tower</div>
-      <div class="logo-subtitle">Badan Pengawasan BUMD — Sistem Monitoring Terpadu</div>
+      <div class="logo-subtitle">Badan Pembinaan BUMD — Sistem Monitoring Terpadu</div>
     </div>
 
     <div class="error-msg" id="errorMsg">
@@ -337,15 +337,15 @@
     <div class="footer-note">© 2026 BPBUMD — Pemerintah Daerah · v2.4.1</div>
   </div>
 
-  <script src="/auth.js"></script>
+  <script src="/diagnosticreview-demo/auth.js?v=1781666555003"></script>
   <script>
     // If already authenticated, redirect to dashboard
     (async function () {
       if (BPBUMDAuth.isAuthenticated()) {
         try {
-          const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+          const res = await fetch('/diagnosticreview-demo/api/auth/me', { credentials: 'same-origin' });
           if (res.ok) {
-            window.location.href = '/dashboard-aspek.html';
+            window.location.href = '/diagnosticreview-demo/dashboard-aspek.html';
             return;
           }
         } catch { }
@@ -369,7 +369,7 @@
       spinner.style.display = 'block';
 
       try {
-        const response = await fetch('/api/auth/login', {
+        const response = await fetch('/diagnosticreview-demo/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: u, password: p }),
@@ -382,7 +382,7 @@
           // Cookie sudah di-set oleh server (httpOnly)
           // Simpan user display data saja (non-sensitive)
           BPBUMDAuth.setUser(result.data.user);
-          window.location.href = '/dashboard-aspek.html';
+          window.location.href = '/diagnosticreview-demo/dashboard-aspek.html';
         } else {
           errorMsg.textContent = result.message || 'Login gagal. Silakan coba kembali.';
           errorMsg.style.display = 'block';

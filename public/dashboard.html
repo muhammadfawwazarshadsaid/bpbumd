@@ -985,7 +985,7 @@
     <div class="sidebar-logo">
       <div class="logo-row">
         <div class="logo-icon-sm">
-          <img src="/logo.png" alt="Logo" />
+          <img src="/diagnosticreview-demo/logo.png" alt="Logo" />
         </div>
         <div class="logo-text">
           <div class="t1">BPBUMD</div>
@@ -1005,7 +1005,7 @@
         </svg>
         Dashboard
       </a>
-      <a class="nav-item" href="/daftar-bumd.html">
+      <a class="nav-item" href="/diagnosticreview-demo/daftar-bumd.html">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
           <polyline points="9,22 9,12 15,12 15,22" />
@@ -1063,7 +1063,7 @@
         </svg>
         Pengaturan
       </a>
-      <a class="nav-item" href="/pengguna.html">
+      <a class="nav-item" href="/diagnosticreview-demo/pengguna.html">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
@@ -1405,7 +1405,7 @@
     </div>
   </div>
 
-  <script src="/auth.js"></script>
+  <script src="/diagnosticreview-demo/auth.js?v=1781666555002"></script>
   <script>
     function toggleSidebar() {
       document.body.classList.toggle('sidebar-collapsed');
@@ -1491,7 +1491,7 @@
           </td>
           <td><span class="status-badge ${row.status}">${row.status === 'sehat' ? 'Sehat' : row.status === 'kurang-sehat' ? 'Kurang Sehat' : 'Tidak Sehat'}</span></td>
           <td>
-            <button class="action-btn" onclick="window.location.href='/aspek.html?id=${i + 1}&name=${encodeURIComponent(row.name)}'">Detail</button>
+            <button class="action-btn" onclick="window.location.href = '/diagnosticreview-demo/aspek.html?id=${i + 1}&name=${encodeURIComponent(row.name)}'">Detail</button>
           </td>
         </tr>
       `).join('');

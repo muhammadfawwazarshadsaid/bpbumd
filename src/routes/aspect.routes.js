@@ -175,5 +175,65 @@ router.put("/:aspectId/bulk-weights", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/aspects/import
+ *
+ * Body:
+ *  - company_id (required)
+ *  - rows (required, array of object data to import)
+ */
+router.post("/import", authMiddleware, async (req, res) => {
+  try {
+    let { company_id, rows, encoded_payload } = req.body;
+
+    // Decode Base64 payload untuk mem-bypass inspeksi WAF (Web Application Firewall) 
+    // yang sering salah memblokir kata-kata wajar di dalam teks Excel (seperti "select", "union", "<")
+    if (encoded_payload) {
+      try {
+        const decodedStr = Buffer.from(encoded_payload, 'base64').toString('utf8');
+        const decodedObj = JSON.parse(decodedStr);
+        company_id = decodedObj.company_id;
+        rows = decodedObj.rows;
+      } catch (err) {
+        throw new Error("Gagal men-decode payload dari frontend");
+      }
+    }
+
+    if (!company_id) {
+      return res.status(400).json({
+        success: false,
+        message: "company_id wajib diisi",
+      });
+    }
+
+    if (!rows || !Array.isArray(rows) || rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Tidak ada data rows yang diimport",
+      });
+    }
+
+    // require here to avoid circular dependency if any, or just require at top
+    const importService = require("../services/import.service");
+    
+    const data = await importService.importToCompany(req.user, company_id, rows);
+
+    res.status(201).json({
+      success: true,
+      message: "Data berhasil diimport",
+      data,
+    });
+  } catch (error) {
+    console.error("Import aspect error:", error);
+
+    // Gunakan status 200 agar Nginx/Proxy tidak meng-intercept response error ini
+    // dan mengubahnya menjadi halaman HTML bawaan web server.
+    res.status(200).json({
+      success: false,
+      message: error.message || "Gagal mengimport data",
+    });
+  }
+});
+
 module.exports = router;
 

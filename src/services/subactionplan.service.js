@@ -31,6 +31,7 @@ async function createSubActionPlan(user, payload) {
     pic_user_id,
     approver_user_id_1,
     approver_user_id_2,
+    is_draft,
   } = payload;
 
   // ── Validation ──
@@ -83,6 +84,8 @@ async function createSubActionPlan(user, payload) {
       throw error;
     }
 
+    const initialStatus = is_draft ? 'belum mulai' : 'pengajuan';
+
     // ── Create sub action plan ──
     const result = await client.query(
       `
@@ -94,10 +97,10 @@ async function createSubActionPlan(user, payload) {
           status,
           submitted_at
         )
-        VALUES ($1, $2, $3, $4, 'pengajuan', CURRENT_TIMESTAMP)
+        VALUES ($1, $2, $3, $4, $5, ${is_draft ? 'NULL' : 'CURRENT_TIMESTAMP'})
         RETURNING *
       `,
-      [action_plan_id, pic_user_id || null, user.id, name],
+      [action_plan_id, pic_user_id || null, user.id, name, initialStatus],
     );
 
     const subActionPlan = result.rows[0];
@@ -151,7 +154,7 @@ async function createSubActionPlan(user, payload) {
  *  - weight       (optional)
  */
 async function updateSubActionPlan(user, subActionPlanId, payload) {
-  const { name, pic_user_id } = payload;
+  const { name, pic_user_id, is_draft } = payload;
 
   const client = await pool.connect();
 
@@ -186,8 +189,8 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
       throw error;
     }
 
-    // ── Only editable when pengajuan or ditolak ──
-    if (!["pengajuan", "ditolak"].includes(sap.status)) {
+    // ── Only editable when belum mulai, pengajuan or ditolak ──
+    if (!["belum mulai", "pengajuan", "ditolak"].includes(sap.status)) {
       const error = new Error(
         `Sub rencana aksi tidak bisa diubah saat status "${sap.status}"`,
       );
@@ -212,8 +215,14 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
 
     // weight removed
 
+    // ── Jika belum mulai & disubmit ──
+    if (sap.status === "belum mulai" && is_draft === false) {
+      sets.push(`status = 'pengajuan'`);
+      sets.push(`submitted_at = CURRENT_TIMESTAMP`);
+    }
+
     // ── Jika ditolak → resubmit ──
-    if (sap.status === "ditolak") {
+    if (sap.status === "ditolak" && is_draft === false) {
       sets.push(`status = 'pengajuan'`);
       sets.push(`submitted_at = CURRENT_TIMESTAMP`);
     }
@@ -238,8 +247,8 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
       values,
     );
 
-    // ── Reset approvals jika resubmit dari ditolak ──
-    if (sap.status === "ditolak") {
+    // ── Reset approvals jika resubmit ──
+    if (is_draft === false && (sap.status === "ditolak" || sap.status === "belum mulai")) {
       await client.query(
         `
           UPDATE sub_action_plan_approvals
@@ -318,13 +327,7 @@ async function deleteSubActionPlan(user, subActionPlanId) {
       throw error;
     }
 
-    if (!["pengajuan", "ditolak"].includes(sap.status)) {
-      const error = new Error(
-        `Sub rencana aksi tidak bisa dihapus saat status "${sap.status}"`,
-      );
-      error.statusCode = 422;
-      throw error;
-    }
+    // Diizinkan hapus meski sudah diverifikasi/selesai (sesuai permintaan)
 
     // Approvals cascade on delete
     await client.query("DELETE FROM sub_action_plans WHERE id = $1", [

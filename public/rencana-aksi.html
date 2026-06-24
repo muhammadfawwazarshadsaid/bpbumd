@@ -299,6 +299,8 @@
       min-width: 0;
       padding: 24px 28px;
       overflow-y: auto;
+      max-width: 1440px;
+      margin: 0 auto;
     }
 
     /* BREADCRUMB NAV */
@@ -376,6 +378,7 @@
       color: var(--slate-900);
       line-height: 1.5;
       flex: 1;
+      white-space: pre-wrap;
     }
 
     .bc-sub {
@@ -670,7 +673,7 @@
     /* ── TWO COLUMN ── */
     .two-col {
       display: grid;
-      grid-template-columns: 1fr 440px;
+      grid-template-columns: minmax(0, 1fr) 440px;
       gap: 18px;
       align-items: start;
     }
@@ -1065,6 +1068,31 @@
       vertical-align: top;
     }
 
+    .sra-table tbody tr.active-filter-row,
+    .doc-table tbody tr.active-filter-row {
+      background: #F0F9FF !important;
+    }
+
+    .sra-table tbody tr.active-filter-row td,
+    .doc-table tbody tr.active-filter-row td {
+      border-top: 1.5px solid var(--sky);
+      border-bottom: 1.5px solid var(--sky);
+    }
+
+    .sra-table tbody tr.active-filter-row td:first-child,
+    .doc-table tbody tr.active-filter-row td:first-child {
+      border-left: 1.5px solid var(--sky);
+      border-top-left-radius: 6px;
+      border-bottom-left-radius: 6px;
+    }
+
+    .sra-table tbody tr.active-filter-row td:last-child,
+    .doc-table tbody tr.active-filter-row td:last-child {
+      border-right: 1.5px solid var(--sky);
+      border-top-right-radius: 6px;
+      border-bottom-right-radius: 6px;
+    }
+
     .sra-num {
       width: 24px;
       height: 24px;
@@ -1154,6 +1182,11 @@
       color: var(--sky);
     }
 
+    .sra-action-btn:active {
+      transform: scale(0.95);
+      background: var(--slate-50);
+    }
+
     /* DOKUMEN TABLE */
     .doc-table {
       width: 100%;
@@ -1193,8 +1226,9 @@
 
     .doc-file {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
     }
 
     .doc-icon {
@@ -1893,6 +1927,56 @@
       margin-top: 6px;
       text-align: center;
     }
+
+    /* Custom Checkbox Design */
+    input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--slate-300);
+      border-radius: 5px;
+      background-color: #fff;
+      display: inline-block;
+      position: relative;
+      cursor: pointer;
+      vertical-align: middle;
+      transition: all 0.2s ease;
+      margin: 0;
+    }
+
+    input[type="checkbox"]:hover:not(:disabled) {
+      border-color: var(--sky);
+      box-shadow: 0 0 0 3px #F0F9FF;
+    }
+
+    input[type="checkbox"]:checked {
+      background-color: var(--sky);
+      border-color: var(--sky);
+    }
+
+    input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 4px;
+      height: 8px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+
+    input[type="checkbox"]:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.3);
+    }
+
+    input[type="checkbox"]:disabled {
+      background-color: var(--slate-100);
+      border-color: var(--slate-200);
+      cursor: not-allowed;
+    }
   </style>
 </head>
 
@@ -1902,7 +1986,7 @@
   <nav class="topnav">
     <div class="brand">
       <div class="brand-logo">
-        <img src="/logo.png" alt="Logo" />
+        <img src="/diagnosticreview-demo/logo.png" alt="Logo" />
       </div>
       <div class="brand-text">
         <div class="t1">BPBUMD</div>
@@ -1927,8 +2011,8 @@
 
 
     <div class="nav-tabs">
-      <a class="nav-tab active" href="/dashboard-aspek.html">Dashboard</a>
-      <a class="nav-tab" href="/daftar-bumd.html">BUMD</a>
+      <a class="nav-tab active" href="/diagnosticreview-demo/dashboard-aspek.html">Dashboard</a>
+      <a class="nav-tab" href="/diagnosticreview-demo/daftar-bumd.html">BUMD</a>
     </div>
 
     <div class="nav-right">
@@ -1946,7 +2030,7 @@
   <div class="body-wrap">
     <!-- ICON SIDEBAR -->
     <aside class="icon-sidebar">
-      <a class="icon-btn" href="/dashboard-aspek.html" title="Dashboard">
+      <a class="icon-btn" href="/diagnosticreview-demo/dashboard-aspek.html" title="Dashboard">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -1954,7 +2038,7 @@
           <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
       </a>
-      <a class="icon-btn" href="/daftar-bumd.html" title="Daftar BUMD">
+      <a class="icon-btn" href="/diagnosticreview-demo/daftar-bumd.html" title="Daftar BUMD">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14,2 14,8 20,8" />
@@ -1964,7 +2048,7 @@
         </svg>
       </a>
 
-      <a class="icon-btn" href="/pengguna.html" title="Manajemen Pengguna">
+      <a class="icon-btn" href="/diagnosticreview-demo/pengguna.html" title="Manajemen Pengguna">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
@@ -1995,7 +2079,7 @@
 
       <!-- BREADCRUMB NAV -->
       <nav class="breadcrumb-nav">
-        <a href="/dashboard-aspek.html" title="Beranda">
+        <a href="/diagnosticreview-demo/dashboard-aspek.html" title="Beranda">
           <svg class="home-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -2004,7 +2088,7 @@
         <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
         </svg>
-        <a href="/dashboard-aspek.html">Dashboard Progres</a>
+        <a href="/diagnosticreview-demo/dashboard-aspek.html">Dashboard Progres</a>
         <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
         </svg>
@@ -2219,31 +2303,68 @@
               Sub Rencana Aksi
             </div>
             <div class="section-card-body">
-              <table class="sra-table">
-                <thead>
-                  <tr>
-                    <th style="width:40px;">#</th>
-                    <th>Deskripsi</th>
-                    <th>Progress</th>
-                    <th>Tanggal Mulai</th>
-                    <th>Tanggal Selesai</th>
-                    <th>PIC</th>
-                    <th>Verifikator 1</th>
-                    <th>Verifikator 2</th>
-                    <th style="width:36px;"></th>
-                  </tr>
-                </thead>
-                <tbody id="sraTableBody">
-                  <!-- Injected by JS -->
-                </tbody>
-              </table>
-              <button class="btn-add" onclick="openAddSRAModal()">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Tambah Sub-Rencana Aksi
-              </button>
+              <div style="overflow-x: auto; padding-bottom: 8px;">
+                <table class="sra-table">
+                  <thead>
+                    <tr>
+                      <th style="width:30px;"><input type="checkbox" id="selectAllSRA"
+                          onchange="toggleSelectAllSRA(this)" style="cursor:pointer;" title="Pilih Semua" /></th>
+                      <th style="width:40px;">#</th>
+                      <th style="min-width:100px;">Aksi</th>
+                      <th style="min-width:180px;">Deskripsi</th>
+                      <th style="min-width:140px;">Progress</th>
+                      <th style="min-width:130px;">Tanggal Mulai</th>
+                      <th style="min-width:130px;">Tanggal Selesai</th>
+                      <th style="min-width:140px;">PIC</th>
+                      <th style="min-width:160px;">Verifikator 1</th>
+                      <th style="min-width:160px;">Verifikator 2</th>
+                      <th style="min-width:130px;">Total Dokumen</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sraTableBody">
+                    <!-- Injected by JS -->
+                  </tbody>
+                </table>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
+                <button class="btn-add" style="margin-top: 0;" onclick="openAddSRAModal()">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"
+                    viewBox="0 0 24 24">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Tambah Sub-Rencana Aksi
+                </button>
+                <div style="display:flex; gap:16px; align-items:center;">
+                  <div id="bulkSRAActions" style="display:none; gap:8px; align-items:center;">
+                    <span style="font-size:12px; color:var(--slate-500); margin-right:8px;"><span
+                        id="bulkSRASelectCount">0</span> dipilih</span>
+                    <button class="btn-outline"
+                      style="border-color:var(--rose); color:var(--rose); background:#FFF1F2; padding:6px 12px; display:none; align-items:center;"
+                      onclick="bulkDeleteSRA()" id="btnBulkSRADelete">
+                      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                        style="margin-right:4px;">
+                        <polyline points="3,6 5,6 21,6" />
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        <path d="M10 11v6" />
+                        <path d="M14 11v6" />
+                      </svg> Hapus (<span id="bulkSRADelCount">0</span>)
+                    </button>
+                  </div>
+                  <div id="sraFilterControls" style="display: none; align-items: center; gap: 12px;">
+                    <span id="sraFilterText" style="font-size: 13px; color: var(--slate-600); font-weight: 600;"></span>
+                    <button class="btn-add" onclick="clearSRAFilter()"
+                      style="margin-top: 0; border-style: solid; background: white; border-color: var(--slate-300); color: var(--slate-700);">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                        viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                      Tutup Filter
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -2251,30 +2372,73 @@
           <div class="section-card">
             <div class="section-card-header">Bukti dan Dokumen</div>
             <div class="section-card-body">
-              <table class="doc-table">
-                <thead>
-                  <tr>
-                    <th>Nama Dokumen</th>
-                    <th>Deskripsi</th>
-                    <th>Diunggah Oleh</th>
-                    <th>Tanggal Unggah</th>
-                    <th>Status</th>
-                    <th>Verifikator</th>
-                    <th>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody id="docTableBody">
-                  <!-- Injected by JS -->
-                </tbody>
-              </table>
-              <button class="btn-add" onclick="openUploadDocModal()">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17,8 12,3 7,8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-                Unggah Dokumen
-              </button>
+              <div style="overflow-x: auto; padding-bottom: 8px;">
+                <table class="doc-table">
+                  <thead>
+                    <tr>
+                      <th style="width:30px;"><input type="checkbox" id="selectAllDocs"
+                          onchange="toggleSelectAllDocs(this)" style="cursor:pointer;" title="Pilih Semua" /></th>
+                      <th style="width:40px;">#</th>
+                      <th style="min-width:130px;">Aksi</th>
+                      <th style="min-width:260px;">Nama Dokumen</th>
+                      <th style="min-width:200px;">Deskripsi</th>
+                      <th style="min-width:120px;">Status</th>
+                      <th style="min-width:160px;">Verifikator 1</th>
+                      <th style="min-width:160px;">Verifikator 2</th>
+                      <th style="min-width:180px;">Sub Rencana Aksi</th>
+                      <th style="min-width:140px;">Diunggah Oleh</th>
+                      <th style="min-width:140px;">Tanggal Unggah</th>
+                    </tr>
+                  </thead>
+                  <tbody id="docTableBody">
+                    <!-- Injected by JS -->
+                  </tbody>
+                </table>
+              </div>
+              <div
+                style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-top:12px;">
+                <button class="btn-add" style="margin-top:0;" onclick="openUploadDocModal()">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17,8 12,3 7,8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Unggah Dokumen
+                </button>
+                <div id="bulkDocActions" style="display:none; gap:8px; align-items:center;">
+                  <span style="font-size:12px; color:var(--slate-500); margin-right:8px;"><span
+                      id="bulkSelectCount">0</span> dipilih</span>
+                  <button class="btn-outline"
+                    style="border-color:var(--emerald); color:var(--emerald); background:#ECFDF5; padding:6px 12px; display:none; align-items:center;"
+                    onclick="bulkVerifyDocs()" id="btnBulkVerify">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                      style="margin-right:4px;">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg> Verifikasi (<span id="bulkVerifCount">0</span>)
+                  </button>
+                  <button class="btn-outline"
+                    style="border-color:var(--rose); color:var(--rose); background:#FFF1F2; padding:6px 12px; display:none; align-items:center;"
+                    onclick="bulkRejectDocs()" id="btnBulkReject">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                      style="margin-right:4px;">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="15" y1="9" x2="9" y2="15"></line>
+                      <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg> Tolak (<span id="bulkRejectCount">0</span>)
+                  </button>
+                  <button class="btn-outline"
+                    style="border-color:var(--rose); color:var(--rose); background:#FFF1F2; padding:6px 12px; display:none; align-items:center;"
+                    onclick="bulkDeleteDocs()" id="btnBulkDelete">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+                      style="margin-right:4px;">
+                      <polyline points="3,6 5,6 21,6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg> Hapus (<span id="bulkDelCount">0</span>)
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2282,7 +2446,7 @@
         <!-- RIGHT COLUMN -->
         <div>
           <!-- KPI dan Hasil -->
-          <div class="section-card">
+          <div class="section-card" style="display:none;">
             <div class="section-card-header">
               KPI dan Hasil
             </div>
@@ -2296,7 +2460,6 @@
                   </tr>
                 </thead>
                 <tbody id="kpiTableBody">
-                  <!-- Injected by JS -->
                 </tbody>
               </table>
               <button class="btn-add" style="width:100%;justify-content:center;" onclick="openKPIFormModal()">
@@ -2428,13 +2591,11 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeAddSRAModal()">Batal</button>
-        <button class="btn btn-primary" type="submit" form="formAddSRA" id="btnSubmitSRA">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-            <polyline points="7 3 7 8 15 8"></polyline>
-          </svg>
-          Simpan SRA
+        <button class="btn btn-outline" type="submit" form="formAddSRA" onclick="window.isDraftSubmit=true"
+          id="btnDraftSRA">Simpan sbg Draft</button>
+        <button class="btn btn-primary" type="submit" form="formAddSRA" onclick="window.isDraftSubmit=false"
+          id="btnSubmitSRA">
+          Minta Verifikasi
         </button>
       </div>
     </div>
@@ -2469,22 +2630,12 @@
           <div class="detail-label">Dibuat Oleh</div>
           <div class="detail-value" id="detSraSubmitter"></div>
         </div>
-
-        <div id="approveSection"
-          style="display:none; margin-top:20px; padding-top:20px; border-top:1px dashed var(--slate-200);">
-          <div class="form-group">
-            <label class="form-label">Keputusan Verifikasi</label>
-            <div style="display:flex; gap:10px;">
-              <div id="chipSetuju" class="verif-chip chip-outline-setuju" onclick="selectVerif('setuju')">Setujui</div>
-              <div id="chipTolak" class="verif-chip chip-outline-tolak" onclick="selectVerif('tolak')">Tolak</div>
-            </div>
-            <input type="hidden" id="verifDecision" value="">
-          </div>
-          <div class="form-group" style="margin-bottom:0;">
-            <label class="form-label" id="labelApproveNotes">Catatan (Opsional)</label>
-            <textarea class="textarea-notes" id="approveNotes" placeholder="Tuliskan catatan..."></textarea>
-          </div>
+        <div class="detail-row" id="detSraDocumentContainer"
+          style="display:none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--slate-200);">
+          <div class="detail-label" style="margin-bottom: 8px;">Dokumen Pendukung</div>
+          <div class="detail-value" id="detSraDocumentList"></div>
         </div>
+
       </div>
       <div class="modal-footer" id="detSraFooter">
         <button class="btn btn-outline" onclick="closeDetailSRAModal()">Tutup</button>
@@ -2534,6 +2685,21 @@
         <form id="formEditDoc" onsubmit="submitEditDoc(event)">
           <input type="hidden" id="editDocId" />
           <div class="form-group">
+            <label class="form-label">Tipe Upload</label>
+            <div style="display:flex; gap: 16px; margin-bottom: 8px;">
+              <label
+                style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
+                <input type="radio" name="editUploadType" value="file" checked onchange="toggleEditUploadType('file')">
+                File
+              </label>
+              <label
+                style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
+                <input type="radio" name="editUploadType" value="link" onchange="toggleEditUploadType('link')"> Tautan
+                (Link)
+              </label>
+            </div>
+          </div>
+          <div class="form-group" id="editFileGroup">
             <label class="form-label">File Dokumen Baru (Opsional)</label>
             <div style="font-size:11px; color:var(--slate-500); margin-bottom:8px;">Abaikan jika tidak ingin mengganti
               file. Mengganti file akan mereset status menjadi "Diunggah".</div>
@@ -2553,6 +2719,10 @@
               <div class="upload-dropzone-hint" id="editCurrentFileHint">File saat ini: -</div>
             </div>
             <div id="editFilePreview" style="display:none;"></div>
+          </div>
+          <div class="form-group" id="editLinkGroup" style="display:none;">
+            <label class="form-label">Tautan Dokumen Baru (Opsional)</label>
+            <input type="url" class="form-input" id="editDocLink" placeholder="https://..." />
           </div>
           <div class="form-group">
             <label class="form-label">Nama Dokumen</label>
@@ -2593,6 +2763,19 @@
       <div class="modal-body">
         <form id="formUploadDoc" onsubmit="submitUploadDoc(event)">
           <div class="form-group">
+            <label class="form-label">Tipe Upload</label>
+            <div style="display:flex; gap: 16px; margin-bottom: 8px;">
+              <label
+                style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
+                <input type="radio" name="uploadType" value="file" checked onchange="toggleUploadType('file')"> File
+              </label>
+              <label
+                style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
+                <input type="radio" name="uploadType" value="link" onchange="toggleUploadType('link')"> Tautan (Link)
+              </label>
+            </div>
+          </div>
+          <div class="form-group" id="uploadFileGroup">
             <label class="form-label">File Dokumen</label>
             <input type="file" id="uploadFileInput" style="display:none"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp,.txt,.csv,.zip,.rar" />
@@ -2611,9 +2794,21 @@
             </div>
             <div id="uploadFilePreview" style="display:none;"></div>
           </div>
+          <div class="form-group" id="uploadLinkGroup" style="display:none;">
+            <label class="form-label">Tautan Dokumen (Google Drive, dll)</label>
+            <input type="url" class="form-input" id="uploadDocLink" placeholder="https://..." />
+          </div>
           <div class="form-group">
             <label class="form-label">Nama Dokumen</label>
             <input type="text" class="form-input" id="uploadDocName" required placeholder="Masukkan nama dokumen" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sub Rencana Aksi <span class="required">*</span></label>
+            <select class="form-select" id="uploadDocSRAId" required>
+              <option value="">Pilih Sub Rencana Aksi terkait</option>
+            </select>
+            <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih jika dokumen ini ditujukan
+              sebagai bukti untuk Sub Rencana Aksi tertentu.</div>
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label">Deskripsi (Opsional)</label>
@@ -2748,7 +2943,8 @@
         </button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 14px; color: var(--slate-700); line-height: 1.5;">Apakah Anda yakin ingin menghapus dokumen
+        <p style="font-size: 14px; color: var(--slate-700); line-height: 1.5;"><span id="deleteDocWarningText">Apakah
+            Anda yakin ingin menghapus dokumen</span>
           <strong id="deleteDocName"></strong>? Tindakan ini tidak dapat dibatalkan.
         </p>
       </div>
@@ -2761,12 +2957,12 @@
       </div>
     </div>
   </div>
-
-  <script src="/auth.js"></script>
+  <script src="/diagnosticreview-demo/auth.js?v=1781666555006"></script>
 
   <script>
     // ── STATE ────────────────────────────────────────────────────
     let currentActionPlanId = null;
+    let activeSRAFilterId = null; // Used for filtering documents by SRA
     let currentData = null;
     let allUsers = [];
     let currentUser = null;
@@ -2903,7 +3099,7 @@
     // ── LOAD USERS ─────────────────────────────────────────────
     async function fetchAllUsers() {
       try {
-        const data = await apiFetch('/api/auth/users');
+        const data = await apiFetch('/diagnosticreview-demo/api/auth/users');
         allUsers = data || [];
       } catch (err) {
         console.error('Failed to fetch users', err);
@@ -2913,7 +3109,7 @@
     // ── LOAD DATA FROM BACKEND ──────────────────────────────────
     async function loadActionPlanDetail(actionPlanId) {
       try {
-        const data = await apiFetch(`/api/action-plans/${actionPlanId}`);
+        const data = await apiFetch(`/diagnosticreview-demo/api/action-plans/${actionPlanId}`);
         currentData = data;
         renderPage(data);
       } catch (error) {
@@ -2964,7 +3160,7 @@
       const selesaiPct = breakdown.selesai_percentage || 0;
       const ditolakPct = breakdown.ditolak_percentage || 0;
       const progressPct = (total === 0) ? 0 : (breakdown.pengajuan_percentage || 0) + (breakdown.verifikasi_percentage || 0) + (breakdown.terlambat_percentage || 0);
-      const belumPct = (total === 0) ? 100 : 0;
+      const belumPct = breakdown.belum_mulai_percentage || 0;
 
       const circ = 2 * Math.PI * 28;
       const selesaiLen = (selesaiPct / 100) * circ;
@@ -2994,7 +3190,7 @@
       // ── Target Selesai Card ──
       const targetEndDate = cards.target_selesai.target_end_date;
       const overdueDays = cards.target_selesai.overdue_days;
-      document.getElementById('targetDate').textContent = formatDateDisplay(targetEndDate);
+      document.getElementById('targetDate').textContent = targetEndDate ? formatDateDisplay(targetEndDate) : 'Berkala';
       const noteEl = document.getElementById('targetNote');
       if (overdueDays !== null && overdueDays > 0) {
         noteEl.textContent = `Lewat ${overdueDays} hari`;
@@ -3040,7 +3236,7 @@
 
       // Dates
       document.getElementById('infoTglMulaiView').textContent = formatDateDisplay(info.tanggal_mulai);
-      document.getElementById('infoTargetSelesaiView').textContent = formatDateDisplay(info.target_tanggal_selesai);
+      document.getElementById('infoTargetSelesaiView').textContent = info.target_tanggal_selesai ? formatDateDisplay(info.target_tanggal_selesai) : 'Berkala';
       const aktualView = document.getElementById('infoAktualView');
       if (info.aktual_tanggal_selesai) {
         aktualView.textContent = formatDateDisplay(info.aktual_tanggal_selesai);
@@ -3070,7 +3266,12 @@
       renderSRATable(data.sub_rencana_aksi);
 
       // ── Dokumen Table ──
-      renderDocTable(data.dokumen);
+      let docsToRender = data.dokumen || [];
+      if (activeSRAFilterId !== null) {
+        docsToRender = docsToRender.filter(d => Number(d.sub_action_plan_id) === activeSRAFilterId);
+      }
+      renderDocTable(docsToRender);
+      updateSRAFilterUI(docsToRender.length);
 
       // ── KPI Table ──
       renderKPITable(data.kpis);
@@ -3080,9 +3281,10 @@
     }
 
     function escapeHtml(str) {
+      if (!str) return '';
       const div = document.createElement('div');
       div.textContent = str;
-      return div.innerHTML;
+      return div.innerHTML.replace(/\n/g, '<br>');
     }
 
     // ── SRA TABLE ───────────────────────────────────────────────
@@ -3154,11 +3356,16 @@
 
     function renderSRATable(sraList) {
       const sraBody = document.getElementById('sraTableBody');
+      const selectAllSRACb = document.getElementById('selectAllSRA');
+      if (selectAllSRACb) selectAllSRACb.checked = false;
+
       if (!sraList || sraList.length === 0) {
-        sraBody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada sub rencana aksi</td></tr>`;
+        sraBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada sub rencana aksi</td></tr>`;
+        updateBulkSRAActions();
         return;
       }
       sraBody.innerHTML = sraList.map(r => {
+        const canDeleteSRA = currentUser && ((r.submitted_by && String(currentUser.id) === String(r.submitted_by.user_id)) || currentUser.role === 'superadmin');
         let actionBtn = `
           <button class="sra-action-btn" title="Opsi" onclick="openDetailSRAModal(${r.sub_action_plan_id})">
             <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
@@ -3166,18 +3373,13 @@
             </svg>
           </button>
         `;
-
-        const expectedOrder = r.status === 'pengajuan' ? 1 : (r.status === 'verifikasi' ? 2 : null);
-        if (expectedOrder) {
-          const currentApproval = r.approvals.find(a => a.approval_order === expectedOrder && a.status === 'menunggu');
-          if (currentApproval && currentApproval.approver && Number(currentApproval.approver.user_id) === Number(currentUser.id)) {
-            actionBtn = `
-              <button class="btn btn-primary" style="padding:6px 12px; font-size:11px;" onclick="openDetailSRAModal(${r.sub_action_plan_id})">
-                Verifikasi
-              </button>
-            `;
-          }
-        }
+        let deleteBtn = canDeleteSRA ? `
+          <button class="sra-action-btn danger" title="Hapus" onclick="deleteSRA(${r.sub_action_plan_id}, '${r.status}')" style="margin-left: 4px; color: var(--rose);">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+            </svg>
+          </button>
+        ` : '';
 
         let picHtml = '<span class="sra-pic" style="color:var(--slate-400)">–</span>';
         if (r.pic) {
@@ -3201,11 +3403,40 @@
           }
         }
 
-        const badgeHtml = r.needs_my_verification ? `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Perlu Verifikasi</span>` : '';
+        const badgeHtml = r.needs_my_verification ? `<span class="badge" style="background: var(--amber); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Verifikasi</span>` : '';
+
+        const docCount = (currentData.dokumen || []).filter(d => Number(d.sub_action_plan_id) === Number(r.sub_action_plan_id)).length;
+        const totalDocHtml = `<div style="font-size:12px; font-weight:600; text-align:center; color: var(--slate-600);">${docCount} Dokumen</div>`;
+
+        // Add document filter icon next to actionBtn
+        const isFilterActive = activeSRAFilterId === Number(r.sub_action_plan_id);
+        const filterBtnStyle = isFilterActive
+          ? 'background: #F0F9FF; border-color: var(--sky); color: var(--sky);'
+          : '';
+
+        const filterSvg = `
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        `;
+
+        const filterBtn = `
+          <button class="sra-action-btn" title="Lihat Daftar Dokumen SRA" onclick="toggleSRAFilter(${r.sub_action_plan_id})" style="margin-right: 4px; ${filterBtnStyle}">
+            ${filterSvg}
+          </button>
+        `;
+
+        const trClass = isFilterActive ? 'class="active-filter-row"' : '';
 
         return `
-          <tr>
+          <tr ${trClass}>
+            <td style="text-align:center;"><input type="checkbox" class="sra-row-cb" data-id="${r.sub_action_plan_id}" data-status="${r.status}" data-can-delete="${canDeleteSRA}" onchange="updateBulkSRAActions()" style="cursor:pointer;" /></td>
             <td><div class="sra-num">${r.no}</div></td>
+            <td><div style="display:flex; align-items:center;">${filterBtn}${actionBtn}${deleteBtn}</div></td>
             <td><div style="display:flex; align-items:center; flex-wrap:wrap;"><span class="sra-desc">${escapeHtml(r.sub_action_plan_name)}</span>${badgeHtml}</div></td>
             <td><span class="sra-status ${mapStatusToCSS(r.status)}">${mapStatusToLabel(r.status)}</span></td>
             <td><span class="sra-date">${formatDateShort(r.created_at)}</span></td>
@@ -3213,64 +3444,260 @@
             <td>${picHtml}</td>
             <td>${getApproverChip(r.approvals, 1, r.status, currentUser)}</td>
             <td>${getApproverChip(r.approvals, 2, r.status, currentUser)}</td>
-            <td>${actionBtn}</td>
+            <td>${totalDocHtml}</td>
           </tr>
         `;
       }).join('');
+      updateBulkSRAActions();
+    }
+
+    function getDocApproverChip(approvals, order, docStatus, currentUser) {
+      if (!approvals || approvals.length === 0) {
+        if (order === 2) return '<span class="sra-pic" style="color:var(--slate-400)">–</span>';
+
+        // 1-step verification fallback for Action Plan documents
+        let nameDisplay = '-';
+        if (docStatus === 'terverifikasi' || docStatus === 'ditolak') {
+          // If we had verified_by_name stored, we could show it. Here we just return what we can.
+          // Wait, verified_by is not available directly in approvals array.
+          // In the parent caller, we have doc.verified_by. Let's handle this in renderDocTable directly
+          // or pass it here. Actually, easier to do it in renderDocTable.
+        }
+      }
+
+      const approval = approvals.find(a => Number(a.approval_order) === order);
+      if (!approval) return '<span class="sra-pic" style="color:var(--slate-400)">–</span>';
+
+      const name = escapeHtml(approval.approver_name);
+      const isMe = currentUser && (String(approval.approver_user_id) === String(currentUser.id) || approval.approver_name === currentUser.name);
+
+      let nameDisplay = isMe
+        ? `<span style="color:var(--blue-600); font-weight:600;">${name} (Anda)</span>`
+        : name;
+
+      const userObj = allUsers.find(u => Number(u.id) === Number(approval.approver_user_id));
+      if (userObj) {
+        const cName = userObj.company_name || 'BPBUMD';
+        const pos = userObj.position || 'Tidak ada posisi';
+        nameDisplay += `<div style="font-size:10px; color:var(--slate-500); font-weight:normal; margin-top:2px; white-space:normal; max-width:150px; line-height:1.3;">(${escapeHtml(cName)} - ${escapeHtml(pos)})</div>`;
+      }
+
+      let statusCSS = 'belum-mulai';
+      let statusText = 'Menunggu';
+
+      if (approval.status === 'disetujui') {
+        statusCSS = 'selesai';
+        statusText = 'Disetujui';
+      } else if (approval.status === 'ditolak') {
+        statusCSS = 'terlambat';
+        statusText = 'Ditolak';
+      } else if (String(approval.status).toLowerCase() === 'menunggu') {
+        const expectedOrder = docStatus === 'diunggah' ? 1 : (docStatus === 'verifikasi' ? 2 : null);
+
+        if (expectedOrder !== null && expectedOrder < order) {
+          statusCSS = 'belum-mulai';
+          statusText = 'Menunggu Giliran';
+        } else if (expectedOrder === order) {
+          if (isMe) {
+            statusCSS = 'dalam-progress';
+            statusText = 'Giliran Anda';
+          } else {
+            statusCSS = 'belum-mulai';
+            statusText = 'Sedang Review';
+          }
+        }
+      }
+
+      let notesHtml = '';
+      if (approval.notes && approval.notes.trim() !== '') {
+        const cleanNote = escapeHtml(approval.notes);
+        notesHtml = `
+          <div title="Lihat catatan" style="display:inline-flex; align-items:center; gap:2px; color:var(--blue-500); cursor:pointer; margin-left:6px;" onclick="showNoteModal(this.getAttribute('data-note'))" data-note="${cleanNote}">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span style="font-size:9px; font-weight:600;">(1)</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+          <span class="sra-pic">${nameDisplay}</span>
+          <div style="display:flex; align-items:center;">
+            <span class="sra-status ${statusCSS}" style="font-size:9px; padding:2px 6px;">${statusText}</span>
+            ${notesHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    function updateSRAFilterUI(count) {
+      const controls = document.getElementById('sraFilterControls');
+      const filterText = document.getElementById('sraFilterText');
+      if (!controls || !filterText) return;
+      if (activeSRAFilterId !== null) {
+        controls.style.display = 'flex';
+        filterText.textContent = `${count} Dokumen Ditemukan`;
+      } else {
+        controls.style.display = 'none';
+      }
+    }
+
+    function clearSRAFilter() {
+      if (activeSRAFilterId !== null) {
+        toggleSRAFilter(activeSRAFilterId);
+      }
+    }
+
+    function toggleSRAFilter(sraId) {
+      if (activeSRAFilterId === sraId) {
+        activeSRAFilterId = null; // Clear filter
+      } else {
+        activeSRAFilterId = sraId; // Set filter
+      }
+
+      // Re-render both tables to reflect UI changes
+      renderSRATable(currentData.sub_rencana_aksi);
+
+      let docsToRender = currentData.dokumen || [];
+      if (activeSRAFilterId !== null) {
+        docsToRender = docsToRender.filter(d => Number(d.sub_action_plan_id) === activeSRAFilterId);
+      }
+      renderDocTable(docsToRender);
+      updateSRAFilterUI(docsToRender.length);
     }
 
     // ── DOC TABLE ───────────────────────────────────────────────
     function renderDocTable(docs) {
       const docBody = document.getElementById('docTableBody');
+      // Reset select all checkbox
+      const selectAllCb = document.getElementById('selectAllDocs');
+      if (selectAllCb) selectAllCb.checked = false;
+
       if (!docs || docs.length === 0) {
-        docBody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada dokumen</td></tr>`;
+        docBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada dokumen</td></tr>`;
+        updateBulkDocActions();
         return;
       }
-      docBody.innerHTML = docs.map(doc => {
-        const ext = getFileExtension(doc.original_file_name || doc.document_name);
-        const extCSS = ext === 'pdf' ? 'pdf' : ext === 'xlsx' || ext === 'xls' ? 'xlsx' : ext === 'docx' || ext === 'doc' ? 'docx' : 'pdf';
+      docBody.innerHTML = docs.map((doc, index) => {
+        let ext = getFileExtension(doc.original_file_name || doc.document_name);
+        if (doc.file_type === 'link') ext = 'link';
+        const extCSS = ext === 'link' ? 'default' : ext === 'pdf' ? 'pdf' : ext === 'xlsx' || ext === 'xls' ? 'xlsx' : ext === 'docx' || ext === 'doc' ? 'docx' : 'pdf';
         const statusBadge = doc.status === 'terverifikasi'
           ? '<span class="verified-badge">Terverifikasi</span>'
           : doc.status === 'ditolak'
             ? '<span class="pending-badge" style="background:#FEE2E2;color:#DC2626;">Ditolak</span>'
-            : '<span class="pending-badge">Perlu Verifikasi</span>';
+            : '<span class="pending-badge">Verifikasi</span>';
 
-        let verifikatorHtml = '–';
-        if (doc.status === 'terverifikasi' || doc.status === 'ditolak') {
-          const verifierName = doc.verified_by ? escapeHtml(doc.verified_by.name) : 'Sistem';
-          verifikatorHtml = `<div style="font-size:13px;">${verifierName}</div>`;
+        let verifikator1Html = '<span class="sra-pic" style="color:var(--slate-400)">–</span>';
+        let verifikator2Html = '<span class="sra-pic" style="color:var(--slate-400)">–</span>';
 
-          if (doc.status === 'ditolak' && doc.rejection_reason) {
-            const cleanNote = escapeHtml(doc.rejection_reason);
-            verifikatorHtml += `
-              <div title="Lihat alasan penolakan" style="display:inline-flex; align-items:center; gap:2px; color:var(--rose); cursor:pointer; margin-top: 4px;" onclick="showNoteModal(this.getAttribute('data-note'))" data-note="${cleanNote}">
-                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span style="font-size:10px; font-weight:600;">Lihat Alasan</span>
+        if (doc.approvals && doc.approvals.length > 0) {
+          verifikator1Html = getDocApproverChip(doc.approvals, 1, doc.status, currentUser);
+          verifikator2Html = getDocApproverChip(doc.approvals, 2, doc.status, currentUser);
+        } else {
+          // Fallback for 1-step verification
+          if (doc.status === 'terverifikasi' || doc.status === 'ditolak') {
+            const verifierName = doc.verified_by ? escapeHtml(doc.verified_by.name) : 'Sistem';
+            let nameDisplay = escapeHtml(verifierName);
+
+            const isMe = currentUser && (String(doc.verified_by?.user_id) === String(currentUser.id) || verifierName === currentUser.name);
+            if (isMe) {
+              nameDisplay = `<span style="color:var(--blue-600); font-weight:600;">${nameDisplay} (Anda)</span>`;
+            }
+
+            const userObj = doc.verified_by ? allUsers.find(u => Number(u.id) === Number(doc.verified_by.user_id)) : null;
+            if (userObj) {
+              const cName = userObj.company_name || 'BPBUMD';
+              const pos = userObj.position || 'Tidak ada posisi';
+              nameDisplay += `<div style="font-size:10px; color:var(--slate-500); font-weight:normal; margin-top:2px; white-space:normal; max-width:150px; line-height:1.3;">(${escapeHtml(cName)} - ${escapeHtml(pos)})</div>`;
+            }
+
+            let statusCSS = doc.status === 'terverifikasi' ? 'selesai' : 'terlambat';
+            let statusText = doc.status === 'terverifikasi' ? 'Disetujui' : 'Ditolak';
+
+            let notesHtml = '';
+            if (doc.status === 'ditolak' && doc.rejection_reason) {
+              const cleanNote = escapeHtml(doc.rejection_reason);
+              notesHtml = `
+                <div title="Lihat catatan" style="display:inline-flex; align-items:center; gap:2px; color:var(--blue-500); cursor:pointer; margin-left:6px;" onclick="showNoteModal(this.getAttribute('data-note'))" data-note="${cleanNote}">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  <span style="font-size:9px; font-weight:600;">(1)</span>
+                </div>
+              `;
+            }
+
+            verifikator1Html = `
+              <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                <span class="sra-pic">${nameDisplay}</span>
+                <div style="display:flex; align-items:center;">
+                  <span class="sra-status ${statusCSS}" style="font-size:9px; padding:2px 6px;">${statusText}</span>
+                  ${notesHtml}
+                </div>
+              </div>
+            `;
+          } else {
+            verifikator1Html = `
+              <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                <span class="sra-pic">-</span>
+                <div style="display:flex; align-items:center;">
+                  <span class="sra-status belum-mulai" style="font-size:9px; padding:2px 6px;">Menunggu</span>
+                </div>
               </div>
             `;
           }
         }
 
-        const verifyBtn = doc.status === 'diunggah' ? `
+        let showVerifyBtn = (doc.status === 'diunggah' || doc.status === 'verifikasi');
+        if (showVerifyBtn && doc.approvals && doc.approvals.length > 0 && typeof currentUser !== 'undefined' && currentUser) {
+          const myApproval = doc.approvals.find(a => String(a.approver_user_id) === String(currentUser.id));
+          if (myApproval) {
+            if (myApproval.status !== 'menunggu') {
+              showVerifyBtn = false;
+            } else {
+              const expectedOrder = doc.status === 'diunggah' ? 1 : 2;
+              if (Number(myApproval.approval_order) > expectedOrder) {
+                showVerifyBtn = false;
+              }
+            }
+          } else {
+            showVerifyBtn = false;
+          }
+        }
+
+        const verifyBtn = showVerifyBtn ? `
               <button class="doc-action-btn" title="Verifikasi" onclick="openVerifyDocModal(${doc.document_id})">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
               </button>` : '';
 
+        const canDelete = (currentUser && ((doc.uploaded_by && String(currentUser.id) === String(doc.uploaded_by.user_id)) || currentUser.role === 'superadmin'));
+
+        const sraNameHtml = doc.sub_action_plan_name ? escapeHtml(doc.sub_action_plan_name) : '<span style="color:var(--slate-400)">–</span>';
+
+        const trClass = (activeSRAFilterId !== null && Number(doc.sub_action_plan_id) === activeSRAFilterId) ? 'class="active-filter-row"' : '';
+
+        const downloadOrRedirectBtn = doc.file_type === 'link' ? `
+              <button class="doc-action-btn" title="Buka Tautan" onclick="window.open('${doc.file_path}', '_blank')">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </button>
+        ` : `
+              <button class="doc-action-btn" title="Unduh" onclick="downloadDocument(${doc.document_id})">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </button>
+        `;
+
         return `
-        <tr>
-          <td>
-            <div class="doc-file">
-              <div class="doc-icon ${extCSS}">${ext.toUpperCase() || 'FILE'}</div>
-              <span class="doc-name">${escapeHtml(doc.document_name || doc.original_file_name || 'Dokumen')}</span>
-            </div>
-          </td>
-          <td>${escapeHtml(doc.description || '–')}</td>
-          <td>${doc.uploaded_by ? escapeHtml(doc.uploaded_by.name) : '–'}</td>
-          <td>${formatDateShort(doc.uploaded_at)}</td>
-          <td>${statusBadge}</td>
-          <td>${verifikatorHtml}</td>
+        <tr ${trClass}>
+          <td style="text-align:center;"><input type="checkbox" class="doc-row-cb" data-id="${doc.document_id}" data-status="${doc.status}" data-can-verify="${showVerifyBtn}" data-can-delete="${canDelete}" onchange="updateBulkDocActions()" style="cursor:pointer;" /></td>
+          <td><div class="sra-num">${index + 1}</div></td>
           <td>
             <div class="doc-actions">
               <button class="doc-action-btn" title="Lihat" onclick="viewDocument(${doc.document_id})">
@@ -3279,29 +3706,36 @@
                   <circle cx="12" cy="12" r="3"/>
                 </svg>
               </button>
-              <button class="doc-action-btn" title="Unduh" onclick="downloadDocument(${doc.document_id})">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-              </button>
+              ${downloadOrRedirectBtn}
               ${verifyBtn}
-              <button class="doc-action-btn" title="Edit" onclick="openEditDocModal(${doc.document_id})">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
+              ${canDelete ? `
               <button class="doc-action-btn danger" title="Hapus" onclick="openDeleteDocModal(${doc.document_id})">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                   <path d="M10 11v6"/><path d="M14 11v6"/>
                 </svg>
-              </button>
+              </button>` : ''}
             </div>
           </td>
+          <td>
+            <div class="doc-file">
+              <div class="doc-icon ${extCSS}">${ext.toUpperCase() || 'FILE'}</div>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="doc-name">${escapeHtml(doc.document_name || doc.original_file_name || 'Dokumen')}</span>
+                ${doc.file_type === 'link' ? `<a href="${doc.file_path}" target="_blank" style="font-size: 11px; color: var(--blue-600); text-decoration: none; word-break: break-all;">${escapeHtml(doc.file_path)}</a>` : ''}
+              </div>
+            </div>
+          </td>
+          <td>${escapeHtml(doc.description || '–')}</td>
+          <td>${statusBadge}</td>
+          <td>${verifikator1Html}</td>
+          <td>${verifikator2Html}</td>
+          <td>${sraNameHtml}</td>
+          <td>${doc.uploaded_by ? escapeHtml(doc.uploaded_by.name) : '–'}</td>
+          <td>${formatDateShort(doc.uploaded_at)}</td>
         </tr>`;
       }).join('');
+      updateBulkDocActions();
     }
 
 
@@ -3356,10 +3790,10 @@
         let url, method;
 
         if (currentKPIId) {
-          url = `/api/kpis/${currentKPIId}`;
+          url = `/diagnosticreview-demo/api/kpis/${currentKPIId}`;
           method = 'PUT';
         } else {
-          url = `/api/kpis`;
+          url = `/diagnosticreview-demo/api/kpis`;
           method = 'POST';
           payload.action_plan_id = currentActionPlanId;
         }
@@ -3400,7 +3834,7 @@
       btn.disabled = true;
 
       try {
-        await apiFetch(`/api/kpis/${kpiToDelete}`, { method: 'DELETE' });
+        await apiFetch(`/diagnosticreview-demo/api/kpis/${kpiToDelete}`, { method: 'DELETE' });
         closeDeleteKPIModal();
         await loadActionPlanDetail(currentActionPlanId);
       } catch (err) {
@@ -3515,7 +3949,7 @@
         saveBtn.disabled = true;
 
         try {
-          await apiFetch(`/api/action-plans/${currentActionPlanId}`, {
+          await apiFetch(`/diagnosticreview-demo/api/action-plans/${currentActionPlanId}`, {
             method: 'PUT',
             body: JSON.stringify(payload),
           });
@@ -3600,6 +4034,8 @@
       populateUserDropdown('sraApprover2');
 
       document.getElementById('formAddSRA').reset();
+      document.getElementById('btnDraftSRA').style.display = 'inline-flex';
+      document.getElementById('btnSubmitSRA').innerHTML = 'Minta Verifikasi';
       document.getElementById('modalAddSRA').classList.add('active');
     }
 
@@ -3626,6 +4062,14 @@
       // Hide the detail modal if it's open
       closeDetailSRAModal();
 
+      if (sra.status === 'belum mulai') {
+        document.getElementById('btnDraftSRA').style.display = 'inline-flex';
+        document.getElementById('btnSubmitSRA').innerHTML = 'Minta Verifikasi';
+      } else {
+        document.getElementById('btnDraftSRA').style.display = 'none';
+        document.getElementById('btnSubmitSRA').innerHTML = isResubmit ? 'Ajukan Ulang' : 'Simpan Perubahan';
+      }
+
       document.getElementById('modalAddSRA').classList.add('active');
     }
 
@@ -3642,6 +4086,7 @@
         pic_user_id: document.getElementById('sraPic').value || null,
         approver_user_id_1: document.getElementById('sraApprover1').value,
         approver_user_id_2: document.getElementById('sraApprover2').value,
+        is_draft: window.isDraftSubmit || false
       };
 
       if (!payload.approver_user_id_1 || !payload.approver_user_id_2) {
@@ -3654,19 +4099,21 @@
         return;
       }
 
-      const btn = document.getElementById('btnSubmitSRA');
+      const btn = window.isDraftSubmit ? document.getElementById('btnDraftSRA') : document.getElementById('btnSubmitSRA');
       const originalText = btn.innerHTML;
       btn.innerHTML = 'Menyimpan...';
       btn.disabled = true;
+      if (window.isDraftSubmit) document.getElementById('btnSubmitSRA').disabled = true;
+      else document.getElementById('btnDraftSRA').disabled = true;
 
       try {
         if (editSRAId) {
-          await apiFetch(`/api/sub-action-plans/${editSRAId}`, {
+          await apiFetch(`/diagnosticreview-demo/api/sub-action-plans/${editSRAId}`, {
             method: 'PUT',
             body: JSON.stringify(payload)
           });
         } else {
-          await apiFetch('/api/sub-action-plans', {
+          await apiFetch('/diagnosticreview-demo/api/sub-action-plans', {
             method: 'POST',
             body: JSON.stringify(payload)
           });
@@ -3680,6 +4127,8 @@
       } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
+        document.getElementById('btnSubmitSRA').disabled = false;
+        document.getElementById('btnDraftSRA').disabled = false;
       }
     }
 
@@ -3696,96 +4145,49 @@
       document.getElementById('detSraPic').textContent = selectedSRA.pic ? selectedSRA.pic.name : '–';
       document.getElementById('detSraSubmitter').textContent = selectedSRA.submitted_by ? selectedSRA.submitted_by.name : '–';
 
-      // Approval Logic UI
-      const approveSection = document.getElementById('approveSection');
+      // Load attached documents
+      const sraDocs = (currentData.dokumen || []).filter(d => d.sub_action_plan_id === id);
+      const docContainer = document.getElementById('detSraDocumentContainer');
+      const docList = document.getElementById('detSraDocumentList');
+      if (sraDocs.length > 0) {
+        docContainer.style.display = 'block';
+        docList.innerHTML = sraDocs.map(doc => {
+          return `<div style="margin-bottom: 8px;">
+                    <a href="/diagnosticreview-demo/api/documents/${doc.document_id}/download" 
+                       target="_blank" 
+                       style="color: var(--primary); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                      </svg>
+                      ${escapeHtml(doc.document_name || doc.original_file_name || 'Dokumen')}
+                    </a>
+                  </div>`;
+        }).join('');
+      } else {
+        docContainer.style.display = 'none';
+        docList.innerHTML = '';
+      }
       const footer = document.getElementById('detSraFooter');
-      const notesEl = document.getElementById('approveNotes');
-
-      notesEl.value = '';
-      document.getElementById('verifDecision').value = '';
-      document.getElementById('chipSetuju').classList.remove('selected-setuju');
-      document.getElementById('chipTolak').classList.remove('selected-tolak');
-
-      approveSection.style.display = 'none';
-
       // Reset footer buttons to just "Tutup"
       footer.innerHTML = `<button class="btn btn-outline" onclick="closeDetailSRAModal()">Tutup</button>`;
 
-      // Check if current user can approve
-      // Sub rencana aksi status map:
-      // 'pengajuan' -> menunggu Verifikator 1
-      // 'verifikasi' -> menunggu Verifikator 2
       let canApprove = false;
+      let isMyApproval = false;
 
-      // We need approvals info. Since the action_plans/:id response might not include detailed approval steps
-      // Let's assume we can determine based on approver list if provided in selectedSRA.
-      if (selectedSRA.approvals && selectedSRA.approvals.length > 0) {
-        const expectedOrder = selectedSRA.status === 'pengajuan' ? 1 : (selectedSRA.status === 'verifikasi' ? 2 : null);
-
-        if (expectedOrder) {
-          const currentApproval = selectedSRA.approvals.find(a => a.approval_order === expectedOrder && String(a.status).toLowerCase() === 'menunggu');
-          if (currentApproval && currentApproval.approver && (String(currentApproval.approver.user_id) === String(currentUser.id) || currentApproval.approver.name === currentUser.name)) {
-            canApprove = true;
-          }
-        }
-      }
-
-      if (canApprove) {
-        approveSection.style.display = 'block';
+      const isSubmitter = selectedSRA.submitted_by && String(selectedSRA.submitted_by.user_id) === String(currentUser.id);
+      if (isSubmitter && (selectedSRA.status === 'ditolak' || selectedSRA.status === 'pengajuan' || selectedSRA.status === 'belum mulai')) {
+        const actionText = selectedSRA.status === 'belum mulai' ? 'Ajukan Verifikasi' : 'Ajukan Ulang';
         footer.innerHTML = `
-          <button class="btn btn-outline" onclick="closeDetailSRAModal()">Batal</button>
-          <button class="btn btn-primary" onclick="submitVerifikasi(${id})">Verifikasi</button>
+          <button class="btn btn-outline" onclick="closeDetailSRAModal()">Tutup</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-outline" style="color:var(--rose); border-color:var(--rose);" onclick="deleteSRA(${id})">Hapus</button>
+            <button class="btn btn-primary" onclick="openEditSRAModal(${id}, ${selectedSRA.status !== 'belum mulai'})">${actionText}</button>
+          </div>
         `;
-      } else {
-        const isSubmitter = selectedSRA.submitted_by && String(selectedSRA.submitted_by.user_id) === String(currentUser.id);
-        if (isSubmitter && (selectedSRA.status === 'ditolak' || selectedSRA.status === 'pengajuan')) {
-          footer.innerHTML = `
-            <button class="btn btn-outline" onclick="closeDetailSRAModal()">Tutup</button>
-            <div style="display:flex; gap:8px;">
-              <button class="btn btn-outline" style="color:var(--rose); border-color:var(--rose);" onclick="deleteSRA(${id})">Hapus</button>
-              <button class="btn btn-primary" onclick="resubmitSRA(${id})">Ajukan Ulang</button>
-            </div>
-          `;
-        }
       }
 
       document.getElementById('modalDetailSRA').classList.add('active');
-    }
-
-    function selectVerif(decision) {
-      document.getElementById('verifDecision').value = decision;
-      const chipSetuju = document.getElementById('chipSetuju');
-      const chipTolak = document.getElementById('chipTolak');
-      const labelNotes = document.getElementById('labelApproveNotes');
-      const inputNotes = document.getElementById('approveNotes');
-
-      chipSetuju.classList.remove('selected-setuju');
-      chipTolak.classList.remove('selected-tolak');
-
-      if (decision === 'setuju') {
-        chipSetuju.classList.add('selected-setuju');
-        labelNotes.innerHTML = 'Catatan (Opsional)';
-        inputNotes.placeholder = 'Tuliskan catatan...';
-      }
-      if (decision === 'tolak') {
-        chipTolak.classList.add('selected-tolak');
-        labelNotes.innerHTML = 'Catatan Penolakan <span class="required">*</span>';
-        inputNotes.placeholder = 'Alasan penolakan wajib diisi...';
-      }
-    }
-
-    async function submitVerifikasi(id) {
-      const decision = document.getElementById('verifDecision').value;
-      if (!decision) {
-        alert("Pilih keputusan verifikasi (Setujui / Tolak) terlebih dahulu.");
-        return;
-      }
-
-      if (decision === 'setuju') {
-        await approveSRA(id);
-      } else {
-        await rejectSRA(id);
-      }
     }
 
     function closeDetailSRAModal() {
@@ -3793,10 +4195,14 @@
       selectedSRA = null;
     }
 
-    async function deleteSRA(id) {
-      if (!confirm('Apakah Anda yakin ingin menghapus Sub Rencana Aksi ini?')) return;
+    async function deleteSRA(id, status) {
+      let msg = 'Apakah Anda yakin ingin menghapus Sub Rencana Aksi ini?';
+      if (status && status !== 'belum mulai' && status !== 'pengajuan' && status !== 'ditolak') {
+        msg = 'Perhatian: Sub Rencana Aksi ini sudah dalam proses verifikasi atau selesai. Apakah Anda yakin ingin menghapusnya?';
+      }
+      if (!confirm(msg)) return;
       try {
-        await apiFetch(`/api/sub-action-plans/${id}`, { method: 'DELETE' });
+        await apiFetch(`/diagnosticreview-demo/api/sub-action-plans/${id}`, { method: 'DELETE' });
         closeDetailSRAModal();
         await loadActionPlanDetail(currentActionPlanId);
       } catch (err) {
@@ -3821,7 +4227,7 @@
       const notes = document.getElementById('approveNotes').value;
 
       try {
-        await apiFetch(`/api/sub-action-plans/${id}/approve`, {
+        await apiFetch(`/diagnosticreview-demo/api/sub-action-plans/${id}/approve`, {
           method: 'POST',
           body: JSON.stringify({ notes })
         });
@@ -3841,7 +4247,7 @@
       }
 
       try {
-        await apiFetch(`/api/sub-action-plans/${id}/reject`, {
+        await apiFetch(`/diagnosticreview-demo/api/sub-action-plans/${id}/reject`, {
           method: 'POST',
           body: JSON.stringify({ notes })
         });
@@ -3856,6 +4262,28 @@
     // ── DOCUMENT UPLOAD ──────────────────────────────────────────
     let selectedUploadFile = null;
 
+    function toggleUploadType(type) {
+      if (type === 'file') {
+        document.getElementById('uploadFileGroup').style.display = 'block';
+        document.getElementById('uploadLinkGroup').style.display = 'none';
+        document.getElementById('uploadDocLink').required = false;
+      } else {
+        document.getElementById('uploadFileGroup').style.display = 'none';
+        document.getElementById('uploadLinkGroup').style.display = 'block';
+        document.getElementById('uploadDocLink').required = true;
+      }
+    }
+
+    function toggleEditUploadType(type) {
+      if (type === 'file') {
+        document.getElementById('editFileGroup').style.display = 'block';
+        document.getElementById('editLinkGroup').style.display = 'none';
+      } else {
+        document.getElementById('editFileGroup').style.display = 'none';
+        document.getElementById('editLinkGroup').style.display = 'block';
+      }
+    }
+
     function openUploadDocModal() {
       selectedUploadFile = null;
       document.getElementById('formUploadDoc').reset();
@@ -3864,7 +4292,27 @@
       document.getElementById('uploadDropzone').style.display = '';
       document.getElementById('uploadProgress').style.display = 'none';
       document.getElementById('uploadProgressBar').style.width = '0%';
+      document.getElementById('uploadDocLink').value = '';
+
+      const uploadTypeRadios = document.getElementsByName('uploadType');
+      if (uploadTypeRadios.length > 0) {
+        uploadTypeRadios[0].checked = true;
+        toggleUploadType('file');
+      }
+
       document.getElementById('modalUploadDoc').classList.add('active');
+
+      // Populate SRA dropdown
+      const sraDropdown = document.getElementById('uploadDocSRAId');
+      sraDropdown.innerHTML = '<option value="">Pilih Sub Rencana Aksi terkait</option>';
+      if (currentData && currentData.sub_rencana_aksi) {
+        currentData.sub_rencana_aksi.forEach(sra => {
+          const option = document.createElement('option');
+          option.value = sra.sub_action_plan_id;
+          option.textContent = sra.sub_action_plan_name;
+          sraDropdown.appendChild(option);
+        });
+      }
 
       // Setup drag-and-drop
       setupDropzone();
@@ -3972,8 +4420,21 @@
     async function submitUploadDoc(e) {
       e.preventDefault();
 
-      if (!selectedUploadFile) {
+      const uploadTypeRadios = document.getElementsByName('uploadType');
+      let uploadType = 'file';
+      for (const radio of uploadTypeRadios) {
+        if (radio.checked) uploadType = radio.value;
+      }
+
+      const link = document.getElementById('uploadDocLink').value.trim();
+
+      if (uploadType === 'file' && !selectedUploadFile) {
         alert('Pilih file terlebih dahulu.');
+        return;
+      }
+
+      if (uploadType === 'link' && !link) {
+        alert('Tautan wajib diisi.');
         return;
       }
 
@@ -4000,14 +4461,25 @@
 
       const formData = new FormData();
       formData.append('action_plan_id', currentActionPlanId);
+
+      const sraId = document.getElementById('uploadDocSRAId').value;
+      if (sraId) {
+        formData.append('sub_action_plan_id', sraId);
+      }
+
       formData.append('name', docName);
       if (docDesc) formData.append('description', docDesc);
-      formData.append('file', selectedUploadFile);
+
+      if (uploadType === 'file') {
+        formData.append('file', selectedUploadFile);
+      } else {
+        formData.append('link', link);
+      }
 
       try {
         const result = await new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
-          xhr.open('POST', '/api/documents');
+          xhr.open('POST', '/diagnosticreview-demo/api/documents');
           xhr.withCredentials = true; // Send httpOnly cookie
 
           xhr.upload.onprogress = (evt) => {
@@ -4057,6 +4529,11 @@
       const doc = currentData.dokumen.find(d => d.document_id === docId);
       if (!doc) return;
 
+      if (doc.file_type === 'link') {
+        window.open(doc.file_path, '_blank');
+        return;
+      }
+
       const ext = getFileExtension(doc.original_file_name || doc.document_name);
       const fileName = doc.original_file_name || doc.document_name;
 
@@ -4064,7 +4541,7 @@
       document.getElementById('previewDocType').textContent = (ext || 'FILE').toUpperCase();
 
       const frame = document.getElementById('previewDocFrame');
-      const docUrl = doc.file_path || `/api/documents/${docId}/download`;
+      const docUrl = doc.file_path || `/diagnosticreview-demo/api/documents/${docId}/download`;
 
       // Set download button
       document.getElementById('btnDownloadPreview').setAttribute('onclick', `downloadDocument(${docId})`);
@@ -4100,9 +4577,15 @@
     }
 
     function downloadDocument(docId) {
+      const doc = currentData.dokumen.find(d => d.document_id === docId);
+      if (doc && doc.file_type === 'link') {
+        window.open(doc.file_path, '_blank');
+        return;
+      }
+
       // Trigger download via hidden link
       const link = document.createElement('a');
-      link.href = `/api/documents/${docId}/download`;
+      link.href = `/diagnosticreview-demo/api/documents/${docId}/download`;
       link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
@@ -4124,7 +4607,7 @@
         ? '<span class="verified-badge">Terverifikasi</span>'
         : doc.status === 'ditolak'
           ? '<span class="pending-badge" style="background:#FEE2E2;color:#DC2626;">Ditolak</span>'
-          : '<span class="pending-badge">Perlu Verifikasi</span>';
+          : '<span class="pending-badge">Verifikasi</span>';
       document.getElementById('verifyDocStatus').innerHTML = statusBadge;
 
       // Reset chips
@@ -4136,7 +4619,7 @@
 
       // Show/hide verify section based on status
       const decisionSection = document.getElementById('verifyDecisionSection');
-      if (doc.status === 'diunggah') {
+      if (doc.status === 'diunggah' || doc.status === 'verifikasi') {
         decisionSection.style.display = '';
         document.getElementById('btnSubmitVerifyDoc').style.display = '';
       } else {
@@ -4187,7 +4670,7 @@
 
       try {
         if (decision === 'terverifikasi') {
-          await apiFetch(`/api/documents/${currentVerifyDocId}/verify`, { method: 'PUT' });
+          await apiFetch(`/diagnosticreview-demo/api/documents/${currentVerifyDocId}/verify`, { method: 'PUT' });
         } else {
           const reason = document.getElementById('docRejectReason').value.trim();
           if (!reason) {
@@ -4196,7 +4679,7 @@
             btn.disabled = false;
             return;
           }
-          await apiFetch(`/api/documents/${currentVerifyDocId}/reject`, {
+          await apiFetch(`/diagnosticreview-demo/api/documents/${currentVerifyDocId}/reject`, {
             method: 'PUT',
             body: JSON.stringify({ reason })
           });
@@ -4219,6 +4702,15 @@
       docToDelete = docId;
       const doc = currentData.dokumen.find(d => d.document_id === docId);
       document.getElementById('deleteDocName').textContent = doc ? (doc.document_name || doc.original_file_name || 'Dokumen') : 'dokumen ini';
+
+      const warningEl = document.getElementById('deleteDocWarningText');
+      if (warningEl) {
+        if (doc && (doc.status === 'terverifikasi' || doc.status === 'selesai')) {
+          warningEl.innerHTML = '<span style="color:var(--rose); font-weight:600;">Perhatian: Dokumen ini sudah diverifikasi.</span> Apakah Anda yakin ingin menghapus dokumen';
+        } else {
+          warningEl.innerHTML = 'Apakah Anda yakin ingin menghapus dokumen';
+        }
+      }
       document.getElementById('modalDeleteDoc').classList.add('active');
     }
 
@@ -4236,7 +4728,7 @@
       btn.disabled = true;
 
       try {
-        await apiFetch(`/api/documents/${docToDelete}`, { method: 'DELETE' });
+        await apiFetch(`/diagnosticreview-demo/api/documents/${docToDelete}`, { method: 'DELETE' });
         closeDeleteDocModal();
         await loadActionPlanDetail(currentActionPlanId);
       } catch (err) {
@@ -4245,6 +4737,288 @@
         btn.innerHTML = originalText;
         btn.disabled = false;
       }
+    }
+
+    // ── BULK ACTIONS ─────────────────────────────────────────────
+    function toggleSelectAllDocs(source) {
+      const checkboxes = document.querySelectorAll('.doc-row-cb');
+      for (let i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = source.checked;
+      }
+      updateBulkDocActions();
+    }
+
+    function updateBulkDocActions() {
+      const checkboxes = document.querySelectorAll('.doc-row-cb:checked');
+      const count = checkboxes.length;
+      const bulkActionsDiv = document.getElementById('bulkDocActions');
+      const countSpan = document.getElementById('bulkSelectCount');
+
+      const btnVerify = document.getElementById('btnBulkVerify');
+      const btnReject = document.getElementById('btnBulkReject');
+      const btnDelete = document.getElementById('btnBulkDelete');
+      const spanVerify = document.getElementById('bulkVerifCount');
+      const spanReject = document.getElementById('bulkRejectCount');
+      const spanDelete = document.getElementById('bulkDelCount');
+
+      if (count > 0) {
+        bulkActionsDiv.style.display = 'flex';
+        countSpan.textContent = count;
+
+        let verifyCount = 0;
+        let deleteCount = 0;
+
+        checkboxes.forEach(cb => {
+          if (cb.getAttribute('data-can-verify') === 'true') verifyCount++;
+          if (cb.getAttribute('data-can-delete') === 'true') deleteCount++;
+        });
+
+        if (verifyCount > 0) {
+          btnVerify.style.display = 'flex';
+          btnReject.style.display = 'flex';
+          spanVerify.textContent = verifyCount;
+          spanReject.textContent = verifyCount;
+        } else {
+          btnVerify.style.display = 'none';
+          btnReject.style.display = 'none';
+        }
+
+        if (deleteCount > 0) {
+          btnDelete.style.display = 'flex';
+          spanDelete.textContent = deleteCount;
+        } else {
+          btnDelete.style.display = 'none';
+        }
+      } else {
+        bulkActionsDiv.style.display = 'none';
+      }
+    }
+
+    async function bulkVerifyDocs() {
+      const checkboxes = document.querySelectorAll('.doc-row-cb:checked');
+      const docIds = [];
+      checkboxes.forEach(cb => {
+        if (cb.getAttribute('data-can-verify') === 'true') {
+          docIds.push(cb.getAttribute('data-id'));
+        }
+      });
+
+      if (docIds.length === 0) return;
+      if (!confirm(`Verifikasi ${docIds.length} dokumen terpilih?`)) return;
+
+      const btn = document.getElementById('btnBulkVerify');
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<svg width="13" height="13" style="animation:spin .6s linear infinite; margin-right:4px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4m-7.07-2.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83"/></svg> Memproses...';
+      btn.disabled = true;
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      await Promise.allSettled(docIds.map(async id => {
+        try {
+          await apiFetch(`/diagnosticreview-demo/api/documents/${id}/verify`, {
+            method: 'PUT',
+            body: JSON.stringify({})
+          });
+          successCount++;
+        } catch (e) {
+          errorCount++;
+        }
+      }));
+
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+
+      if (errorCount > 0) {
+        alert(`Berhasil memverifikasi ${successCount} dokumen, gagal ${errorCount} dokumen.`);
+      } else {
+        alert(`Berhasil memverifikasi ${successCount} dokumen.`);
+      }
+      await loadActionPlanDetail(currentActionPlanId);
+    }
+
+    async function bulkRejectDocs() {
+      const checkboxes = document.querySelectorAll('.doc-row-cb:checked');
+      const docIds = [];
+      checkboxes.forEach(cb => {
+        if (cb.getAttribute('data-can-verify') === 'true') {
+          docIds.push(cb.getAttribute('data-id'));
+        }
+      });
+
+      if (docIds.length === 0) return;
+      const reason = prompt(`Masukkan alasan penolakan untuk ${docIds.length} dokumen terpilih:`);
+      if (reason === null) return; // User cancelled
+
+      const btn = document.getElementById('btnBulkReject');
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<svg width="13" height="13" style="animation:spin .6s linear infinite; margin-right:4px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4m-7.07-2.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83"/></svg> Memproses...';
+      btn.disabled = true;
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      await Promise.allSettled(docIds.map(async id => {
+        try {
+          await apiFetch(`/diagnosticreview-demo/api/documents/${id}/reject`, {
+            method: 'PUT',
+            body: JSON.stringify({ reason })
+          });
+          successCount++;
+        } catch (e) {
+          errorCount++;
+        }
+      }));
+
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+
+      if (errorCount > 0) {
+        alert(`Berhasil menolak ${successCount} dokumen, gagal ${errorCount} dokumen.`);
+      } else {
+        alert(`Berhasil menolak ${successCount} dokumen.`);
+      }
+      await loadActionPlanDetail(currentActionPlanId);
+    }
+
+    function toggleSelectAllSRA(source) {
+      const checkboxes = document.querySelectorAll('.sra-row-cb');
+      for (let i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = source.checked;
+      }
+      updateBulkSRAActions();
+    }
+
+    function updateBulkSRAActions() {
+      const checkboxes = document.querySelectorAll('.sra-row-cb:checked');
+      const count = checkboxes.length;
+      const bulkActionsDiv = document.getElementById('bulkSRAActions');
+      const countSpan = document.getElementById('bulkSRASelectCount');
+
+      const btnDelete = document.getElementById('btnBulkSRADelete');
+      const spanDelete = document.getElementById('bulkSRADelCount');
+
+      if (count > 0) {
+        bulkActionsDiv.style.display = 'flex';
+        countSpan.textContent = count;
+
+        let deleteCount = 0;
+
+        checkboxes.forEach(cb => {
+          if (cb.getAttribute('data-can-delete') === 'true') deleteCount++;
+        });
+
+        if (deleteCount > 0) {
+          btnDelete.style.display = 'flex';
+          spanDelete.textContent = deleteCount;
+        } else {
+          btnDelete.style.display = 'none';
+        }
+      } else {
+        bulkActionsDiv.style.display = 'none';
+      }
+    }
+
+    async function bulkDeleteSRA() {
+      const checkboxes = document.querySelectorAll('.sra-row-cb:checked');
+      const sraIds = [];
+      let hasVerified = false;
+      checkboxes.forEach(cb => {
+        if (cb.getAttribute('data-can-delete') === 'true') {
+          sraIds.push(cb.getAttribute('data-id'));
+          const st = cb.getAttribute('data-status');
+          if (st && st !== 'belum mulai' && st !== 'pengajuan' && st !== 'ditolak') {
+            hasVerified = true;
+          }
+        }
+      });
+
+      if (sraIds.length === 0) return;
+      let msg = `Anda yakin ingin menghapus ${sraIds.length} sub rencana aksi terpilih? Tindakan ini tidak dapat dibatalkan.`;
+      if (hasVerified) {
+        msg = `Perhatian: Beberapa sub rencana aksi terpilih sudah diverifikasi atau selesai.\n\n` + msg;
+      }
+      if (!confirm(msg)) return;
+
+      const btn = document.getElementById('btnBulkSRADelete');
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<svg width="13" height="13" style="animation:spin .6s linear infinite; margin-right:4px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4m-7.07-2.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83"/></svg> Menghapus...';
+      btn.disabled = true;
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      await Promise.allSettled(sraIds.map(async id => {
+        try {
+          await apiFetch(`/diagnosticreview-demo/api/sub-action-plans/${id}`, {
+            method: 'DELETE'
+          });
+          successCount++;
+        } catch (e) {
+          errorCount++;
+        }
+      }));
+
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+
+      if (errorCount > 0) {
+        alert(`Berhasil menghapus ${successCount} sub rencana aksi, gagal ${errorCount} sub rencana aksi.`);
+      } else {
+        alert(`Berhasil menghapus ${successCount} sub rencana aksi.`);
+      }
+      await loadActionPlanDetail(currentActionPlanId);
+    }
+
+    async function bulkDeleteDocs() {
+      const checkboxes = document.querySelectorAll('.doc-row-cb:checked');
+      const docIds = [];
+      let hasVerified = false;
+      checkboxes.forEach(cb => {
+        if (cb.getAttribute('data-can-delete') === 'true') {
+          docIds.push(cb.getAttribute('data-id'));
+          const st = cb.getAttribute('data-status');
+          if (st === 'terverifikasi' || st === 'selesai') {
+            hasVerified = true;
+          }
+        }
+      });
+
+      if (docIds.length === 0) return;
+      let msg = `Anda yakin ingin menghapus ${docIds.length} dokumen terpilih? Tindakan ini tidak dapat dibatalkan.`;
+      if (hasVerified) {
+        msg = `Perhatian: Beberapa dokumen terpilih sudah diverifikasi.\n\n` + msg;
+      }
+      if (!confirm(msg)) return;
+
+      const btn = document.getElementById('btnBulkDelete');
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<svg width="13" height="13" style="animation:spin .6s linear infinite; margin-right:4px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4m-7.07-2.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83"/></svg> Menghapus...';
+      btn.disabled = true;
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      await Promise.allSettled(docIds.map(async id => {
+        try {
+          await apiFetch(`/diagnosticreview-demo/api/documents/${id}`, {
+            method: 'DELETE'
+          });
+          successCount++;
+        } catch (e) {
+          errorCount++;
+        }
+      }));
+
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+
+      if (errorCount > 0) {
+        alert(`Berhasil menghapus ${successCount} dokumen, gagal ${errorCount} dokumen.`);
+      } else {
+        alert(`Berhasil menghapus ${successCount} dokumen.`);
+      }
+      await loadActionPlanDetail(currentActionPlanId);
     }
   </script>
 </body>

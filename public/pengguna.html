@@ -152,15 +152,18 @@
       color: var(--slate-400);
     }
 
+
     .nav-tabs {
       display: flex;
-      gap: 4px;
+      gap: 16px;
       margin-left: 12px;
+      border-bottom: 1px solid var(--slate-200);
     }
 
+
     .nav-tab {
-      padding: 7px 18px;
-      border-radius: 8px;
+      padding: 10px 4px;
+      border-radius: 0;
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
@@ -170,6 +173,8 @@
       border: none;
       background: none;
       font-family: inherit;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
     }
 
     .user-chip:hover {
@@ -192,8 +197,9 @@
     }
 
     .nav-tab.active {
-      background: var(--navy);
-      color: white;
+      background: transparent;
+      color: var(--slate-900);
+      border-bottom-color: var(--sky);
     }
 
     .nav-right {
@@ -372,7 +378,7 @@
 
     .page-heading-title {
       font-size: 20px;
-      font-weight: 800;
+      font-weight: 600;
       color: var(--slate-900);
     }
 
@@ -488,7 +494,7 @@
 
     .card-title {
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--slate-900);
     }
 
@@ -1467,7 +1473,7 @@
   <nav class="topnav" id="topnav">
     <div class="brand">
       <div class="brand-logo">
-        <img src="/logo.png" alt="Logo" />
+        <img src="/diagnosticreview-demo/logo.png" alt="Logo" />
       </div>
       <div class="brand-text">
         <div class="t1">BPBUMD</div>
@@ -1491,8 +1497,8 @@
     </div>
 
     <div class="nav-tabs">
-      <a class="nav-tab" href="/dashboard-aspek.html">Dashboard</a>
-      <a class="nav-tab active" href="/daftar-bumd.html">BUMD</a>
+      <a class="nav-tab" href="/diagnosticreview-demo/dashboard-aspek.html">Dashboard</a>
+      <a class="nav-tab active" href="/diagnosticreview-demo/daftar-bumd.html">BUMD</a>
     </div>
 
     <div class="nav-right">
@@ -1510,7 +1516,7 @@
   <div class="body-wrap">
     <!-- ICON SIDEBAR -->
     <aside class="icon-sidebar">
-      <a class="icon-btn" href="/dashboard-aspek.html" title="Dashboard">
+      <a class="icon-btn" href="/diagnosticreview-demo/dashboard-aspek.html" title="Dashboard">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -1518,7 +1524,7 @@
           <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
       </a>
-      <a class="icon-btn" href="/daftar-bumd.html" title="Daftar BUMD">
+      <a class="icon-btn" href="/diagnosticreview-demo/daftar-bumd.html" title="Daftar BUMD">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14,2 14,8 20,8" />
@@ -1528,7 +1534,7 @@
         </svg>
       </a>
 
-      <a class="icon-btn active" href="/pengguna.html" title="Manajemen Pengguna">
+      <a class="icon-btn active" href="/diagnosticreview-demo/pengguna.html" title="Manajemen Pengguna">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
@@ -1560,7 +1566,7 @@
 
       <!-- BREADCRUMB -->
       <nav class="breadcrumb-nav">
-        <a href="/dashboard-aspek.html" title="Beranda">
+        <a href="/diagnosticreview-demo/dashboard-aspek.html" title="Beranda">
           <svg class="home-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -1916,7 +1922,7 @@
   <!-- TOAST -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <script src="/auth.js"></script>
+  <script src="/diagnosticreview-demo/auth.js?v=1781666555004"></script>
   <script>
     // ════════════════════════════════════════════
     //  STATE
@@ -1996,14 +2002,14 @@
 
     async function loadBumds() {
       try {
-        const res = await apiFetch('/api/bumds');
+        const res = await apiFetch('/diagnosticreview-demo/api/bumds');
         allBumds = res.data || [];
       } catch (err) { }
     }
 
     async function loadUsersList() {
       try {
-        const res = await apiFetch('/api/auth/users');
+        const res = await apiFetch('/diagnosticreview-demo/api/auth/users');
         allUsers = res.data || [];
         const positions = [...new Set(allUsers.map(u => u.position).filter(Boolean))].sort();
         const lainnya = [...new Set(allUsers.filter(u => u.company_type === 'lainnya').map(u => u.company_name).filter(Boolean))].sort();
@@ -2184,7 +2190,7 @@
       btn.disabled = true;
 
       try {
-        await apiFetch(`/api/bumds/${deletingId}`, { method: 'DELETE' });
+        await apiFetch(`/diagnosticreview-demo/api/bumds/${deletingId}`, { method: 'DELETE' });
         showToast('BUMD berhasil dihapus', 'success');
         closeDeleteModal();
         await loadUsersList();
@@ -2216,7 +2222,7 @@
       btn.disabled = true;
 
       try {
-        await apiFetch(`/api/auth/users/${deletingUserId}`, { method: 'DELETE' });
+        await apiFetch(`/diagnosticreview-demo/api/auth/users/${deletingUserId}`, { method: 'DELETE' });
         showToast('Pengguna berhasil dihapus', 'success');
         closeDeleteUserModal();
         await loadUsersList();
@@ -2329,7 +2335,7 @@
       btn.disabled = true;
 
       try {
-        await apiFetch('/api/auth/register', {
+        await apiFetch('/diagnosticreview-demo/api/auth/register', {
           method: 'POST',
           body: JSON.stringify({
             company_id: company_id || null,
@@ -2643,7 +2649,7 @@
       if (password) payload.password = password;
 
       try {
-        await apiFetch(`/api/auth/users/${editingUserId}`, {
+        await apiFetch(`/diagnosticreview-demo/api/auth/users/${editingUserId}`, {
           method: 'PUT',
           body: JSON.stringify(payload)
         });

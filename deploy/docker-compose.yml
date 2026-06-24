@@ -13,15 +13,16 @@ services:
       - "${DB_PORT:-5484}:5432"
     volumes:
       - bpbumd_postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   app:
-    image: mfarsa/bpbumd-app:v1
+    image: bpbumd-app:v1
     container_name: bpbumd-app
     restart: unless-stopped
     ports:
       - "${PORT:-8084}:8080"
     environment:
+      NODE_ENV: development
       PORT: 8080
       DB_HOST: postgres
       DB_PORT: 5432

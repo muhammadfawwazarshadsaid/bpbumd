@@ -223,6 +223,7 @@ CREATE TABLE sub_action_plans (
 
     CONSTRAINT chk_sub_action_plans_status
         CHECK (status IN (
+            'belum mulai',
             'pengajuan',
             'verifikasi',
             'selesai',

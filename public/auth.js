@@ -5,13 +5,13 @@
  * JavaScript TIDAK punya akses ke token — lebih aman dari XSS.
  *
  * Usage:
- *   <script src="/auth.js"></script>
+ *   <script src="/diagnosticreview-demo/auth.js"></script>
  */
 
 (function (window) {
   "use strict";
 
-  const LOGIN_URL = "/login.html";
+  const LOGIN_URL = "/diagnosticreview-demo/login.html";
   const USER_KEY = "bpbumd_user";
 
   /**
@@ -46,7 +46,7 @@
    */
   async function requireAuth() {
     try {
-      const response = await fetch("/api/auth/me", {
+      const response = await fetch("/diagnosticreview-demo/api/auth/me", {
         credentials: "same-origin",
       });
 
@@ -101,7 +101,7 @@
    */
   async function logout() {
     try {
-      await fetch("/api/auth/logout", {
+      await fetch("/diagnosticreview-demo/api/auth/logout", {
         method: "POST",
         credentials: "same-origin",
       });

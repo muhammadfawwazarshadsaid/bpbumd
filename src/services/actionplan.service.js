@@ -240,7 +240,11 @@ async function getProgressBreakdown(client, actionPlanId) {
 
         COUNT(*) FILTER (
           WHERE status = 'ditolak'
-        )::INT AS ditolak
+        )::INT AS ditolak,
+
+        COUNT(*) FILTER (
+          WHERE status = 'belum mulai'
+        )::INT AS belum_mulai
 
       FROM sub_action_plans
       WHERE action_plan_id = $1
@@ -258,6 +262,7 @@ async function getProgressBreakdown(client, actionPlanId) {
   const verifikasi = toNumber(row.verifikasi);
   const terlambat = toNumber(row.terlambat);
   const ditolak = toNumber(row.ditolak);
+  const belum_mulai = toNumber(row.belum_mulai);
 
   return {
     total,
@@ -266,11 +271,13 @@ async function getProgressBreakdown(client, actionPlanId) {
     selesai,
     terlambat,
     ditolak,
+    belum_mulai,
     pengajuan_percentage: pct(pengajuan),
     verifikasi_percentage: pct(verifikasi),
     selesai_percentage: pct(selesai),
     terlambat_percentage: pct(terlambat),
     ditolak_percentage: pct(ditolak),
+    belum_mulai_percentage: pct(belum_mulai),
   };
 }
 
@@ -285,11 +292,15 @@ async function getDocumentSummary(client, actionPlanId) {
         COUNT(*)::INT AS total_dokumen,
 
         COUNT(*) FILTER (
-          WHERE status = 'diunggah'
+          WHERE status IN ('diunggah', 'verifikasi')
         )::INT AS perlu_verifikasi
 
-      FROM documents
-      WHERE action_plan_id = $1
+      FROM documents d
+      WHERE
+        d.action_plan_id = $1
+        OR d.sub_action_plan_id IN (
+          SELECT id FROM sub_action_plans WHERE action_plan_id = $1
+        )
     `,
     [actionPlanId],
   );
@@ -500,31 +511,51 @@ async function getDokumen(client, actionPlanId) {
   const result = await client.query(
     `
       SELECT
-        d.id                 AS document_id,
-        d.name               AS document_name,
+        d.id AS document_id,
+        d.name AS document_name,
         d.description,
         d.original_file_name,
         d.file_type,
         d.file_size,
         d.file_path,
         d.status,
-        d.rejection_reason,
         d.uploaded_at,
         d.verified_at,
+        d.rejection_reason,
+        d.sub_action_plan_id,
+        sap.name AS sub_action_plan_name,
 
-        uploader.id          AS uploaded_by_user_id,
-        uploader.name        AS uploaded_by_name,
+        (
+          SELECT json_agg(json_build_object(
+            'id', da.id,
+            'approver_user_id', da.approver_user_id,
+            'approval_order', da.approval_order,
+            'status', da.status,
+            'notes', da.notes,
+            'approver_name', ua.name
+          ) ORDER BY da.approval_order ASC)
+          FROM document_approvals da
+          JOIN users ua ON ua.id = da.approver_user_id
+          WHERE da.document_id = d.id
+        ) AS approvals,
 
-        verifier.id          AS verified_by_user_id,
-        verifier.name        AS verified_by_name
+        uploader.id AS uploaded_by_user_id,
+        uploader.name AS uploaded_by_name,
+        verifier.id AS verified_by_user_id,
+        verifier.name AS verified_by_name
 
       FROM documents d
       LEFT JOIN users uploader
         ON uploader.id = d.uploaded_by_user_id
       LEFT JOIN users verifier
         ON verifier.id = d.verified_by_user_id
+      LEFT JOIN sub_action_plans sap
+        ON sap.id = d.sub_action_plan_id
       WHERE
         d.action_plan_id = $1
+        OR d.sub_action_plan_id IN (
+          SELECT id FROM sub_action_plans WHERE action_plan_id = $1
+        )
       ORDER BY
         d.uploaded_at DESC
     `,
@@ -541,6 +572,8 @@ async function getDokumen(client, actionPlanId) {
     file_path: row.file_path,
     status: row.status,
     rejection_reason: row.rejection_reason,
+    sub_action_plan_id: row.sub_action_plan_id ? Number(row.sub_action_plan_id) : null,
+    sub_action_plan_name: row.sub_action_plan_name,
     uploaded_at: row.uploaded_at,
     verified_at: row.verified_at,
     uploaded_by: row.uploaded_by_user_id
@@ -555,6 +588,7 @@ async function getDokumen(client, actionPlanId) {
         name: row.verified_by_name,
       }
       : null,
+    approvals: row.approvals || []
   }));
 }
 

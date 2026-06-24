@@ -33,7 +33,7 @@ async function logHistory(client, actionPlanId, userId, description) {
  *  - description  (optional)
  */
 async function uploadDocument(user, file, body) {
-  const { action_plan_id, name, description } = body;
+  const { action_plan_id, sub_action_plan_id, name, description, link } = body;
 
   if (!action_plan_id) {
     const error = new Error("action_plan_id wajib diisi");
@@ -41,8 +41,8 @@ async function uploadDocument(user, file, body) {
     throw error;
   }
 
-  if (!file) {
-    const error = new Error("File wajib diunggah");
+  if (!file && !link) {
+    const error = new Error("File atau Tautan wajib diisi");
     error.statusCode = 400;
     throw error;
   }
@@ -74,43 +74,84 @@ async function uploadDocument(user, file, body) {
       throw error;
     }
 
-    // Determine file extension/type
-    const ext = path.extname(file.originalname).toLowerCase();
-    const fileType = ext.replace(".", "") || "unknown";
+    // Determine file or link info
+    let ext = "";
+    let fileType = "";
+    let relativePath = "";
+    let originalName = "";
+    let fileSize = 0;
 
-    // Build relative file path for storage
-    const relativeDir = path.basename(file.destination);
-    const relativePath = `/uploads/${relativeDir}/${file.filename}`;
+    if (file) {
+      ext = path.extname(file.originalname).toLowerCase();
+      fileType = ext.replace(".", "") || "unknown";
+      const relativeDir = path.basename(file.destination);
+      relativePath = `/uploads/${relativeDir}/${file.filename}`;
+      originalName = file.originalname;
+      fileSize = file.size;
+    } else if (link) {
+      fileType = "link";
+      relativePath = link;
+      originalName = name.trim();
+      fileSize = 0;
+    }
+
+    let final_action_plan_id = action_plan_id;
+    let final_sub_action_plan_id = sub_action_plan_id || null;
+    if (final_sub_action_plan_id) {
+      final_action_plan_id = null;
+    }
 
     const result = await client.query(
       `
         INSERT INTO documents (
-          action_plan_id, uploaded_by_user_id,
+          action_plan_id, sub_action_plan_id, uploaded_by_user_id,
           name, description, original_file_name,
           file_type, file_size, file_path,
           status, uploaded_at
         )
         VALUES (
-          $1, $2,
-          $3, $4, $5,
-          $6, $7, $8,
+          $1, $2, $3,
+          $4, $5, $6,
+          $7, $8, $9,
           'diunggah', CURRENT_TIMESTAMP
         )
         RETURNING *
       `,
       [
-        action_plan_id,
+        final_action_plan_id,
+        final_sub_action_plan_id,
         user.id,
         name.trim(),
         description || null,
-        file.originalname,
+        originalName,
         fileType,
-        file.size,
+        fileSize,
         relativePath,
       ],
     );
 
     const doc = result.rows[0];
+
+    if (final_sub_action_plan_id) {
+      // Get approvers from the SRA
+      const sraApprovers = await client.query(
+        `SELECT approver_user_id, approval_order 
+         FROM sub_action_plan_approvals 
+         WHERE sub_action_plan_id = $1 
+         ORDER BY approval_order ASC`,
+        [final_sub_action_plan_id]
+      );
+
+      if (sraApprovers.rowCount > 0) {
+        for (const approver of sraApprovers.rows) {
+          await client.query(
+            `INSERT INTO document_approvals (document_id, approver_user_id, approval_order, status)
+             VALUES ($1, $2, $3, 'menunggu')`,
+            [doc.id, approver.approver_user_id, approver.approval_order]
+          );
+        }
+      }
+    }
 
     // Log history
     await logHistory(
@@ -151,7 +192,7 @@ async function uploadDocument(user, file, body) {
  * Updates document metadata (name, description) and optionally replaces the file.
  */
 async function updateDocument(user, documentId, file, body) {
-  const { name, description } = body;
+  const { name, description, link } = body;
 
   if (!name || !name.trim()) {
     const error = new Error("Nama dokumen wajib diisi");
@@ -193,25 +234,39 @@ async function updateDocument(user, documentId, file, body) {
     if (doc.name !== name.trim()) changes.push(`nama menjadi "${name.trim()}"`);
 
     // Handle optional file replacement
-    if (file) {
-      const ext = path.extname(file.originalname).toLowerCase();
-      const fileType = ext.replace(".", "") || "unknown";
-      const relativeDir = path.basename(file.destination);
-      const relativePath = `/uploads/${relativeDir}/${file.filename}`;
+    if (file || link) {
+      if (file) {
+        const ext = path.extname(file.originalname).toLowerCase();
+        const fileType = ext.replace(".", "") || "unknown";
+        const relativeDir = path.basename(file.destination);
+        const relativePath = `/uploads/${relativeDir}/${file.filename}`;
 
-      sets.push(`original_file_name = $${paramIndex++}`);
-      values.push(file.originalname);
+        sets.push(`original_file_name = $${paramIndex++}`);
+        values.push(file.originalname);
 
-      sets.push(`file_type = $${paramIndex++}`);
-      values.push(fileType);
+        sets.push(`file_type = $${paramIndex++}`);
+        values.push(fileType);
 
-      sets.push(`file_size = $${paramIndex++}`);
-      values.push(file.size);
+        sets.push(`file_size = $${paramIndex++}`);
+        values.push(file.size);
 
-      sets.push(`file_path = $${paramIndex++}`);
-      values.push(relativePath);
+        sets.push(`file_path = $${paramIndex++}`);
+        values.push(relativePath);
+      } else if (link) {
+        sets.push(`original_file_name = $${paramIndex++}`);
+        values.push(name.trim());
 
-      // Status goes back to 'diunggah' if file changed
+        sets.push(`file_type = $${paramIndex++}`);
+        values.push("link");
+
+        sets.push(`file_size = $${paramIndex++}`);
+        values.push(0);
+
+        sets.push(`file_path = $${paramIndex++}`);
+        values.push(link);
+      }
+
+      // Status goes back to 'diunggah' if file/link changed
       sets.push(`status = $${paramIndex++}`);
       values.push("diunggah");
 
@@ -219,16 +274,25 @@ async function updateDocument(user, documentId, file, body) {
       sets.push(`verified_at = NULL`);
       sets.push(`rejection_reason = NULL`);
 
-      changes.push(`file diperbarui`);
+      if (doc.sub_action_plan_id) {
+        await client.query(
+          `UPDATE document_approvals SET status = 'menunggu', notes = NULL, approved_at = NULL, rejected_at = NULL WHERE document_id = $1`,
+          [documentId]
+        );
+      }
+
+      changes.push(`file/tautan diperbarui`);
 
       // Delete old file from disk
-      try {
-        const oldAbsolutePath = path.join(__dirname, "../../", doc.file_path);
-        if (fs.existsSync(oldAbsolutePath)) {
-          fs.unlinkSync(oldAbsolutePath);
+      if (doc.file_type !== 'link' && doc.file_path) {
+        try {
+          const oldAbsolutePath = path.join(__dirname, "../../", doc.file_path);
+          if (fs.existsSync(oldAbsolutePath)) {
+            fs.unlinkSync(oldAbsolutePath);
+          }
+        } catch (fsErr) {
+          console.error("Failed to delete old file from disk:", fsErr.message);
         }
-      } catch (fsErr) {
-        console.error("Failed to delete old file from disk:", fsErr.message);
       }
     } else {
       // If status was rejected and they only updated metadata, move it back to 'diunggah'
@@ -238,6 +302,13 @@ async function updateDocument(user, documentId, file, body) {
         sets.push(`verified_by_user_id = NULL`);
         sets.push(`verified_at = NULL`);
         sets.push(`rejection_reason = NULL`);
+
+        if (doc.sub_action_plan_id) {
+          await client.query(
+            `UPDATE document_approvals SET status = 'menunggu', notes = NULL, approved_at = NULL, rejected_at = NULL WHERE document_id = $1`,
+            [documentId]
+          );
+        }
       }
     }
 
@@ -326,23 +397,95 @@ async function verifyDocument(user, documentId) {
       throw error;
     }
 
-    if (Number(user.id) === Number(doc.uploaded_by_user_id)) {
-      const error = new Error("Anda tidak dapat memverifikasi dokumen yang Anda unggah sendiri");
-      error.statusCode = 403;
-      throw error;
-    }
+    // if (Number(user.id) === Number(doc.uploaded_by_user_id)) {
+    //   const error = new Error("Anda tidak dapat memverifikasi dokumen yang Anda unggah sendiri");
+    //   error.statusCode = 403;
+    //   throw error;
+    // }
 
-    await client.query(
-      `
-        UPDATE documents
-        SET status = 'terverifikasi',
-            verified_by_user_id = $1,
-            verified_at = CURRENT_TIMESTAMP,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2
-      `,
-      [user.id, documentId],
-    );
+    let currentApprovalOrder = null;
+
+    if (doc.sub_action_plan_id) {
+      // 2-step verification logic
+      const approvalCheck = await client.query(
+        `SELECT * FROM document_approvals 
+         WHERE document_id = $1 AND approver_user_id = $2 
+         FOR UPDATE`,
+        [documentId, user.id]
+      );
+
+      if (approvalCheck.rowCount === 0) {
+        const error = new Error("Anda tidak berhak memverifikasi dokumen ini");
+        error.statusCode = 403;
+        throw error;
+      }
+
+      const approval = approvalCheck.rows[0];
+      currentApprovalOrder = approval.approval_order;
+
+      if (approval.status !== 'menunggu') {
+        const error = new Error("Anda sudah memverifikasi dokumen ini");
+        error.statusCode = 400;
+        throw error;
+      }
+
+      // Ensure previous steps are approved
+      if (approval.approval_order > 1) {
+        const prevApproval = await client.query(
+          `SELECT status FROM document_approvals 
+           WHERE document_id = $1 AND approval_order = $2`,
+          [documentId, approval.approval_order - 1]
+        );
+        if (prevApproval.rowCount > 0 && prevApproval.rows[0].status !== 'disetujui') {
+          const error = new Error("Menunggu persetujuan verifikator sebelumnya");
+          error.statusCode = 400;
+          throw error;
+        }
+      }
+
+      await client.query(
+        `UPDATE document_approvals 
+         SET status = 'disetujui', approved_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [approval.id]
+      );
+
+      // Check if all approvals are done
+      const allApprovals = await client.query(
+        `SELECT status FROM document_approvals WHERE document_id = $1`,
+        [documentId]
+      );
+
+      let allApproved = allApprovals.rows.every(a => a.status === 'disetujui');
+
+      if (allApproved) {
+        doc.status = 'terverifikasi';
+        await client.query(
+          `UPDATE documents SET status = 'terverifikasi', verified_by_user_id = $1, verified_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+          [user.id, documentId]
+        );
+      } else {
+        doc.status = 'verifikasi';
+        await client.query(
+          `UPDATE documents SET status = 'verifikasi', updated_at = CURRENT_TIMESTAMP WHERE id = $1`,
+          [documentId]
+        );
+      }
+    } else {
+      // 1-step verification for Action Plan documents
+      doc.status = 'terverifikasi';
+      await client.query(
+        `
+          UPDATE documents
+          SET status = 'terverifikasi',
+              verified_by_user_id = $1,
+              verified_at = CURRENT_TIMESTAMP,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = $2
+        `,
+        [user.id, documentId],
+      );
+    }
 
     // Log history
     if (doc.action_plan_id) {
@@ -354,9 +497,57 @@ async function verifyDocument(user, documentId) {
       );
     }
 
+    if (doc.sub_action_plan_id && currentApprovalOrder !== null) {
+      try {
+        // Lock the SRA approval row for this step to serialize concurrent document verifications
+        await client.query(`
+          SELECT id FROM sub_action_plan_approvals
+          WHERE sub_action_plan_id = $1 AND approval_order = $2
+          FOR UPDATE
+        `, [doc.sub_action_plan_id, currentApprovalOrder]);
+
+        // Check if all documents for this sub_action_plan have been approved for this step
+        const docsAppr = await client.query(`
+          SELECT da.status 
+          FROM document_approvals da
+          JOIN documents d ON d.id = da.document_id
+          WHERE d.sub_action_plan_id = $1 AND da.approval_order = $2
+        `, [doc.sub_action_plan_id, currentApprovalOrder]);
+
+        const allDocsStepApproved = docsAppr.rows.length > 0 && docsAppr.rows.every(r => r.status === 'disetujui');
+
+        if (allDocsStepApproved) {
+          await client.query(`
+            UPDATE sub_action_plan_approvals 
+            SET status = 'setujui', approved_at = CURRENT_TIMESTAMP, notes = 'Terverifikasi otomatis dari dokumen'
+            WHERE sub_action_plan_id = $1 AND approval_order = $2 AND status = 'menunggu'
+          `, [doc.sub_action_plan_id, currentApprovalOrder]);
+
+          const sraApprovals = await client.query(`SELECT status FROM sub_action_plan_approvals WHERE sub_action_plan_id = $1`, [doc.sub_action_plan_id]);
+          const sraAllApproved = sraApprovals.rows.length > 0 && sraApprovals.rows.every(r => r.status === 'setujui');
+
+          if (sraAllApproved) {
+            await client.query(`
+              UPDATE sub_action_plans 
+              SET status = 'selesai', updated_at = CURRENT_TIMESTAMP
+              WHERE id = $1
+            `, [doc.sub_action_plan_id]);
+
+            const sapResult = await client.query("SELECT action_plan_id FROM sub_action_plans WHERE id = $1", [doc.sub_action_plan_id]);
+            if (sapResult.rowCount > 0) {
+              const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
+              await syncProgressHierarchy(client, sapResult.rows[0].action_plan_id);
+            }
+          }
+        }
+      } catch (err) {
+        console.log("Auto-approve SRA skipped or failed:", err.message);
+      }
+    }
+
     await client.query("COMMIT");
 
-    return { document_id: Number(documentId), status: "terverifikasi" };
+    return { document_id: Number(documentId), status: doc.status || "terverifikasi" };
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
@@ -405,18 +596,56 @@ async function rejectDocument(user, documentId, reason) {
       throw error;
     }
 
-    await client.query(
-      `
-        UPDATE documents
-        SET status = 'ditolak',
-            verified_by_user_id = $1,
-            rejection_reason = $2,
-            verified_at = CURRENT_TIMESTAMP,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = $3
-      `,
-      [user.id, reason || null, documentId],
-    );
+    if (doc.sub_action_plan_id) {
+      // 2-step rejection logic
+      const approvalCheck = await client.query(
+        `SELECT * FROM document_approvals 
+         WHERE document_id = $1 AND approver_user_id = $2 
+         FOR UPDATE`,
+        [documentId, user.id]
+      );
+
+      if (approvalCheck.rowCount === 0) {
+        const error = new Error("Anda tidak berhak menolak dokumen ini");
+        error.statusCode = 403;
+        throw error;
+      }
+
+      const approval = approvalCheck.rows[0];
+      if (approval.status !== 'menunggu') {
+        const error = new Error("Anda sudah memverifikasi dokumen ini");
+        error.statusCode = 400;
+        throw error;
+      }
+
+      await client.query(
+        `UPDATE document_approvals 
+         SET status = 'ditolak', notes = $1, rejected_at = CURRENT_TIMESTAMP
+         WHERE id = $2`,
+        [reason || null, approval.id]
+      );
+
+      await client.query(
+        `UPDATE documents 
+         SET status = 'ditolak', verified_by_user_id = $1, rejection_reason = $2, verified_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP 
+         WHERE id = $3`,
+        [user.id, reason || null, documentId]
+      );
+    } else {
+      // 1-step rejection
+      await client.query(
+        `
+          UPDATE documents
+          SET status = 'ditolak',
+              verified_by_user_id = $1,
+              rejection_reason = $2,
+              verified_at = CURRENT_TIMESTAMP,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = $3
+        `,
+        [user.id, reason || null, documentId],
+      );
+    }
 
     // Log history
     if (doc.action_plan_id) {
@@ -428,7 +657,24 @@ async function rejectDocument(user, documentId, reason) {
       );
     }
 
+    let shouldAutoRejectSRA = false;
+    let autoRejectSraId = null;
+
+    if (doc.sub_action_plan_id) {
+      shouldAutoRejectSRA = true;
+      autoRejectSraId = doc.sub_action_plan_id;
+    }
+
     await client.query("COMMIT");
+
+    if (shouldAutoRejectSRA) {
+      try {
+        const sapService = require("./subactionplan.service");
+        await sapService.rejectSubActionPlan(user, autoRejectSraId, { notes: reason || 'Ditolak otomatis dari dokumen' });
+      } catch (err) {
+        console.log("Auto-reject SRA skipped or failed:", err.message);
+      }
+    }
 
     return { document_id: Number(documentId), status: "ditolak" };
   } catch (error) {

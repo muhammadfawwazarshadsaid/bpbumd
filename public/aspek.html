@@ -374,7 +374,7 @@
 
     .page-heading-title {
       font-size: 20px;
-      font-weight: 800;
+      font-weight: 600;
       color: var(--slate-900);
     }
 
@@ -1134,6 +1134,8 @@
       font-size: 15px;
       font-weight: 700;
       color: var(--slate-900);
+      white-space: pre-wrap;
+      line-height: 1.5;
     }
 
     .modal-header-info p {
@@ -1480,7 +1482,7 @@
   <nav class="topnav">
     <div class="brand">
       <div class="brand-logo">
-        <img src="/logo.png" alt="Logo" />
+        <img src="/diagnosticreview-demo/logo.png" alt="Logo" />
       </div>
       <div class="brand-text">
         <div class="t1">BPBUMD</div>
@@ -1505,8 +1507,8 @@
 
 
     <div class="nav-tabs">
-      <a class="nav-tab active" href="/dashboard-aspek.html">Dashboard</a>
-      <a class="nav-tab" href="/daftar-bumd.html">BUMD</a>
+      <a class="nav-tab active" href="/diagnosticreview-demo/dashboard-aspek.html">Dashboard</a>
+      <a class="nav-tab" href="/diagnosticreview-demo/daftar-bumd.html">BUMD</a>
     </div>
 
     <div class="nav-right">
@@ -1525,7 +1527,7 @@
     <!-- ICON SIDEBAR -->
 
     <aside class="icon-sidebar">
-      <a class="icon-btn" href="/dashboard-aspek.html" title="Dashboard">
+      <a class="icon-btn" href="/diagnosticreview-demo/dashboard-aspek.html" title="Dashboard">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -1533,7 +1535,7 @@
           <rect x="14" y="14" width="7" height="7" rx="1" />
         </svg>
       </a>
-      <a class="icon-btn" href="/daftar-bumd.html" title="Daftar BUMD">
+      <a class="icon-btn" href="/diagnosticreview-demo/daftar-bumd.html" title="Daftar BUMD">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14,2 14,8 20,8" />
@@ -1543,7 +1545,7 @@
         </svg>
       </a>
 
-      <a class="icon-btn" href="/pengguna.html" title="Manajemen Pengguna">
+      <a class="icon-btn" href="/diagnosticreview-demo/pengguna.html" title="Manajemen Pengguna">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
@@ -1597,7 +1599,7 @@
       <div id="contentArea" style="display:none;">
         <!-- BREADCRUMB -->
         <nav class="breadcrumb-nav">
-          <a href="/dashboard-aspek.html" title="Beranda">
+          <a href="/diagnosticreview-demo/dashboard-aspek.html" title="Beranda">
             <svg class="home-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -1606,7 +1608,7 @@
           <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
           </svg>
-          <a href="/dashboard-aspek.html">Dashboard Progres</a>
+          <a href="/diagnosticreview-demo/dashboard-aspek.html">Dashboard Progres</a>
           <svg class="sep-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <line x1="15" y1="4" x2="9" y2="20" stroke-linecap="round" />
           </svg>
@@ -1962,7 +1964,7 @@
     </div>
   </div>
 
-  <script src="/auth.js"></script>
+  <script src="/diagnosticreview-demo/auth.js?v=1781666554994"></script>
   <script>
     // ── GLOBALS ──────────────────────────────────────────────
     let aspectData = null;
@@ -1991,7 +1993,7 @@
       showLoading();
 
       try {
-        const response = await fetch('/api/aspects/' + currentAspectId, {
+        const response = await fetch('/diagnosticreview-demo/api/aspects/' + currentAspectId, {
           credentials: 'same-origin'
         });
 
@@ -2058,14 +2060,14 @@
       document.getElementById('cardTotal').textContent = cards.total_aktivitas;
       document.getElementById('cardSelesai').textContent = cards.selesai;
       document.getElementById('cardSelesaiTerlambat').textContent = cards.selesai_terlambat || 0;
-      
+
       const dalamProgresCard = document.getElementById('cardDalamProgres');
       if (cards.ditolak_count > 0) {
         dalamProgresCard.innerHTML = `${cards.dalam_progres} <span style="font-size: 13px; font-weight: 600; color: var(--rose); margin-left: 6px; padding: 2px 6px; background: #FEE2E2; border-radius: 4px; vertical-align: middle;">${cards.ditolak_count} Ditolak</span>`;
       } else {
         dalamProgresCard.textContent = cards.dalam_progres;
       }
-      
+
       document.getElementById('cardTerlambat').textContent = cards.terlambat;
       document.getElementById('cardBelumMulai').textContent = cards.belum_mulai;
     }
@@ -2349,12 +2351,12 @@
       if (!str) return '';
       const div = document.createElement('div');
       div.textContent = str;
-      return div.innerHTML;
+      return div.innerHTML.replace(/\n/g, '<br>');
     }
 
     function escapeAttr(str) {
       if (!str) return '';
-      return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+      return str.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
     }
 
     // ── TOGGLE STRATEGY ─────────────────────────────────────
@@ -2403,7 +2405,7 @@
 
       document.getElementById('modalTitle').textContent = name;
       document.getElementById('modalSubtitle').textContent = 'Rencana Aksi ' + codeOrder;
-      document.getElementById('modalDetailLink').href = '/rencana-aksi.html?id=' + apId;
+      document.getElementById('modalDetailLink').href = '/diagnosticreview-demo/rencana-aksi.html?id=' + apId;
 
       document.getElementById('modalBody').innerHTML = `
         <div class="modal-section-title">Ringkasan</div>
@@ -2508,7 +2510,7 @@
       };
 
       try {
-        const url = editId ? `/api/strategies/${editId}` : '/api/strategies';
+        const url = editId ? `/diagnosticreview-demo/api/strategies/${editId}` : '/diagnosticreview-demo/api/strategies';
         const method = editId ? 'PUT' : 'POST';
 
         const response = await fetch(url, {
@@ -2549,7 +2551,7 @@
       };
 
       try {
-        const url = editId ? `/api/activity-groups/${editId}` : '/api/activity-groups';
+        const url = editId ? `/diagnosticreview-demo/api/activity-groups/${editId}` : '/diagnosticreview-demo/api/activity-groups';
         const method = editId ? 'PUT' : 'POST';
 
         const response = await fetch(url, {
@@ -2595,7 +2597,7 @@
       };
 
       try {
-        const url = editId ? `/api/action-plans/${editId}` : '/api/action-plans';
+        const url = editId ? `/diagnosticreview-demo/api/action-plans/${editId}` : '/diagnosticreview-demo/api/action-plans';
         const method = editId ? 'PUT' : 'POST';
 
         const response = await fetch(url, {
@@ -2725,9 +2727,9 @@
 
       try {
         let endpoint = '';
-        if (currentDeleteType === 's') endpoint = `/api/strategies/${currentDeleteId}`;
-        if (currentDeleteType === 'ag') endpoint = `/api/activity-groups/${currentDeleteId}`;
-        if (currentDeleteType === 'ap') endpoint = `/api/action-plans/${currentDeleteId}`;
+        if (currentDeleteType === 's') endpoint = `/diagnosticreview-demo/api/strategies/${currentDeleteId}`;
+        if (currentDeleteType === 'ag') endpoint = `/diagnosticreview-demo/api/activity-groups/${currentDeleteId}`;
+        if (currentDeleteType === 'ap') endpoint = `/diagnosticreview-demo/api/action-plans/${currentDeleteId}`;
 
         const response = await fetch(endpoint, {
           method: 'DELETE'
@@ -3010,7 +3012,7 @@
       btn.textContent = 'Menyimpan...';
 
       try {
-        const response = await fetch('/api/aspects/' + currentAspectId + '/bulk-weights', {
+        const response = await fetch('/diagnosticreview-demo/api/aspects/' + currentAspectId + '/bulk-weights', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -3031,7 +3033,7 @@
     // Load users for PIC select — only show users from the same BUMD
     async function loadUsersForSelect() {
       try {
-        const res = await fetch('/api/auth/users');
+        const res = await fetch('/diagnosticreview-demo/api/auth/users');
         const data = await res.json();
         if (data && data.success && data.data) {
           const targetCompanyId = aspectData?.aspect?.company_id;

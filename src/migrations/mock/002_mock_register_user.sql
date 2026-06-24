@@ -25,7 +25,7 @@ VALUES
     TRUE
 ),
 (
-    (SELECT id FROM companies WHERE name = 'Garuda Indonesia (Persero) Tbk'),
+    (SELECT id FROM companies WHERE name = 'PT Jakarta Propertindo (Jakpro)'),
     'bimatesdayu',
     '$2b$10$9dq730nG2sS3wI.iWjjWwOJlCMgw.uH4GEgQl8jd3FRi7ZWDVteP6',
     'Bima Tesdayu',

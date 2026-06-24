@@ -764,19 +764,44 @@ async function deleteAspect(user, aspectId) {
       throw error;
     }
 
-    const childCheck = await client.query(
-      "SELECT COUNT(*)::INT AS count FROM strategies WHERE aspect_id = $1",
-      [aspectId],
-    );
+    // Cascade delete bottom-up to handle ON DELETE RESTRICT constraints
+    // 1. Delete sub_action_plans
+    await client.query(`
+      DELETE FROM sub_action_plans 
+      WHERE action_plan_id IN (
+        SELECT ap.id FROM action_plans ap
+        JOIN activity_groups ag ON ag.id = ap.activity_group_id
+        JOIN strategies s ON s.id = ag.strategy_id
+        WHERE s.aspect_id = $1
+      )
+    `, [aspectId]);
 
-    if (Number(childCheck.rows[0].count) > 0) {
-      const error = new Error(
-        `Aspek tidak bisa dihapus karena masih memiliki ${childCheck.rows[0].count} strategi`,
-      );
-      error.statusCode = 422;
-      throw error;
-    }
+    // 2. Delete action_plans
+    await client.query(`
+      DELETE FROM action_plans 
+      WHERE activity_group_id IN (
+        SELECT ag.id FROM activity_groups ag
+        JOIN strategies s ON s.id = ag.strategy_id
+        WHERE s.aspect_id = $1
+      )
+    `, [aspectId]);
 
+    // 3. Delete activity_groups
+    await client.query(`
+      DELETE FROM activity_groups 
+      WHERE strategy_id IN (
+        SELECT s.id FROM strategies s
+        WHERE s.aspect_id = $1
+      )
+    `, [aspectId]);
+
+    // 4. Delete strategies
+    await client.query(`
+      DELETE FROM strategies 
+      WHERE aspect_id = $1
+    `, [aspectId]);
+
+    // 5. Delete aspect
     await client.query("DELETE FROM aspects WHERE id = $1", [aspectId]);
 
     await client.query("COMMIT");
@@ -918,7 +943,15 @@ async function bulkUpdateWeights(user, aspectId, payload) {
     await client.query(`
       UPDATE activity_groups ag
       SET progress_percentage = COALESCE(
-        (SELECT ROUND(SUM((ap.progress_percentage * COALESCE(ap.weight, 0)) / 100.0), 2)
+        (SELECT 
+           CASE 
+             WHEN SUM(COALESCE(ap.weight, 0)) = 0 THEN 
+               COALESCE(
+                 (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+                  FROM sub_action_plans sap JOIN action_plans ap2 ON ap2.id = sap.action_plan_id WHERE ap2.activity_group_id = ag.id)
+               , 0)
+             ELSE ROUND(SUM((ap.progress_percentage * COALESCE(ap.weight, 0)) / 100.0), 2)
+           END
          FROM action_plans ap
          WHERE ap.activity_group_id = ag.id), 0
       )
@@ -928,7 +961,15 @@ async function bulkUpdateWeights(user, aspectId, payload) {
     await client.query(`
       UPDATE strategies s
       SET progress_percentage = COALESCE(
-        (SELECT ROUND(SUM((ag.progress_percentage * COALESCE(ag.weight, 0)) / 100.0), 2)
+        (SELECT 
+           CASE 
+             WHEN SUM(COALESCE(ag.weight, 0)) = 0 THEN 
+               COALESCE(
+                 (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+                  FROM sub_action_plans sap JOIN action_plans ap2 ON ap2.id = sap.action_plan_id JOIN activity_groups ag2 ON ag2.id = ap2.activity_group_id WHERE ag2.strategy_id = s.id)
+               , 0)
+             ELSE ROUND(SUM((ag.progress_percentage * COALESCE(ag.weight, 0)) / 100.0), 2)
+           END
          FROM activity_groups ag
          WHERE ag.strategy_id = s.id), 0
       )
@@ -938,7 +979,15 @@ async function bulkUpdateWeights(user, aspectId, payload) {
     await client.query(`
       UPDATE aspects a
       SET progress_percentage = COALESCE(
-        (SELECT ROUND(SUM((s.progress_percentage * COALESCE(s.weight, 0)) / 100.0), 2)
+        (SELECT 
+           CASE 
+             WHEN SUM(COALESCE(s.weight, 0)) = 0 THEN 
+               COALESCE(
+                 (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+                  FROM sub_action_plans sap JOIN action_plans ap2 ON ap2.id = sap.action_plan_id JOIN activity_groups ag2 ON ag2.id = ap2.activity_group_id JOIN strategies s2 ON s2.id = ag2.strategy_id WHERE s2.aspect_id = a.id)
+               , 0)
+             ELSE ROUND(SUM((s.progress_percentage * COALESCE(s.weight, 0)) / 100.0), 2)
+           END
          FROM strategies s
          WHERE s.aspect_id = a.id), 0
       )

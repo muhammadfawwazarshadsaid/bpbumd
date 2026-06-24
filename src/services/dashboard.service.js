@@ -82,7 +82,16 @@ async function getOverallCards(client, companyScopeId) {
       aspect_rows AS (
         SELECT
           a.id,
-          a.company_id
+          a.company_id,
+          COALESCE(a.progress_percentage, 0) AS progress_percentage,
+          COALESCE(a.target_percentage, 0) AS target_percentage,
+          EXISTS (
+            SELECT 1 FROM sub_action_plans sap
+            JOIN action_plans ap ON ap.id = sap.action_plan_id
+            JOIN activity_groups ag ON ag.id = ap.activity_group_id
+            JOIN strategies s ON s.id = ag.strategy_id
+            WHERE s.aspect_id = a.id
+          ) AS has_sap
         FROM aspects a
         JOIN scoped_companies sc
           ON sc.id = a.company_id
@@ -117,7 +126,14 @@ async function getOverallCards(client, companyScopeId) {
       sub_action_plan_rows AS (
         SELECT
           sap.id,
-          a.company_id
+          a.company_id,
+          CASE 
+            WHEN sap.status = 'selesai' THEN 
+              CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+            WHEN ap.status = 'terlambat' THEN 'terlambat'
+            WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+            ELSE 'belum_mulai'
+          END AS effective_status
         FROM sub_action_plans sap
         JOIN action_plans ap
           ON ap.id = sap.action_plan_id
@@ -132,12 +148,15 @@ async function getOverallCards(client, companyScopeId) {
       )
       SELECT
         COALESCE(
-          ROUND((SELECT AVG(progress_percentage) FROM action_plan_rows), 2),
+          ROUND(
+            (SELECT COUNT(*)::NUMERIC FROM sub_action_plan_rows WHERE effective_status IN ('selesai', 'selesai_terlambat')) /
+            NULLIF((SELECT COUNT(*)::NUMERIC FROM sub_action_plan_rows), 0) * 100
+          , 2),
           0
         ) AS progress_percentage,
 
         COALESCE(
-          ROUND((SELECT AVG(target_percentage) FROM action_plan_rows), 2),
+          ROUND((SELECT AVG(target_percentage) FROM aspect_rows WHERE has_sap = true), 2),
           0
         ) AS target_percentage,
 
@@ -163,14 +182,14 @@ async function getOverallCards(client, companyScopeId) {
 
         (
           SELECT COUNT(*)
-          FROM action_plan_rows
-          WHERE status = 'terlambat'
+          FROM sub_action_plan_rows
+          WHERE effective_status = 'terlambat'
         )::INT AS terlambat,
 
         (
           SELECT COUNT(*)
-          FROM action_plan_rows
-          WHERE status = 'selesai'
+          FROM sub_action_plan_rows
+          WHERE effective_status IN ('selesai', 'selesai_terlambat')
         )::INT AS selesai
     `,
     [companyScopeId],
@@ -208,7 +227,45 @@ async function getCompanyCards(client, companyScopeId) {
       aspect_agg AS (
         SELECT
           a.company_id,
-          COUNT(*)::INT AS total_aspek
+          COUNT(*)::INT AS total_aspek,
+
+          COALESCE(
+            ROUND(
+              (
+                SELECT COUNT(*)::NUMERIC FROM sub_action_plans sap
+                JOIN action_plans ap ON ap.id = sap.action_plan_id
+                JOIN activity_groups ag ON ag.id = ap.activity_group_id
+                JOIN strategies s ON s.id = ag.strategy_id
+                JOIN aspects a2 ON a2.id = s.aspect_id
+                WHERE a2.company_id = a.company_id
+                  AND sap.status = 'selesai'
+              ) / NULLIF(
+                (
+                  SELECT COUNT(*)::NUMERIC FROM sub_action_plans sap
+                  JOIN action_plans ap ON ap.id = sap.action_plan_id
+                  JOIN activity_groups ag ON ag.id = ap.activity_group_id
+                  JOIN strategies s ON s.id = ag.strategy_id
+                  JOIN aspects a2 ON a2.id = s.aspect_id
+                  WHERE a2.company_id = a.company_id
+                )
+              , 0) * 100
+            , 2),
+            0
+          ) AS progress_percentage,
+
+          COALESCE(
+            ROUND(AVG(a.target_percentage) FILTER (
+              WHERE EXISTS (
+                SELECT 1 FROM sub_action_plans sap
+                JOIN action_plans ap ON ap.id = sap.action_plan_id
+                JOIN activity_groups ag ON ag.id = ap.activity_group_id
+                JOIN strategies s ON s.id = ag.strategy_id
+                WHERE s.aspect_id = a.id
+              )
+            ), 2),
+            0
+          ) AS target_percentage
+
         FROM aspects a
         JOIN scoped_companies sc
           ON sc.id = a.company_id
@@ -230,26 +287,7 @@ async function getCompanyCards(client, companyScopeId) {
       action_plan_agg AS (
         SELECT
           a.company_id,
-          COUNT(ap.id)::INT AS total_rencana_aksi,
-
-          COALESCE(
-            ROUND(AVG(ap.progress_percentage), 2),
-            0
-          ) AS progress_percentage,
-
-          COALESCE(
-            ROUND(AVG(ap.target_percentage), 2),
-            0
-          ) AS target_percentage,
-
-          COUNT(ap.id) FILTER (
-            WHERE ap.status = 'terlambat'
-          )::INT AS terlambat,
-
-          COUNT(ap.id) FILTER (
-            WHERE ap.status IN ('selesai', 'selesai terlambat')
-          )::INT AS selesai
-
+          COUNT(ap.id)::INT AS total_rencana_aksi
         FROM action_plans ap
         JOIN activity_groups ag
           ON ag.id = ap.activity_group_id
@@ -265,7 +303,28 @@ async function getCompanyCards(client, companyScopeId) {
       sub_action_plan_agg AS (
         SELECT
           a.company_id,
-          COUNT(sap.id)::INT AS total_sub_rencana_aksi
+          COUNT(sap.id)::INT AS total_sub_rencana_aksi,
+
+          COUNT(sap.id) FILTER (
+            WHERE CASE 
+              WHEN sap.status = 'selesai' THEN 
+                CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+              WHEN ap.status = 'terlambat' THEN 'terlambat'
+              WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+              ELSE 'belum_mulai'
+            END = 'terlambat'
+          )::INT AS terlambat,
+
+          COUNT(sap.id) FILTER (
+            WHERE CASE 
+              WHEN sap.status = 'selesai' THEN 
+                CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+              WHEN ap.status = 'terlambat' THEN 'terlambat'
+              WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+              ELSE 'belum_mulai'
+            END IN ('selesai', 'selesai_terlambat')
+          )::INT AS selesai
+
         FROM sub_action_plans sap
         JOIN action_plans ap
           ON ap.id = sap.action_plan_id
@@ -292,10 +351,10 @@ async function getCompanyCards(client, companyScopeId) {
         COALESCE(apa.total_rencana_aksi, 0) AS total_rencana_aksi,
         COALESCE(sapa.total_sub_rencana_aksi, 0) AS total_sub_rencana_aksi,
 
-        COALESCE(apa.progress_percentage, 0) AS progress_percentage,
-        COALESCE(apa.target_percentage, 0) AS target_percentage,
-        COALESCE(apa.terlambat, 0) AS terlambat,
-        COALESCE(apa.selesai, 0) AS selesai
+        COALESCE(aa.progress_percentage, 0) AS progress_percentage,
+        COALESCE(aa.target_percentage, 0) AS target_percentage,
+        COALESCE(sapa.terlambat, 0) AS terlambat,
+        COALESCE(sapa.selesai, 0) AS selesai
 
       FROM scoped_companies sc
       LEFT JOIN sectors sec
@@ -335,6 +394,31 @@ async function getCompanyCards(client, companyScopeId) {
 async function getProgressPerAspect(client, companyScopeId, userId) {
   const result = await client.query(
     `
+      WITH sap_base AS (
+        SELECT
+          sap.id AS sap_id,
+          a.company_id,
+          a.id AS aspect_id,
+          sap.status AS sap_status,
+          CASE 
+            WHEN sap.status = 'selesai' THEN 
+              CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+            WHEN ap.status = 'terlambat' THEN 'terlambat'
+            WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+            ELSE 'belum_mulai'
+          END AS effective_status
+        FROM sub_action_plans sap
+        JOIN action_plans ap
+          ON ap.id = sap.action_plan_id
+        JOIN activity_groups ag
+          ON ag.id = ap.activity_group_id
+        JOIN strategies s
+          ON s.id = ag.strategy_id
+        JOIN aspects a
+          ON a.id = s.aspect_id
+        WHERE
+          ($1::BIGINT IS NULL OR a.company_id = $1)
+      )
       SELECT
         c.id AS company_id,
 
@@ -345,26 +429,26 @@ async function getProgressPerAspect(client, companyScopeId, userId) {
         COALESCE(a.progress_percentage, 0) AS progress_percentage,
         COALESCE(a.target_percentage, 0) AS target_percentage,
 
-        COUNT(DISTINCT ap.id)::INT AS total,
+        COUNT(DISTINCT sb.sap_id)::INT AS total,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'selesai'
+        COUNT(DISTINCT sb.sap_id) FILTER (
+          WHERE sb.effective_status = 'selesai'
         )::INT AS selesai,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'selesai terlambat'
+        COUNT(DISTINCT sb.sap_id) FILTER (
+          WHERE sb.effective_status = 'selesai_terlambat'
         )::INT AS selesai_terlambat,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'dalam progres'
+        COUNT(DISTINCT sb.sap_id) FILTER (
+          WHERE sb.effective_status = 'dalam_progres'
         )::INT AS dalam_progres,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'terlambat'
+        COUNT(DISTINCT sb.sap_id) FILTER (
+          WHERE sb.effective_status = 'terlambat'
         )::INT AS terlambat,
 
-        COUNT(DISTINCT ap.id) FILTER (
-          WHERE ap.status = 'belum mulai'
+        COUNT(DISTINCT sb.sap_id) FILTER (
+          WHERE sb.effective_status = 'belum_mulai'
         )::INT AS belum_mulai,
 
         EXISTS (
@@ -386,12 +470,8 @@ async function getProgressPerAspect(client, companyScopeId, userId) {
       FROM companies c
       JOIN aspects a
         ON a.company_id = c.id
-      LEFT JOIN strategies s
-        ON s.aspect_id = a.id
-      LEFT JOIN activity_groups ag
-        ON ag.strategy_id = s.id
-      LEFT JOIN action_plans ap
-        ON ap.activity_group_id = ag.id
+      LEFT JOIN sap_base sb
+        ON sb.aspect_id = a.id
       WHERE
         c.company_type = 'bumd'
         AND ($1::BIGINT IS NULL OR c.id = $1)
