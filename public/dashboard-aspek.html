@@ -2272,6 +2272,17 @@
                 <span>Maximum size: 25MB</span>
               </div>
 
+              <!-- Sheet Selector -->
+              <div id="sheetSelectorContainer" style="display: none; margin-bottom: 16px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; color: var(--slate-700); margin-bottom: 8px;">Pilih Sheet Excel</label>
+                <select id="sheetSelector" onchange="processSelectedSheet(this.value)" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--slate-300); outline: none; background: #F8FAFC; color: var(--slate-800); font-size: 14px; cursor: pointer;">
+                </select>
+              </div>
+
+              <!-- Mapping Summary (auto-detected) -->
+              <div id="mappingSummary" style="display: none; background: white; border-radius: 10px; padding: 16px; border: 1px solid var(--slate-200); box-shadow: 0 1px 2px rgba(0,0,0,0.02); margin-bottom: 16px;">
+              </div>
+
               <!-- Template Area -->
               <div id="templateSection"
                 style="background: white; border-radius: 10px; padding: 16px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--slate-200); box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
@@ -2526,16 +2537,31 @@
     let distinctTimelines = new Set();
     let distinctPics = new Set();
     let companyUsers = [];
+    let detectedHeaderRow = -1;
     let currentMapping = {
-      aspect: 2,
-      strategy: 3,
-      ag: 4,
-      ap: 5,
-      timeline: 9,
-      output: 7,
-      indicator: 8,
-      pic: 15,
-      kpi: 11
+      aspect: -1,
+      strategy: -1,
+      ag: -1,
+      ap: -1,
+      timeline: -1,
+      output: -1,
+      indicator: -1,
+      pic: -1,
+      kpi: -1,
+      sub_ap: -1
+    };
+
+    const FIELD_LABELS = {
+      aspect: { label: 'Aspek', required: true },
+      strategy: { label: 'Strategi', required: true },
+      ag: { label: 'Activity Group', required: false },
+      ap: { label: 'Rencana Aksi', required: true },
+      output: { label: 'Output/Keluaran', required: false },
+      indicator: { label: 'Penilaian', required: false },
+      timeline: { label: 'Timeline', required: false },
+      kpi: { label: 'KPI', required: false },
+      sub_ap: { label: 'Sub Rencana Aksi', required: false },
+      pic: { label: 'PIC', required: false }
     };
 
     // ── MODAL & ADD/DELETE ACTIONS ──────────────────────────
@@ -2675,9 +2701,22 @@
       document.getElementById('uploadDefaultState').style.display = 'block';
       document.getElementById('uploadZone').classList.remove('has-file');
       document.getElementById('templateSection').style.display = 'flex';
+      document.getElementById('mappingSummary').style.display = 'none';
       document.getElementById('btnNextStep').style.display = 'none';
+      document.getElementById('btnPrevStep').style.display = 'none';
+      document.getElementById('btnSubmitImport').style.display = 'none';
       importWorkbook = null;
       importDataRaw = [];
+      importStep = 1;
+      detectedHeaderRow = -1;
+      Object.keys(currentMapping).forEach(k => currentMapping[k] = -1);
+      document.getElementById('import-step-1').style.display = 'block';
+      document.getElementById('import-step-2').style.display = 'none';
+      document.getElementById('import-step-3').style.display = 'none';
+      for (let si = 1; si <= 3; si++) {
+        const ind = document.getElementById('step' + si + '-indicator');
+        ind.className = 'wizard-step' + (si === 1 ? ' active' : '');
+      }
     }
 
     function handleFileUpload(e) {
@@ -2725,24 +2764,91 @@
         const data = new Uint8Array(e.target.result);
         importWorkbook = XLSX.read(data, { type: 'array' });
         document.getElementById('templateSection').style.display = 'none';
-        const sheetName = importWorkbook.SheetNames[0];
-        const sheet = importWorkbook.Sheets[sheetName];
-        importDataRaw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        const selector = document.getElementById('sheetSelector');
+        selector.innerHTML = '';
+        
+        let bestSheetIndex = 0;
+        let bestSheetMatches = -1;
 
-        if (importDataRaw.length > 0) {
-          let maxCols = 0;
-          for (let i = 0; i < Math.min(10, importDataRaw.length); i++) {
-            if (importDataRaw[i].length > maxCols) maxCols = importDataRaw[i].length;
+        // Scan all sheets to find the one with the correct headers (in case sheet 1 is empty or a cover)
+        for (let i = 0; i < importWorkbook.SheetNames.length; i++) {
+          const sheetName = importWorkbook.SheetNames[i];
+          const opt = document.createElement('option');
+          opt.value = sheetName;
+          opt.textContent = sheetName;
+          selector.appendChild(opt);
+
+          const sheet = importWorkbook.Sheets[sheetName];
+          const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+          
+          if (sheetData.length === 0) continue;
+          
+          // Do a quick scan for headers on this sheet
+          let sheetBestMatchCount = 0;
+          const scanLimit = Math.min(30, sheetData.length);
+          for (let rowIdx = 0; rowIdx < scanLimit; rowIdx++) {
+            const row = sheetData[rowIdx];
+            if (!row || row.length < 2) continue;
+            let rowMatchCount = 0;
+            const seen = new Set();
+            for (let colIdx = 0; colIdx < row.length; colIdx++) {
+              const cellVal = row[colIdx];
+              if (!cellVal) continue;
+              const h = cellVal.toString().toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+              if (h.includes('aspek') && !seen.has('aspek')) { seen.add('aspek'); rowMatchCount++; }
+              if (h.includes('strategi') && !seen.has('strategi')) { seen.add('strategi'); rowMatchCount++; }
+              if (h.includes('rencana aksi') && !seen.has('ra')) { seen.add('ra'); rowMatchCount++; }
+              if (h.includes('kpi') && !seen.has('kpi')) { seen.add('kpi'); rowMatchCount++; }
+              if (h.includes('timeline') && !seen.has('timeline')) { seen.add('timeline'); rowMatchCount++; }
+              if (h.includes('activity group') && !seen.has('ag')) { seen.add('ag'); rowMatchCount++; }
+              if (h.includes('penilaian') && !seen.has('penilaian')) { seen.add('penilaian'); rowMatchCount++; }
+            }
+            if (rowMatchCount > sheetBestMatchCount) {
+              sheetBestMatchCount = rowMatchCount;
+            }
           }
-          importHeaders = [];
-          for (let i = 0; i < maxCols; i++) {
-            importHeaders.push(String.fromCharCode(65 + i)); // A, B, C...
+          
+          if (sheetBestMatchCount > bestSheetMatches) {
+            bestSheetMatches = sheetBestMatchCount;
+            bestSheetIndex = i;
           }
         }
 
+        document.getElementById('sheetSelectorContainer').style.display = 'block';
+        const bestSheetName = importWorkbook.SheetNames[bestSheetIndex];
+        selector.value = bestSheetName;
+        processSelectedSheet(bestSheetName);
+        
         document.getElementById('btnNextStep').style.display = 'block';
       };
       reader.readAsArrayBuffer(file);
+    }
+
+    function processSelectedSheet(sheetName) {
+      if (!importWorkbook) return;
+      const sheet = importWorkbook.Sheets[sheetName];
+      importDataRaw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+      if (importDataRaw.length > 0) {
+        let maxCols = 0;
+        for (let i = 0; i < Math.min(10, importDataRaw.length); i++) {
+          if (importDataRaw[i].length > maxCols) maxCols = importDataRaw[i].length;
+        }
+        importHeaders = [];
+        for (let i = 0; i < maxCols; i++) {
+          let h = '';
+          let temp = i;
+          while (temp >= 0) {
+            h = String.fromCharCode(65 + (temp % 26)) + h;
+            temp = Math.floor(temp / 26) - 1;
+          }
+          importHeaders.push(h);
+        }
+      }
+
+      // Auto-detect column mapping from headers
+      autoDetectColumns();
+      renderMappingSummary();
     }
 
     // [Existing logic continues...]
@@ -2920,6 +3026,201 @@
       currentMapping[fieldKey] = parseInt(indexStr);
     }
 
+    // ── AUTO-DETECT COLUMN MAPPING ──────────────────────
+    function matchColumnHeader(headerText) {
+      const h = headerText.toString().toLowerCase().replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!h) return null;
+
+      // Check most specific patterns first to avoid ambiguity
+      // e.g. "OUTPUT RENCANA AKSI" should map to output, not ap
+      if (h.includes('activity group') || h.includes('kelompok aktivitas') || h.includes('kelompok kegiatan')) return 'ag';
+      if (h.includes('output') || h.includes('keluaran')) return 'output';
+      if (h.includes('sub rencana aksi') || h.includes('sub aksi')) return 'sub_ap';
+      if (h.includes('rencana aksi')) return 'ap';
+      if (h.includes('aspek')) return 'aspect';
+      if (h.includes('strategi')) return 'strategy';
+      if (h.includes('penilaian') || h.includes('indikator')) return 'indicator';
+      if (h.includes('kpi')) return 'kpi';
+      if (h.includes('timeline') || h.includes('linimasa')) return 'timeline';
+      if (/\bpic\b/i.test(h) || h.includes('penanggung jawab')) return 'pic';
+
+      return null;
+    }
+
+    function autoDetectColumns() {
+      detectedHeaderRow = -1;
+      Object.keys(currentMapping).forEach(k => currentMapping[k] = -1);
+
+      let bestRow = -1;
+      let bestMatchCount = 0;
+      let bestMapping = {};
+
+      const scanLimit = Math.min(30, importDataRaw.length);
+
+      for (let rowIdx = 0; rowIdx < scanLimit; rowIdx++) {
+        const row = importDataRaw[rowIdx];
+        if (!row || row.length < 2) continue;
+
+        let matchCount = 0;
+        let tempMapping = {};
+        const usedFields = new Set();
+
+        for (let colIdx = 0; colIdx < row.length; colIdx++) {
+          const cellVal = row[colIdx];
+          if (!cellVal) continue;
+          const field = matchColumnHeader(cellVal);
+          if (field && !usedFields.has(field)) {
+            tempMapping[field] = colIdx;
+            usedFields.add(field);
+            matchCount++;
+          }
+        }
+
+        // Also check the next 2 rows for multi-row headers (merged header cells)
+        // Combine matches from this row + next rows for columns not yet matched
+        for (let offset = 1; offset <= 2; offset++) {
+          if (rowIdx + offset < scanLimit && importDataRaw[rowIdx + offset]) {
+            const offsetRow = importDataRaw[rowIdx + offset];
+            for (let colIdx = 0; colIdx < offsetRow.length; colIdx++) {
+              const cellVal = offsetRow[colIdx];
+              if (!cellVal) continue;
+              const field = matchColumnHeader(cellVal);
+              if (field && !usedFields.has(field)) {
+                tempMapping[field] = colIdx;
+                usedFields.add(field);
+                matchCount++;
+              }
+            }
+          }
+        }
+
+        if (matchCount > bestMatchCount) {
+          bestMatchCount = matchCount;
+          bestRow = rowIdx;
+          bestMapping = { ...tempMapping };
+        }
+      }
+
+      if (bestRow >= 0 && bestMatchCount >= 2) {
+        detectedHeaderRow = bestRow;
+        Object.keys(bestMapping).forEach(k => currentMapping[k] = bestMapping[k]);
+        
+        // Fallback: For any fields still not mapped (-1), scan the top 15 rows to see if they exist somewhere else
+        // (sometimes merged cells put the text very far above or below the main header row)
+        const missingFields = Object.keys(currentMapping).filter(k => currentMapping[k] === -1);
+        if (missingFields.length > 0) {
+          for (let r = 0; r < Math.min(15, importDataRaw.length); r++) {
+            const fallbackRow = importDataRaw[r];
+            if (!fallbackRow) continue;
+            for (let c = 0; c < fallbackRow.length; c++) {
+              if (!fallbackRow[c]) continue;
+              const field = matchColumnHeader(fallbackRow[c]);
+              if (field && missingFields.includes(field) && currentMapping[field] === -1) {
+                // Ensure this column 'c' is not already mapped to another field!
+                const isMapped = Object.values(currentMapping).includes(c);
+                if (!isMapped) {
+                  currentMapping[field] = c;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Debug logging
+      console.log('[Import Auto-Detect] Scanned', scanLimit, 'rows');
+      console.log('[Import Auto-Detect] Best header row:', bestRow >= 0 ? bestRow + 1 : 'NOT FOUND', '| Matches:', bestMatchCount);
+      console.log('[Import Auto-Detect] Mapping:', JSON.stringify(currentMapping));
+      if (bestRow >= 0) {
+        console.log('[Import Auto-Detect] Header row content:', importDataRaw[bestRow]);
+      }
+    }
+
+    function renderMappingSummary() {
+      const container = document.getElementById('mappingSummary');
+      if (detectedHeaderRow < 0) {
+        container.style.display = 'none';
+        return;
+      }
+      container.style.display = 'block';
+
+      const getColLetter = (idx) => {
+        if (idx < 0) return '—';
+        let s = '';
+        let i = idx;
+        while (i >= 0) { s = String.fromCharCode(65 + (i % 26)) + s; i = Math.floor(i / 26) - 1; }
+        return s;
+      };
+
+      const fields = Object.entries(FIELD_LABELS);
+      let detectedCount = 0;
+      let chipsHtml = '';
+
+      fields.forEach(([key, { label, required }]) => {
+        const colIdx = currentMapping[key];
+        const isDetected = colIdx >= 0;
+        if (isDetected) detectedCount++;
+
+        const bgColor = isDetected ? '#D1FAE5' : (required ? '#FEE2E2' : '#F1F5F9');
+        const textColor = isDetected ? '#059669' : (required ? '#DC2626' : '#94A3B8');
+        const icon = isDetected ? '✓' : '—';
+        const colText = isDetected ? 'Kolom ' + getColLetter(colIdx) : 'Tidak ada';
+
+        chipsHtml += '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:' + bgColor + ';border-radius:6px;font-size:11px;color:' + textColor + ';font-weight:600;gap:4px;">' +
+          '<span>' + icon + ' ' + label + '</span>' +
+          '<span style="font-weight:400;">' + colText + '</span>' +
+        '</div>';
+      });
+
+      let warningHtml = '';
+      if (currentMapping.ag < 0) {
+        warningHtml = '<div style="margin-top:10px;padding:8px 12px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;font-size:11px;color:#92400E;display:flex;align-items:flex-start;gap:8px;">' +
+          '<span style="font-size:13px;flex-shrink:0;">⚠️</span>' +
+          '<span>Kolom <strong>Activity Group</strong> tidak ditemukan. Sistem akan otomatis membuat 1 Activity Group per Strategi.</span>' +
+        '</div>';
+      }
+
+      // Build manual mapping dropdowns
+      let manualHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+      fields.forEach(([key, { label, required }]) => {
+        let options = '<option value="-1">-- Tidak ada --</option>';
+        importHeaders.forEach((h, idx) => {
+          const headerPreview = importDataRaw[detectedHeaderRow] ? (importDataRaw[detectedHeaderRow][idx] || '').toString().substring(0, 25) : '';
+          const preview = headerPreview ? ' (' + headerPreview + ')' : '';
+          const sel = (idx === currentMapping[key]) ? 'selected' : '';
+          options += '<option value="' + idx + '" ' + sel + '>Kolom ' + h + preview + '</option>';
+        });
+        manualHtml += '<div>' +
+          '<label style="font-size:10px;font-weight:600;color:var(--slate-500);display:block;margin-bottom:3px;">' + label + (required ? ' *' : '') + '</label>' +
+          '<select class="mapping-select" style="width:100%;padding:5px 8px;border:1px solid var(--slate-200);border-radius:6px;font-size:11px;font-family:inherit;background:white;" onchange="updateMappingManual(\'' + key + '\', this.value)">' +
+          options + '</select></div>';
+      });
+      manualHtml += '</div>';
+
+      container.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
+          '<div style="font-weight:700;font-size:13px;color:var(--slate-900);display:flex;align-items:center;gap:8px;">' +
+            '<span style="width:22px;height:22px;background:#D1FAE5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#059669;">✓</span>' +
+            detectedCount + '/' + fields.length + ' kolom terdeteksi' +
+            '<span style="font-size:10px;font-weight:400;color:var(--slate-400);">Header baris ' + (detectedHeaderRow + 1) + '</span>' +
+          '</div>' +
+          '<button type="button" onclick="toggleManualMapping()" style="font-size:11px;color:var(--sky);background:none;border:none;cursor:pointer;font-weight:600;">Atur Manual ▼</button>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;">' + chipsHtml + '</div>' +
+        warningHtml +
+        '<div id="manualMappingSection" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--slate-200);">' + manualHtml + '</div>';
+    }
+
+    function updateMappingManual(fieldKey, indexStr) {
+      currentMapping[fieldKey] = parseInt(indexStr);
+      renderMappingSummary();
+    }
+
+    function toggleManualMapping() {
+      const el = document.getElementById('manualMappingSection');
+      if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
     function cleanText(text) {
       if (!text) return '';
       return text.toString().replace(/^([\d\.A-Z]+)\s/, '').trim();
@@ -2937,7 +3238,7 @@
       distinctTimelines.clear();
       distinctPics.clear();
 
-      const startRow = 4; // Hardcoded start row (Row 5 in Excel = index 4)
+      const startRow = detectedHeaderRow >= 0 ? detectedHeaderRow + 1 : 4;
 
       let currAspect = '', currStrategy = '', currAG = '', currApSeq = 0;
 
@@ -2945,8 +3246,21 @@
         const row = importDataRaw[i];
         if (!row || row.length === 0) continue;
 
-        const apRaw = currentMapping.ap >= 0 ? row[currentMapping.ap] : '';
-        if (!apRaw || apRaw.toString().trim() === '') continue;
+        let apRaw = currentMapping.ap >= 0 ? row[currentMapping.ap] : '';
+        const subApRaw = currentMapping.sub_ap >= 0 ? row[currentMapping.sub_ap] : '';
+
+        // If both main AP and Sub AP are empty, skip row
+        if ((!apRaw || apRaw.toString().trim() === '') && (!subApRaw || subApRaw.toString().trim() === '')) continue;
+        
+        // If main AP is empty but Sub AP is filled, use Sub AP as the main Rencana Aksi
+        if (!apRaw || apRaw.toString().trim() === '') {
+          apRaw = subApRaw;
+        }
+
+        // Prevent importing secondary header rows as data (e.g., Row 3 which has "TIMELINE")
+        const timelineCheck = currentMapping.timeline >= 0 ? (row[currentMapping.timeline] || '').toString().toUpperCase().trim() : '';
+        if (timelineCheck === 'TIMELINE' || timelineCheck === 'LINIMASA') continue;
+        if (apRaw.toString().toUpperCase().trim() === 'RENCANA AKSI' || apRaw.toString().toUpperCase().trim() === 'RENCANA AKSI (BUMD)') continue;
 
         const aspekRaw = currentMapping.aspect >= 0 ? row[currentMapping.aspect] : '';
         if (aspekRaw && cleanText(aspekRaw) !== cleanText(currAspect)) currAspect = aspekRaw;
@@ -2956,7 +3270,11 @@
           currStrategy = strategyRaw;
         }
 
-        const agRaw = currentMapping.ag >= 0 ? row[currentMapping.ag] : '';
+        let agRaw = currentMapping.ag >= 0 ? row[currentMapping.ag] : '';
+        // When no AG column exists, auto-generate AG from strategy name
+        if (currentMapping.ag === -1 && currStrategy) {
+          agRaw = currStrategy;
+        }
         if (agRaw && cleanText(agRaw) !== cleanText(currAG)) {
           currAG = agRaw;
           currApSeq = 0;
@@ -2964,8 +3282,8 @@
         currApSeq++;
 
         const timelineRaw = currentMapping.timeline >= 0 ? row[currentMapping.timeline] : '';
-        if (timelineRaw && timelineRaw.toString().trim() !== '') {
-          distinctTimelines.add(timelineRaw.toString().trim());
+        if (timelineRaw && (timelineRaw || '').toString().trim() !== '') {
+          distinctTimelines.add((timelineRaw || '').toString().trim());
         }
 
         const picRaw = currentMapping.pic >= 0 ? row[currentMapping.pic] : '';
@@ -2976,6 +3294,8 @@
 
         const kpiRaw = currentMapping.kpi >= 0 ? row[currentMapping.kpi] : '';
         const kpis = kpiRaw ? kpiRaw.toString().split('\\n').map(k => k.replace(/^-/, '').trim()).filter(k => k) : [];
+
+        const sub_aps = subApRaw ? subApRaw.toString().split('\\n').map(s => s.replace(/^-/, '').trim()).filter(s => s) : [];
 
         importDataParsed.push({
           row_index: i + 1,
@@ -2992,7 +3312,8 @@
           target_end_date: null, // will be resolved in step 2
           pic_raw: parsedPic.lead,
           pic_user_id: null, // resolved in step 3
-          kpis: kpis
+          kpis: kpis,
+          sub_aps: sub_aps
         });
       }
     }
@@ -3055,7 +3376,7 @@
         else if (tRaw.includes('Y3')) { rDate = getYearEnd(q1Start, 3); sDate = getYearStart(q1Start, 3); }
         else if (tRaw.includes('Y2')) { rDate = getYearEnd(q1Start, 2); sDate = getYearStart(q1Start, 2); }
         else if (tRaw.includes('Y1')) { rDate = getYearEnd(q1Start, 1); sDate = getYearStart(q1Start, 1); }
-        else if (tRaw.includes('BERKALA')) { rDate = null; sDate = null; }
+        else if (tRaw.includes('BERKALA') || tRaw.includes('BULAN') || tRaw.includes('TAHUN') || tRaw.includes('SEMESTER') || tRaw.includes('RUTIN')) { rDate = null; sDate = null; }
         else if (tRaw.match(/^\d{4}-\d{2}-\d{2}$/)) { rDate = tRaw; sDate = q1Start; } // valid date
 
         ap.target_end_date = rDate;
@@ -3069,7 +3390,7 @@
 
         const statusHtml = resolvedDate
           ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:#D1FAE5;color:#059669;">✓ Valid</span>'
-          : (t.toUpperCase().includes('BERKALA')
+          : ((t.toUpperCase().includes('BERKALA') || t.toUpperCase().includes('BULAN') || t.toUpperCase().includes('TAHUN') || t.toUpperCase().includes('SEMESTER') || t.toUpperCase().includes('RUTIN'))
             ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:#FEF3C7;color:#D97706;">— Skip</span>'
             : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:#FEE2E2;color:#DC2626;">✕ Error</span>');
 
@@ -3388,7 +3709,29 @@
       if (n === 2) {
         parseExcelData(); // parse mapped columns before moving to step 2
         if (importDataParsed.length === 0) {
-          alert("Data kosong atau belum di-map dengan benar (Rencana Aksi wajib ada).");
+          let debugInfo = '';
+          if (detectedHeaderRow >= 0) {
+            const getColLetter = (idx) => idx >= 0 ? String.fromCharCode(65 + (idx % 26)) : '-';
+            debugInfo = '\n\nHeader terdeteksi di baris ' + (detectedHeaderRow + 1) + '.';
+            debugInfo += '\nMapping kolom:';
+            Object.entries(FIELD_LABELS).forEach(([key, { label }]) => {
+              const col = currentMapping[key];
+              debugInfo += '\n  ' + label + ': ' + (col >= 0 ? 'Kolom ' + getColLetter(col) : 'TIDAK ADA');
+            });
+            debugInfo += '\n\nData mulai dari baris ' + (detectedHeaderRow + 2) + ', total baris Excel: ' + importDataRaw.length;
+            debugInfo += '\n\nCoba klik "Atur Manual" di langkah 1 untuk memperbaiki mapping kolom.';
+          } else {
+            debugInfo = '\n\nHeader TIDAK terdeteksi. Pastikan file Excel memiliki baris header yang berisi kata-kata seperti "ASPEK", "STRATEGI", "RENCANA AKSI", dll.';
+            debugInfo += '\nTotal baris Excel: ' + importDataRaw.length;
+          }
+          
+          let rowDump = '\n\n--- PREVIEW 3 BARIS DATA PERTAMA ---\n';
+          const startRow = detectedHeaderRow >= 0 ? detectedHeaderRow + 1 : 4;
+          for(let i=startRow; i < Math.min(startRow + 3, importDataRaw.length); i++) {
+            rowDump += 'Baris ' + (i+1) + ': ' + JSON.stringify(importDataRaw[i]) + '\n';
+          }
+          
+          alert('Data kosong atau belum di-map dengan benar (Rencana Aksi wajib ada).' + debugInfo + rowDump);
           return;
         }
         populateTimelineTable();

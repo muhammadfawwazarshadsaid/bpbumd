@@ -25,7 +25,7 @@ function getCompanyScope(user) {
  */
 async function importToCompany(user, companyId, rows) {
   const companyScopeId = getCompanyScope(user);
-  
+
   if (companyScopeId && Number(companyScopeId) !== Number(companyId)) {
     const error = new Error("Anda tidak memiliki akses ke BUMD ini");
     error.statusCode = 403;
@@ -62,6 +62,9 @@ async function importToCompany(user, companyId, rows) {
     const uniqueAgIds = new Set();
 
     for (const row of rows) {
+      // Fallback: if ag_name is missing, use strategy_name (for templates without Activity Group column)
+      if (!row.ag_name && row.strategy_name) row.ag_name = row.strategy_name;
+      if (!row.ag_code && row.strategy_code) row.ag_code = row.strategy_code;
       if (!row.aspect_name || !row.strategy_name || !row.ag_name || !row.ap_name) {
         continue; // Skip invalid rows
       }
@@ -127,25 +130,25 @@ async function importToCompany(user, companyId, rows) {
         }
         agCache.set(agKey, agId);
       }
-      
+
       uniqueAgIds.add(agId);
 
       // 4. Action Plan
       const targetEndDate = row.target_end_date ? row.target_end_date : null;
       const targetStartDate = row.target_start_date ? row.target_start_date : null;
-      
+
       const insertAp = await client.query(
         `INSERT INTO action_plans 
           (activity_group_id, name, code_order, target_percentage, output, indicator, pic_user_id, start_date, target_end_date, status)
          VALUES ($1, $2, $3, 100, $4, $5, $6, $7, $8, 'belum mulai')
          RETURNING id`,
         [
-          agId, 
-          row.ap_name, 
-          row.ap_code || 'Z', 
-          row.output || null, 
-          row.indicator || null, 
-          row.pic_user_id || null, 
+          agId,
+          row.ap_name,
+          row.ap_code || 'Z',
+          row.output || null,
+          row.indicator || null,
+          row.pic_user_id || null,
           targetStartDate,
           targetEndDate
         ]
@@ -160,6 +163,17 @@ async function importToCompany(user, companyId, rows) {
           await client.query(
             `INSERT INTO kpis (action_plan_id, name, status) VALUES ($1, $2, 'belum mulai')`,
             [apId, kpi.trim()]
+          );
+        }
+      }
+
+      // 5b. Sub Action Plans
+      if (row.sub_aps && Array.isArray(row.sub_aps) && row.sub_aps.length > 0) {
+        for (const sub_ap of row.sub_aps) {
+          if (!sub_ap || !sub_ap.trim()) continue;
+          await client.query(
+            `INSERT INTO sub_action_plans (action_plan_id, name, status) VALUES ($1, $2, 'belum mulai')`,
+            [apId, sub_ap.trim()]
           );
         }
       }
