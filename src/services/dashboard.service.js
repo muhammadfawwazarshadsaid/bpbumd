@@ -461,9 +461,12 @@ async function getProgressPerAspect(client, companyScopeId, userId) {
           WHERE st2.aspect_id = a.id
             AND sapa.approver_user_id = $2
             AND sapa.status = 'menunggu'
-            AND (
-              (sap.status = 'pengajuan' AND sapa.approval_order = 1) OR
-              (sap.status = 'verifikasi' AND sapa.approval_order = 2)
+            AND sap.status IN ('pengajuan', 'verifikasi')
+            AND NOT EXISTS (
+              SELECT 1 FROM sub_action_plan_approvals prev
+              WHERE prev.sub_action_plan_id = sapa.sub_action_plan_id
+                AND prev.approval_order < sapa.approval_order
+                AND prev.status != 'setujui'
             )
         ) AS needs_my_verification
 

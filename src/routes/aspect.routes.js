@@ -184,7 +184,7 @@ router.put("/:aspectId/bulk-weights", authMiddleware, async (req, res) => {
  */
 router.post("/import", authMiddleware, async (req, res) => {
   try {
-    let { company_id, rows, encoded_payload } = req.body;
+    let { company_id, rows, encoded_payload, sub_ap_config } = req.body;
 
     // Decode Base64 payload untuk mem-bypass inspeksi WAF (Web Application Firewall) 
     // yang sering salah memblokir kata-kata wajar di dalam teks Excel (seperti "select", "union", "<")
@@ -194,6 +194,9 @@ router.post("/import", authMiddleware, async (req, res) => {
         const decodedObj = JSON.parse(decodedStr);
         company_id = decodedObj.company_id;
         rows = decodedObj.rows;
+        if (decodedObj.sub_ap_config) {
+          sub_ap_config = decodedObj.sub_ap_config;
+        }
       } catch (err) {
         throw new Error("Gagal men-decode payload dari frontend");
       }
@@ -216,7 +219,7 @@ router.post("/import", authMiddleware, async (req, res) => {
     // require here to avoid circular dependency if any, or just require at top
     const importService = require("../services/import.service");
     
-    const data = await importService.importToCompany(req.user, company_id, rows);
+    const data = await importService.importToCompany(req.user, company_id, rows, sub_ap_config);
 
     res.status(201).json({
       success: true,

@@ -245,9 +245,12 @@ async function getStrategies(client, aspectId, userId) {
           WHERE ag2.strategy_id = s.id
             AND sapa.approver_user_id = $2
             AND sapa.status = 'menunggu'
-            AND (
-              (sap2.status = 'pengajuan' AND sapa.approval_order = 1) OR
-              (sap2.status = 'verifikasi' AND sapa.approval_order = 2)
+            AND sap2.status IN ('pengajuan', 'verifikasi')
+            AND NOT EXISTS (
+              SELECT 1 FROM sub_action_plan_approvals prev
+              WHERE prev.sub_action_plan_id = sapa.sub_action_plan_id
+                AND prev.approval_order < sapa.approval_order
+                AND prev.status != 'setujui'
             )
         ) AS needs_my_verification
 
@@ -339,9 +342,12 @@ async function getActivityGroups(client, aspectId, userId) {
           WHERE ap2.activity_group_id = ag.id
             AND sapa.approver_user_id = $2
             AND sapa.status = 'menunggu'
-            AND (
-              (sap2.status = 'pengajuan' AND sapa.approval_order = 1) OR
-              (sap2.status = 'verifikasi' AND sapa.approval_order = 2)
+            AND sap2.status IN ('pengajuan', 'verifikasi')
+            AND NOT EXISTS (
+              SELECT 1 FROM sub_action_plan_approvals prev
+              WHERE prev.sub_action_plan_id = sapa.sub_action_plan_id
+                AND prev.approval_order < sapa.approval_order
+                AND prev.status != 'setujui'
             )
         ) AS needs_my_verification
 
@@ -428,9 +434,12 @@ async function getActionPlans(client, aspectId, userId) {
           WHERE sap2.action_plan_id = ap.id
             AND sapa.approver_user_id = $2
             AND sapa.status = 'menunggu'
-            AND (
-              (sap2.status = 'pengajuan' AND sapa.approval_order = 1) OR
-              (sap2.status = 'verifikasi' AND sapa.approval_order = 2)
+            AND sap2.status IN ('pengajuan', 'verifikasi')
+            AND NOT EXISTS (
+              SELECT 1 FROM sub_action_plan_approvals prev
+              WHERE prev.sub_action_plan_id = sapa.sub_action_plan_id
+                AND prev.approval_order < sapa.approval_order
+                AND prev.status != 'setujui'
             )
         ) AS needs_my_verification
 

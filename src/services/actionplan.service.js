@@ -461,17 +461,19 @@ async function getSubRencanaAksi(client, actionPlanId, userId) {
     const sapIdStr = String(row.sub_action_plan_id);
     const approvals = approvalMap.get(sapIdStr) || [];
 
-    // Calculate needs_my_verification
+    // Calculate needs_my_verification (dynamic N approvers)
     let needs_my_verification = false;
-    if (userId) {
-      const expectedOrder = row.status === 'pengajuan' ? 1 : (row.status === 'verifikasi' ? 2 : null);
-      if (expectedOrder) {
-        const myApproval = approvals.find(a => 
-          a.approval_order === expectedOrder && 
-          a.status === 'menunggu' && 
-          Number(a.approver.user_id) === Number(userId)
-        );
-        if (myApproval) {
+    if (userId && ['pengajuan', 'verifikasi'].includes(row.status)) {
+      const myApproval = approvals.find(a =>
+        a.status === 'menunggu' &&
+        Number(a.approver.user_id) === Number(userId)
+      );
+      if (myApproval) {
+        // Check all approvals before this one are already 'setujui'
+        const allPriorApproved = approvals
+          .filter(a => a.approval_order < myApproval.approval_order)
+          .every(a => a.status === 'setujui');
+        if (allPriorApproved) {
           needs_my_verification = true;
         }
       }

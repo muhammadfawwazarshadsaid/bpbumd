@@ -14,25 +14,32 @@ function toNumber(value) {
 /**
  * POST /api/sub-action-plans
  *
- * Create a new sub action plan + 2 approval rows.
+ * Create a new sub action plan + N approval rows.
  *
  * Body:
  *  - action_plan_id       (required)
  *  - name                 (required)
  *  - pic_user_id          (optional)
- *  - weight               (optional)
- *  - approver_user_id_1   (required) — approver order 1
- *  - approver_user_id_2   (required) — approver order 2
+ *  - approvers            (required) - array of user_id, min 1, ordered
+ *  - is_draft             (optional)
+ *
+ * Legacy: also accepts approver_user_id_1 + approver_user_id_2
  */
 async function createSubActionPlan(user, payload) {
   const {
     action_plan_id,
     name,
     pic_user_id,
-    approver_user_id_1,
-    approver_user_id_2,
     is_draft,
   } = payload;
+
+  // ── Build approvers array (support legacy + new format) ──
+  let approvers = [];
+  if (Array.isArray(payload.approvers) && payload.approvers.length > 0) {
+    approvers = payload.approvers.map(Number);
+  } else if (payload.approver_user_id_1 && payload.approver_user_id_2) {
+    approvers = [Number(payload.approver_user_id_1), Number(payload.approver_user_id_2)];
+  }
 
   // ── Validation ──
   if (!action_plan_id || !name) {
@@ -41,27 +48,26 @@ async function createSubActionPlan(user, payload) {
     throw error;
   }
 
-  if (!approver_user_id_1 || !approver_user_id_2) {
-    const error = new Error(
-      "approver_user_id_1 dan approver_user_id_2 wajib diisi",
-    );
+  if (approvers.length < 1) {
+    const error = new Error("Minimal 1 verifikator wajib diisi");
     error.statusCode = 400;
     throw error;
   }
 
-  if (Number(approver_user_id_1) === Number(approver_user_id_2)) {
-    const error = new Error("Approver 1 dan Approver 2 tidak boleh sama");
+  const uniqueApprovers = [...new Set(approvers)];
+  if (uniqueApprovers.length !== approvers.length) {
+    const error = new Error("Tidak boleh ada verifikator yang sama");
     error.statusCode = 400;
     throw error;
   }
 
-  if (Number(approver_user_id_1) === Number(user.id) || Number(approver_user_id_2) === Number(user.id)) {
+  if (approvers.some(id => id === Number(user.id))) {
     const error = new Error("Anda tidak dapat menjadi verifikator untuk sub rencana aksi yang Anda ajukan sendiri");
     error.statusCode = 400;
     throw error;
   }
 
-  if (pic_user_id && (Number(approver_user_id_1) === Number(pic_user_id) || Number(approver_user_id_2) === Number(pic_user_id))) {
+  if (pic_user_id && approvers.some(id => id === Number(pic_user_id))) {
     const error = new Error("PIC tidak dapat menjadi verifikator untuk sub rencana aksi miliknya sendiri");
     error.statusCode = 400;
     throw error;
@@ -105,21 +111,14 @@ async function createSubActionPlan(user, payload) {
 
     const subActionPlan = result.rows[0];
 
-    // ── Create 2 approval rows ──
-    await client.query(
-      `
-        INSERT INTO sub_action_plan_approvals (
-          sub_action_plan_id,
-          approver_user_id,
-          approval_order,
-          status
-        )
-        VALUES
-          ($1, $2, 1, 'menunggu'),
-          ($1, $3, 2, 'menunggu')
-      `,
-      [subActionPlan.id, approver_user_id_1, approver_user_id_2],
-    );
+    // ── Create N approval rows dynamically ──
+    for (let i = 0; i < approvers.length; i++) {
+      await client.query(
+        `INSERT INTO sub_action_plan_approvals (sub_action_plan_id, approver_user_id, approval_order, status)
+         VALUES ($1, $2, $3, 'menunggu')`,
+        [subActionPlan.id, approvers[i], i + 1],
+      );
+    }
 
     // ── Tmbahkan pencatatan riwayat aktivitas ──
     await client.query(
@@ -154,7 +153,7 @@ async function createSubActionPlan(user, payload) {
  *  - weight       (optional)
  */
 async function updateSubActionPlan(user, subActionPlanId, payload) {
-  const { name, pic_user_id, is_draft } = payload;
+  const { name, pic_user_id, is_draft, approvers } = payload;
 
   const client = await pool.connect();
 
@@ -180,8 +179,8 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
 
     const sap = existing.rows[0];
 
-    // ── Only submitter can edit ──
-    if (Number(sap.submitted_by_user_id) !== Number(user.id)) {
+    // ── Only submitter can edit (allow if null from import) ──
+    if (sap.submitted_by_user_id !== null && Number(sap.submitted_by_user_id) !== Number(user.id)) {
       const error = new Error(
         "Hanya pembuat sub rencana aksi yang bisa mengubah",
       );
@@ -229,6 +228,12 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
 
     sets.push(`updated_at = CURRENT_TIMESTAMP`);
 
+    // ── Claim ownership if it was imported (null) ──
+    if (sap.submitted_by_user_id === null) {
+      sets.push(`submitted_by_user_id = $${paramIndex++}`);
+      values.push(user.id);
+    }
+
     if (sets.length === 0) {
       const error = new Error("Tidak ada data yang diubah");
       error.statusCode = 400;
@@ -246,6 +251,25 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
       `,
       values,
     );
+
+    // ── Update approvers (verifikator) jika ada ──
+    if (approvers !== undefined && Array.isArray(approvers)) {
+      await client.query("DELETE FROM sub_action_plan_approvals WHERE sub_action_plan_id = $1", [subActionPlanId]);
+      
+      for (const approverUserId of approvers) {
+        if (!approverUserId) continue;
+        const checkUser = await client.query("SELECT company_id FROM users WHERE id = $1 AND is_active = TRUE", [approverUserId]);
+        if (checkUser.rowCount === 0) continue;
+        
+        await client.query(
+          `
+            INSERT INTO sub_action_plan_approvals (sub_action_plan_id, approver_user_id, approval_order, status)
+            VALUES ($1, $2, (SELECT COALESCE(MAX(approval_order), 0) + 1 FROM sub_action_plan_approvals WHERE sub_action_plan_id = $1), 'menunggu')
+          `,
+          [subActionPlanId, approverUserId]
+        );
+      }
+    }
 
     // ── Reset approvals jika resubmit ──
     if (is_draft === false && (sap.status === "ditolak" || sap.status === "belum mulai")) {
@@ -319,7 +343,12 @@ async function deleteSubActionPlan(user, subActionPlanId) {
 
     const sap = existing.rows[0];
 
-    if (Number(sap.submitted_by_user_id) !== Number(user.id)) {
+    // Hanya pembuat atau superadmin yang bisa menghapus (atau jika hasil import/null)
+    if (
+      sap.submitted_by_user_id !== null && 
+      Number(sap.submitted_by_user_id) !== Number(user.id) &&
+      user.role !== "superadmin"
+    ) {
       const error = new Error(
         "Hanya pembuat sub rencana aksi yang bisa menghapus",
       );
@@ -364,9 +393,10 @@ async function deleteSubActionPlan(user, subActionPlanId) {
  *
  * Approve sub action plan.
  *
- * Flow:
+ * Flow (dynamic N approvers):
  *   pengajuan  → approver 1 setujui → verifikasi
- *   verifikasi → approver 2 setujui → selesai
+ *   verifikasi → approver 2..N-1 setujui → verifikasi
+ *   verifikasi → approver N (last) setujui → selesai
  *
  * Body:
  *  - notes (optional)
@@ -434,8 +464,15 @@ async function approveSubActionPlan(user, subActionPlanId, payload) {
       throw error;
     }
 
-    // ── Validate approval order ──
-    const expectedOrder = sap.status === "pengajuan" ? 1 : 2;
+    // ── Validate approval order (dynamic) ──
+    // Find the next expected approval_order: the smallest order that is still 'menunggu'
+    const nextExpected = await client.query(
+      `SELECT MIN(approval_order) AS next_order
+       FROM sub_action_plan_approvals
+       WHERE sub_action_plan_id = $1 AND status = 'menunggu'`,
+      [subActionPlanId],
+    );
+    const expectedOrder = nextExpected.rows[0].next_order;
 
     if (approval.approval_order !== expectedOrder) {
       const error = new Error(
@@ -459,8 +496,13 @@ async function approveSubActionPlan(user, subActionPlanId, payload) {
       [notes || null, approval.id],
     );
 
-    // ── Advance sub action plan status ──
-    const newStatus = sap.status === "pengajuan" ? "verifikasi" : "selesai";
+    // ── Determine new status: check if there are more pending approvals ──
+    const remaining = await client.query(
+      `SELECT COUNT(*) AS cnt FROM sub_action_plan_approvals
+       WHERE sub_action_plan_id = $1 AND status = 'menunggu'`,
+      [subActionPlanId],
+    );
+    const newStatus = Number(remaining.rows[0].cnt) === 0 ? "selesai" : "verifikasi";
 
     const updated = await client.query(
       `
@@ -483,7 +525,7 @@ async function approveSubActionPlan(user, subActionPlanId, payload) {
       [
         sap.action_plan_id,
         user.id,
-        `Menyetujui (Approver ${expectedOrder}) sub rencana aksi: ${sap.name}`,
+        `Menyetujui (Approver ${approval.approval_order}) sub rencana aksi: ${sap.name}`,
       ],
     );
 
@@ -583,7 +625,14 @@ async function rejectSubActionPlan(user, subActionPlanId, payload) {
     }
 
     // ── Validate approval order ──
-    const expectedOrder = sap.status === "pengajuan" ? 1 : 2;
+    // ── Dynamic: find the next expected approval order ──
+    const nextExpectedReject = await client.query(
+      `SELECT MIN(approval_order) AS next_order
+       FROM sub_action_plan_approvals
+       WHERE sub_action_plan_id = $1 AND status = 'menunggu'`,
+      [subActionPlanId],
+    );
+    const expectedOrder = nextExpectedReject.rows[0].next_order;
 
     if (approval.approval_order !== expectedOrder) {
       const error = new Error(

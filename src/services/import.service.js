@@ -23,7 +23,7 @@ function getCompanyScope(user) {
  * @param {number} companyId - The target company ID
  * @param {Array} rows - The validated rows from Excel
  */
-async function importToCompany(user, companyId, rows) {
+async function importToCompany(user, companyId, rows, subApConfig = null) {
   const companyScopeId = getCompanyScope(user);
 
   if (companyScopeId && Number(companyScopeId) !== Number(companyId)) {
@@ -171,10 +171,32 @@ async function importToCompany(user, companyId, rows) {
       if (row.sub_aps && Array.isArray(row.sub_aps) && row.sub_aps.length > 0) {
         for (const sub_ap of row.sub_aps) {
           if (!sub_ap || !sub_ap.trim()) continue;
-          await client.query(
-            `INSERT INTO sub_action_plans (action_plan_id, name, status) VALUES ($1, $2, 'belum mulai')`,
-            [apId, sub_ap.trim()]
+          
+          let subApPic = null;
+          let subApApprovers = [];
+          if (subApConfig) {
+            subApPic = subApConfig.pic_user_id || null;
+            subApApprovers = subApConfig.approver_user_ids || [];
+          }
+
+          const insertSubAp = await client.query(
+            `INSERT INTO sub_action_plans (action_plan_id, name, status, submitted_by_user_id, pic_user_id) 
+             VALUES ($1, $2, 'belum mulai', $3, $4) RETURNING id`,
+            [apId, sub_ap.trim(), user.id, subApPic]
           );
+          const subApId = insertSubAp.rows[0].id;
+
+          // Insert approvers
+          if (subApApprovers.length > 0) {
+            for (let j = 0; j < subApApprovers.length; j++) {
+              const approverId = subApApprovers[j];
+              await client.query(
+                `INSERT INTO sub_action_plan_approvals (sub_action_plan_id, approver_user_id, approval_order)
+                 VALUES ($1, $2, $3)`,
+                [subApId, approverId, j + 1]
+              );
+            }
+          }
         }
       }
 

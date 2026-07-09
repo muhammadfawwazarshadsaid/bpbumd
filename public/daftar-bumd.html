@@ -2235,20 +2235,17 @@
         }).join('');
 
         if (isBpbumd) {
-          const emptyCount = 3 - users.length;
-          for (let j = 0; j < emptyCount; j++) {
-            chipsHtml += `
-              <div class="user-chip empty-slot" onclick="openCreateUserModal(${bumd.id}, '${escapeHtml(bumd.name).replace(/'/g, "\\'")}')" title="Tambah Pengguna">
-                <span class="chip-avatar" style="background: transparent; border: 1px dashed var(--slate-400); color: var(--slate-500);">
-                  <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </span>
-                Tambah Pengguna
-              </div>
-            `;
-          }
+          chipsHtml += `
+            <div class="user-chip empty-slot" onclick="openCreateUserModal(${bumd.id}, '${escapeHtml(bumd.name).replace(/'/g, "\\'")}')" title="Tambah Pengguna">
+              <span class="chip-avatar" style="background: transparent; border: 1px dashed var(--slate-400); color: var(--slate-500);">
+                <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </span>
+              Tambah Pengguna
+            </div>
+          `;
         }
 
         let actionBtns = '-';
@@ -2576,8 +2573,6 @@
     }
 
     function addUser(userId) {
-      if (selectedUsers.length >= 3) return;
-
       const user = allUsers.find(u => Number(u.id) === Number(userId));
       if (!user) return;
       if (selectedUsers.some(u => Number(u.id) === Number(userId))) return;
@@ -2599,8 +2594,8 @@
     function updateChipHint() {
       const hint = document.getElementById('chipHint');
       const count = selectedUsers.length;
-      hint.textContent = `${count} / 3 user dipilih`;
-      hint.className = count >= 3 ? 'chip-limit-hint warn' : 'chip-limit-hint';
+      hint.textContent = `${count} user dipilih`;
+      hint.className = 'chip-limit-hint';
     }
 
     function renderChipDropdown() {
@@ -2621,14 +2616,12 @@
         return;
       }
 
-      const atLimit = selectedUsers.length >= 3;
-
       dropdown.innerHTML = filtered.map(u => {
         const isSelected = selectedIds.has(Number(u.id));
         const isAlreadyRegistered = u.company_type === 'bumd' && u.company_id && Number(u.company_id) !== Number(editingId);
         const isAdmin = u.company_type === 'bpbumd' || u.company_type === 'lainnya';
         const isUnavailable = !isSelected && (isAlreadyRegistered || isAdmin);
-        const isDisabled = (atLimit && !isSelected) || isUnavailable;
+        const isDisabled = isUnavailable;
 
         let roleText = `@${escapeHtml(u.username)} · ${u.role}`;
         if (isAlreadyRegistered) {

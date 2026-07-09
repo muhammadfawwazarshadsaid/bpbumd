@@ -130,11 +130,7 @@ async function createBumd(user, payload) {
     throw error;
   }
 
-  if (user_ids && user_ids.length > 3) {
-    const error = new Error("Maksimal 3 user per BUMD");
-    error.statusCode = 400;
-    throw error;
-  }
+
 
   const client = await pool.connect();
 
@@ -216,11 +212,7 @@ async function createBumd(user, payload) {
 async function updateBumd(user, bumdId, payload) {
   const { name, sector_id, user_ids, logo } = payload;
 
-  if (user_ids && user_ids.length > 3) {
-    const error = new Error("Maksimal 3 user per BUMD");
-    error.statusCode = 400;
-    throw error;
-  }
+
 
   const client = await pool.connect();
 
