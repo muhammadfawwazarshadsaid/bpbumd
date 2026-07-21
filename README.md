@@ -64,7 +64,14 @@ npm run dev
 ```
 
 Aplikasi akan berjalan dan bisa diakses melalui browser pada alamat:
-👉 **[http://localhost:8080/diagnosticreview-demo/login.html](http://localhost:8080/diagnosticreview-demo/login.html)** *(Sesuaikan port jika berbeda di `.env`)*
+👉 **http://localhost:8080/{BASE_PATH}/login.html** *(Sesuaikan port dan BASE_PATH di `.env`)*
+
+#### Environment & BASE_PATH
+| Server | Environment | `BASE_PATH` | URL |
+|--------|------------|-------------|-----|
+| 10.15.102.147 | Demo | `diagnosticreview-demo` | `http://10.15.102.147:8084/diagnosticreview-demo` |
+| 10.15.102.167 | Dev | `diagnosticreview-latihan` | `http://10.15.102.167:8084/diagnosticreview-latihan` |
+| 10.15.102.168 | Prod | `diagnosticreview` | `http://10.15.102.168:8084/diagnosticreview` |
 
 ---
 

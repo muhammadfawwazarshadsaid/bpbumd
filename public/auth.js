@@ -5,13 +5,16 @@
  * JavaScript TIDAK punya akses ke token — lebih aman dari XSS.
  *
  * Usage:
- *   <script src="/diagnosticreview-demo/auth.js"></script>
+ *   <script src="/<base-path>/config.js"></script>
+ *   <script src="/<base-path>/auth.js"></script>
  */
 
 (function (window) {
   "use strict";
 
-  const LOGIN_URL = "/diagnosticreview-demo/login.html";
+  // Dynamic base path: use config.js value, or auto-detect from URL
+  const BASE = window.__BASE_PATH__ || '/' + window.location.pathname.split('/').filter(Boolean)[0] || '/diagnosticreview-demo';
+  const LOGIN_URL = BASE + "/login.html";
   const USER_KEY = "bpbumd_user";
 
   /**
@@ -46,7 +49,7 @@
    */
   async function requireAuth() {
     try {
-      const response = await fetch("/diagnosticreview-demo/api/auth/me", {
+      const response = await fetch(BASE + "/api/auth/me", {
         credentials: "same-origin",
       });
 
@@ -101,7 +104,7 @@
    */
   async function logout() {
     try {
-      await fetch("/diagnosticreview-demo/api/auth/logout", {
+      await fetch(BASE + "/api/auth/logout", {
         method: "POST",
         credentials: "same-origin",
       });
@@ -120,5 +123,6 @@
     isAuthenticated: isAuthenticated,
     requireAuth: requireAuth,
     logout: logout,
+    getBasePath: function() { return BASE; },
   };
 })(window);

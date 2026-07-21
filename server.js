@@ -1,7 +1,10 @@
 "use strict";
 
+require("dotenv").config();
+
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./src/routes/auth.routes");
 const dashboardRoutes = require("./src/routes/dashboard.routes");
@@ -17,6 +20,11 @@ const bumdRoutes = require("./src/routes/bumd.routes");
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// Dynamic base path from environment variable
+const BASE_PATH = '/' + (process.env.BASE_PATH || 'diagnosticreview-demo').replace(/^\//, '');
+
+console.log(`[config] BASE_PATH = ${BASE_PATH}`);
+
 // Security headers
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -30,12 +38,52 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
-// Serve static files at the new prefix path
+// ============================================================================
+// DUAL-MODE ROUTING MIDDLEWARE
+// ============================================================================
+// Jika diakses via IP lokal: request = /diagnosticreview/login.html
+// Jika diakses via Nginx yg memotong path: request = /login.html
+// Middleware ini menormalkan URL sehingga server Node.js selalu melihat URL
+// seolah-olah dipanggil tanpa prefix. Ini menyelesaikan masalah Nginx!
+app.use((req, res, next) => {
+  if (BASE_PATH !== '/' && req.url.startsWith(BASE_PATH)) {
+    req.url = req.url.substring(BASE_PATH.length) || '/';
+  }
+  next();
+});
+
+// Serve dynamic config.js that exposes BASE_PATH to frontend
+app.get('/config.js', (req, res) => {
+  res.type('application/javascript');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.send(`window.__BASE_PATH__ = "${BASE_PATH}";`);
+});
+
+// Middleware to serve HTML files with base path replacement
+app.use((req, res, next) => {
+  // Intercept .html requests
+  if (req.path.endsWith('.html')) {
+    const filePath = path.join(__dirname, 'public', req.path);
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        return next(); // Let static middleware or fallback handle it
+      }
+      // Ganti semua template string dengan BASE_PATH yg aktif
+      const replaced = data.replace(/\/diagnosticreview-demo/g, BASE_PATH);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.send(replaced);
+    });
+    return;
+  }
+  next();
+});
+
+// Serve static files (non-HTML assets: JS, CSS, images, etc.)
 app.use(
-  "/diagnosticreview-demo",
   express.static(path.join(__dirname, "public"), {
-    setHeaders: (res, path) => {
-      if (path.endsWith('.html')) {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       } else {
         res.setHeader('Cache-Control', 'public, max-age=3600');
@@ -46,16 +94,11 @@ app.use(
 );
 
 // Serve uploads directory
-app.use("/diagnosticreview-demo/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Root → redirect to the new prefix login
+// Root → redirect to the base path login
 app.get("/", (req, res) => {
-  res.redirect("/diagnosticreview-demo/login.html");
-});
-
-// Also redirect /diagnosticreview-demo to login
-app.get("/diagnosticreview-demo", (req, res) => {
-  res.redirect("/diagnosticreview-demo/login.html");
+  res.redirect(BASE_PATH + "/login.html");
 });
 
 // Health check for Azure App Service
@@ -63,12 +106,13 @@ app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
     app: "bpbumd-control-tower",
+    basePath: BASE_PATH,
     timestamp: new Date().toISOString(),
   });
 });
 
-// Backend routes
-const apiPrefix = '/diagnosticreview-demo/api';
+// Backend routes (sekarang semuanya mount di /api karena prefix sudah di-strip)
+const apiPrefix = '/api';
 app.use(apiPrefix + '/auth', authRoutes);
 app.use(apiPrefix + '/dashboard', dashboardRoutes);
 app.use(apiPrefix + '/aspects', aspectRoutes);
@@ -89,37 +133,22 @@ app.use(apiPrefix, (req, res) => {
   });
 });
 
-// Original API routes for backward compatibility local
-app.use("/api/auth", authRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/aspects", aspectRoutes);
-app.use("/api/action-plans", actionPlanRoutes);
-app.use("/api/sub-action-plans", subActionPlanRoutes);
-app.use("/api/kpis", kpiRoutes);
-app.use("/api/strategies", strategyRoutes);
-app.use("/api/activity-groups", activityGroupRoutes);
-app.use("/api/documents", documentRoutes);
-app.use("/api/bumds", bumdRoutes);
-
-// API fallback - supaya endpoint API yang salah nggak balikin HTML
-app.use("/api", (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "API endpoint tidak ditemukan",
-    path: req.originalUrl,
+// Fallback for HTML5 history mode
+app.get("*", (req, res) => {
+  const filePath = path.join(__dirname, "public", "login.html");
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      return res.status(500).send('Internal Server Error');
+    }
+    const replaced = data.replace(/\/diagnosticreview-demo/g, BASE_PATH);
+    res.type('html').send(replaced);
   });
 });
 
-// Fallback for HTML5 history mode
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
-});
-
-// Global Error Handler to prevent Express from sending HTML errors
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error("Global Error Caught:", err.message);
   
-  // Format the error as JSON so frontend doesn't fail with HTML parser error
   const statusCode = err.status || err.statusCode || 500;
   res.status(statusCode).json({
     success: false,
@@ -130,4 +159,6 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`BPBUMD Control Tower running on port ${PORT}`);
+  console.log(`Base path: ${BASE_PATH}`);
+  console.log(`Access: http://localhost:${PORT}${BASE_PATH}/login.html`);
 });
