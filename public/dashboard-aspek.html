@@ -562,10 +562,49 @@
     .company-tabs {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       padding: 16px 24px;
       border-bottom: 1px solid var(--slate-100);
       gap: 16px;
       flex-wrap: wrap;
+    }
+
+    .progress-tab-switcher {
+      display: inline-flex;
+      align-items: center;
+      background: var(--slate-100);
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--slate-200);
+      gap: 2px;
+    }
+
+    .tab-switch-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 18px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--slate-600);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+      line-height: 1.2;
+    }
+
+    .tab-switch-btn:hover {
+      color: var(--slate-900);
+    }
+
+    .tab-switch-btn.active {
+      background: var(--navy);
+      color: white;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15), 0 1px 2px rgba(15, 23, 42, 0.1);
+      font-weight: 600;
     }
 
     .company-dropdown-wrap {
@@ -2098,14 +2137,20 @@
 
       <div class="company-selector" id="companySelector">
         <div class="company-tabs">
-          <div class="company-dropdown-wrap">
-            <select class="modern-dropdown" id="companyDropdown" onchange="selectCompany(this.value)">
-              <option value="">Pilih BUMD...</option>
-            </select>
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <div class="company-dropdown-wrap">
+              <select class="modern-dropdown" id="companyDropdown" onchange="selectCompany(this.value)">
+                <option value="">Pilih BUMD...</option>
+              </select>
+            </div>
+            <div class="company-logo-name" id="companyLogoName" style="display:none;">
+              <div class="company-logo-icon" id="companyLogoIcon">🏢</div>
+              <span id="companyDisplayName">—</span>
+            </div>
           </div>
-          <div class="company-logo-name" id="companyLogoName" style="display:none;">
-            <div class="company-logo-icon" id="companyLogoIcon">🏢</div>
-            <span id="companyDisplayName">—</span>
+          <div class="progress-tab-switcher" id="progressTabSwitcher" style="display:none;">
+            <button type="button" class="tab-switch-btn" id="tab-btn-sap" onclick="switchProgressTab('sap')">Sub Rencana Aksi</button>
+            <button type="button" class="tab-switch-btn active" id="tab-btn-ap" onclick="switchProgressTab('ap')">Rencana Aksi</button>
           </div>
         </div>
 
@@ -2131,7 +2176,7 @@
                     onchange="toggleBulkSelectAllAspek()"></th>
                 <th>Aspek</th>
                 <th>Progres</th>
-                <th style="text-align:center;">Total Sub Rencana Aksi</th>
+                <th style="text-align:center;" id="thTotalTitle">Total Rencana Aksi</th>
                 <th style="text-align:center;">Selesai</th>
                 <th style="text-align:center;">Selesai (Terlambat)</th>
                 <th style="text-align:center;">Dalam Progres</th>
@@ -2651,6 +2696,7 @@
   <script>
     let dashboardData = null;
     let selectedCompanyId = null;
+    let currentProgressTab = 'ap';
     let importStep = 1;
     let importWorkbook = null;
     let importDataRaw = [];
@@ -3081,14 +3127,51 @@
       } else { logoIcon.innerHTML = company.company_name.charAt(0); }
       const overallEl = document.getElementById('companyOverall');
       overallEl.style.display = '';
+      const progressTabSwitcher = document.getElementById('progressTabSwitcher');
+      if (progressTabSwitcher) progressTabSwitcher.style.display = 'flex';
       const overallPct = Math.round(company.cards.progress_percentage);
       document.getElementById('overallPct').textContent = overallPct + '%';
       const barFill = document.getElementById('overallBarFill');
       barFill.style.width = overallPct + '%';
       barFill.style.background = getProgressBarGradient(overallPct, Math.round(company.cards.target_percentage));
-      document.getElementById('overallRAInfo').textContent = '(' + (company.cards.selesai || 0) + ' / ' + (company.cards.total_sub_rencana_aksi || 0) + ') sub rencana aksi';
       document.getElementById('overallTarget').textContent = 'Target: ' + Math.round(company.cards.target_percentage) + '%';
+      updateCompanyOverallInfo(company);
       renderAspectTable(company.progress_per_aspect, company.company_id, company.company_name);
+    }
+
+    function switchProgressTab(tab) {
+      currentProgressTab = tab;
+      const btnSap = document.getElementById('tab-btn-sap');
+      const btnAp = document.getElementById('tab-btn-ap');
+      if (btnSap && btnAp) {
+        if (tab === 'sap') {
+          btnSap.classList.add('active');
+          btnAp.classList.remove('active');
+        } else {
+          btnAp.classList.add('active');
+          btnSap.classList.remove('active');
+        }
+      }
+      if (selectedCompanyId && dashboardData && dashboardData.companies) {
+        const company = dashboardData.companies.find(c => c.company_id === selectedCompanyId);
+        if (company) {
+          updateCompanyOverallInfo(company);
+          renderAspectTable(company.progress_per_aspect, company.company_id, company.company_name);
+        }
+      }
+    }
+
+    function updateCompanyOverallInfo(company) {
+      if (!company || !company.cards) return;
+      if (currentProgressTab === 'sap') {
+        const selesaiCount = company.cards.selesai || 0;
+        const totalCount = company.cards.total_sub_rencana_aksi || 0;
+        document.getElementById('overallRAInfo').textContent = '(' + selesaiCount + ' / ' + totalCount + ') sub rencana aksi';
+      } else {
+        const selesaiCount = company.cards.selesai_rencana_aksi !== undefined ? company.cards.selesai_rencana_aksi : (company.cards.selesai_ap || 0);
+        const totalCount = company.cards.total_rencana_aksi || 0;
+        document.getElementById('overallRAInfo').textContent = '(' + selesaiCount + ' / ' + totalCount + ') rencana aksi';
+      }
     }
 
     function renderAspectTable(aspects, companyId, companyName) {
@@ -3102,9 +3185,19 @@
       }
       emptyState.style.display = 'none';
       table.style.display = '';
+      const thTotal = document.getElementById('thTotalTitle');
+      if (thTotal) {
+        thTotal.textContent = currentProgressTab === 'sap' ? 'Total Sub Rencana Aksi' : 'Total Rencana Aksi';
+      }
       tbody.innerHTML = aspects.map((asp, i) => {
         const pct = Math.round(asp.progress_percentage || 0);
         const barColor = getBarColor(pct, Math.round(asp.target_percentage || 0));
+        const total = currentProgressTab === 'sap' ? (asp.total_sap !== undefined ? asp.total_sap : (asp.total || 0)) : (asp.total_ap || 0);
+        const selesai = currentProgressTab === 'sap' ? (asp.selesai_sap !== undefined ? asp.selesai_sap : (asp.selesai || 0)) : (asp.selesai_ap || 0);
+        const selesai_terlambat = currentProgressTab === 'sap' ? (asp.selesai_terlambat_sap !== undefined ? asp.selesai_terlambat_sap : (asp.selesai_terlambat || 0)) : (asp.selesai_terlambat_ap || 0);
+        const dalam_progres = currentProgressTab === 'sap' ? (asp.dalam_progres_sap !== undefined ? asp.dalam_progres_sap : (asp.dalam_progres || 0)) : (asp.dalam_progres_ap || 0);
+        const terlambat = currentProgressTab === 'sap' ? (asp.terlambat_sap !== undefined ? asp.terlambat_sap : (asp.terlambat || 0)) : (asp.terlambat_ap || 0);
+        const belum_mulai = currentProgressTab === 'sap' ? (asp.belum_mulai_sap !== undefined ? asp.belum_mulai_sap : (asp.belum_mulai || 0)) : (asp.belum_mulai_ap || 0);
         return `
           <tr>
             <td style="text-align: center;"><input type="checkbox" class="aspek-bulk-cb" value="${asp.aspect_id}" onchange="updateBulkAspekSelection()"></td>
@@ -3114,12 +3207,12 @@
                 <div class="aspect-prog-row"><span class="aspect-prog-pct">${pct}%</span><div class="aspect-prog-bar-wrap"><div class="aspect-prog-bar-fill" style="width:${pct}%;background:${barColor};"></div></div></div>
               </div>
             </td>
-            <td class="td-num">${asp.total || 0}</td>
-            <td class="td-num">${asp.selesai || 0}</td>
-            <td class="td-num">${asp.selesai_terlambat || 0}</td>
-            <td class="td-num">${asp.dalam_progres || 0}</td>
-            <td class="td-num">${asp.terlambat || 0}</td>
-            <td class="td-num">${asp.belum_mulai || 0}</td>
+            <td class="td-num">${total}</td>
+            <td class="td-num">${selesai}</td>
+            <td class="td-num">${selesai_terlambat}</td>
+            <td class="td-num">${dalam_progres}</td>
+            <td class="td-num">${terlambat}</td>
+            <td class="td-num">${belum_mulai}</td>
             <td><button class="btn-lihat-detail" onclick="goToAspekDetail(${asp.aspect_id}, '${encodeURIComponent(asp.aspect_name)}')">Lihat Detail</button></td>
           </tr>`;
       }).join('');

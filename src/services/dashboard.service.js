@@ -47,6 +47,7 @@ async function getDashboardSummary(user) {
         total_rencana_aksi: company.total_rencana_aksi,
         total_sub_rencana_aksi: company.total_sub_rencana_aksi,
         selesai: company.selesai,
+        selesai_rencana_aksi: company.selesai_rencana_aksi,
       },
 
       progress_per_aspect: aspectMap.get(String(company.company_id)) || [],
@@ -190,7 +191,13 @@ async function getOverallCards(client, companyScopeId) {
           SELECT COUNT(*)
           FROM sub_action_plan_rows
           WHERE effective_status IN ('selesai', 'selesai_terlambat')
-        )::INT AS selesai
+        )::INT AS selesai,
+
+        (
+          SELECT COUNT(*)
+          FROM action_plan_rows
+          WHERE status IN ('selesai', 'selesai terlambat')
+        )::INT AS selesai_rencana_aksi
     `,
     [companyScopeId],
   );
@@ -206,6 +213,7 @@ async function getOverallCards(client, companyScopeId) {
     total_rencana_aksi: toNumber(row.total_rencana_aksi),
     total_sub_rencana_aksi: toNumber(row.total_sub_rencana_aksi),
     selesai: toNumber(row.selesai),
+    selesai_rencana_aksi: toNumber(row.selesai_rencana_aksi),
   };
 }
 
@@ -287,7 +295,8 @@ async function getCompanyCards(client, companyScopeId) {
       action_plan_agg AS (
         SELECT
           a.company_id,
-          COUNT(ap.id)::INT AS total_rencana_aksi
+          COUNT(ap.id)::INT AS total_rencana_aksi,
+          COUNT(ap.id) FILTER (WHERE ap.status IN ('selesai', 'selesai terlambat'))::INT AS selesai_rencana_aksi
         FROM action_plans ap
         JOIN activity_groups ag
           ON ag.id = ap.activity_group_id
@@ -354,7 +363,8 @@ async function getCompanyCards(client, companyScopeId) {
         COALESCE(aa.progress_percentage, 0) AS progress_percentage,
         COALESCE(aa.target_percentage, 0) AS target_percentage,
         COALESCE(sapa.terlambat, 0) AS terlambat,
-        COALESCE(sapa.selesai, 0) AS selesai
+        COALESCE(sapa.selesai, 0) AS selesai,
+        COALESCE(apa.selesai_rencana_aksi, 0) AS selesai_rencana_aksi
 
       FROM scoped_companies sc
       LEFT JOIN sectors sec
@@ -388,25 +398,67 @@ async function getCompanyCards(client, companyScopeId) {
     total_rencana_aksi: toNumber(row.total_rencana_aksi),
     total_sub_rencana_aksi: toNumber(row.total_sub_rencana_aksi),
     selesai: toNumber(row.selesai),
+    selesai_rencana_aksi: toNumber(row.selesai_rencana_aksi),
   }));
 }
 
 async function getProgressPerAspect(client, companyScopeId, userId) {
   const result = await client.query(
     `
-      WITH sap_base AS (
+      WITH sap_agg AS (
         SELECT
-          sap.id AS sap_id,
-          a.company_id,
           a.id AS aspect_id,
-          sap.status AS sap_status,
-          CASE 
-            WHEN sap.status = 'selesai' THEN 
-              CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
-            WHEN ap.status = 'terlambat' THEN 'terlambat'
-            WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
-            ELSE 'belum_mulai'
-          END AS effective_status
+          COUNT(sap.id)::INT AS total_sap,
+
+          COUNT(sap.id) FILTER (
+            WHERE CASE 
+              WHEN sap.status = 'selesai' THEN 
+                CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+              WHEN ap.status = 'terlambat' THEN 'terlambat'
+              WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+              ELSE 'belum_mulai'
+            END = 'selesai'
+          )::INT AS selesai_sap,
+
+          COUNT(sap.id) FILTER (
+            WHERE CASE 
+              WHEN sap.status = 'selesai' THEN 
+                CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+              WHEN ap.status = 'terlambat' THEN 'terlambat'
+              WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+              ELSE 'belum_mulai'
+            END = 'selesai_terlambat'
+          )::INT AS selesai_terlambat_sap,
+
+          COUNT(sap.id) FILTER (
+            WHERE CASE 
+              WHEN sap.status = 'selesai' THEN 
+                CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+              WHEN ap.status = 'terlambat' THEN 'terlambat'
+              WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+              ELSE 'belum_mulai'
+            END = 'dalam_progres'
+          )::INT AS dalam_progres_sap,
+
+          COUNT(sap.id) FILTER (
+            WHERE CASE 
+              WHEN sap.status = 'selesai' THEN 
+                CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+              WHEN ap.status = 'terlambat' THEN 'terlambat'
+              WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+              ELSE 'belum_mulai'
+            END = 'terlambat'
+          )::INT AS terlambat_sap,
+
+          COUNT(sap.id) FILTER (
+            WHERE CASE 
+              WHEN sap.status = 'selesai' THEN 
+                CASE WHEN ap.status IN ('selesai terlambat', 'terlambat') THEN 'selesai_terlambat' ELSE 'selesai' END
+              WHEN ap.status = 'terlambat' THEN 'terlambat'
+              WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
+              ELSE 'belum_mulai'
+            END = 'belum_mulai'
+          )::INT AS belum_mulai_sap
         FROM sub_action_plans sap
         JOIN action_plans ap
           ON ap.id = sap.action_plan_id
@@ -418,10 +470,32 @@ async function getProgressPerAspect(client, companyScopeId, userId) {
           ON a.id = s.aspect_id
         WHERE
           ($1::BIGINT IS NULL OR a.company_id = $1)
+        GROUP BY
+          a.id
+      ),
+      ap_agg AS (
+        SELECT
+          a.id AS aspect_id,
+          COUNT(ap.id)::INT AS total_ap,
+          COUNT(ap.id) FILTER (WHERE ap.status = 'selesai')::INT AS selesai_ap,
+          COUNT(ap.id) FILTER (WHERE ap.status = 'selesai terlambat')::INT AS selesai_terlambat_ap,
+          COUNT(ap.id) FILTER (WHERE ap.status = 'dalam progres')::INT AS dalam_progres_ap,
+          COUNT(ap.id) FILTER (WHERE ap.status = 'terlambat')::INT AS terlambat_ap,
+          COUNT(ap.id) FILTER (WHERE ap.status NOT IN ('selesai', 'selesai terlambat', 'dalam progres', 'terlambat') OR ap.status IS NULL)::INT AS belum_mulai_ap
+        FROM action_plans ap
+        JOIN activity_groups ag
+          ON ag.id = ap.activity_group_id
+        JOIN strategies s
+          ON s.id = ag.strategy_id
+        JOIN aspects a
+          ON a.id = s.aspect_id
+        WHERE
+          ($1::BIGINT IS NULL OR a.company_id = $1)
+        GROUP BY
+          a.id
       )
       SELECT
         c.id AS company_id,
-
         a.id AS aspect_id,
         a.name AS aspect_name,
         a.status AS aspect_status,
@@ -429,27 +503,26 @@ async function getProgressPerAspect(client, companyScopeId, userId) {
         COALESCE(a.progress_percentage, 0) AS progress_percentage,
         COALESCE(a.target_percentage, 0) AS target_percentage,
 
-        COUNT(DISTINCT sb.sap_id)::INT AS total,
+        COALESCE(sa.total_sap, 0) AS total,
+        COALESCE(sa.selesai_sap, 0) AS selesai,
+        COALESCE(sa.selesai_terlambat_sap, 0) AS selesai_terlambat,
+        COALESCE(sa.dalam_progres_sap, 0) AS dalam_progres,
+        COALESCE(sa.terlambat_sap, 0) AS terlambat,
+        COALESCE(sa.belum_mulai_sap, 0) AS belum_mulai,
 
-        COUNT(DISTINCT sb.sap_id) FILTER (
-          WHERE sb.effective_status = 'selesai'
-        )::INT AS selesai,
+        COALESCE(sa.total_sap, 0) AS total_sap,
+        COALESCE(sa.selesai_sap, 0) AS selesai_sap,
+        COALESCE(sa.selesai_terlambat_sap, 0) AS selesai_terlambat_sap,
+        COALESCE(sa.dalam_progres_sap, 0) AS dalam_progres_sap,
+        COALESCE(sa.terlambat_sap, 0) AS terlambat_sap,
+        COALESCE(sa.belum_mulai_sap, 0) AS belum_mulai_sap,
 
-        COUNT(DISTINCT sb.sap_id) FILTER (
-          WHERE sb.effective_status = 'selesai_terlambat'
-        )::INT AS selesai_terlambat,
-
-        COUNT(DISTINCT sb.sap_id) FILTER (
-          WHERE sb.effective_status = 'dalam_progres'
-        )::INT AS dalam_progres,
-
-        COUNT(DISTINCT sb.sap_id) FILTER (
-          WHERE sb.effective_status = 'terlambat'
-        )::INT AS terlambat,
-
-        COUNT(DISTINCT sb.sap_id) FILTER (
-          WHERE sb.effective_status = 'belum_mulai'
-        )::INT AS belum_mulai,
+        COALESCE(aa.total_ap, 0) AS total_ap,
+        COALESCE(aa.selesai_ap, 0) AS selesai_ap,
+        COALESCE(aa.selesai_terlambat_ap, 0) AS selesai_terlambat_ap,
+        COALESCE(aa.dalam_progres_ap, 0) AS dalam_progres_ap,
+        COALESCE(aa.terlambat_ap, 0) AS terlambat_ap,
+        COALESCE(aa.belum_mulai_ap, 0) AS belum_mulai_ap,
 
         EXISTS (
           SELECT 1
@@ -473,19 +546,13 @@ async function getProgressPerAspect(client, companyScopeId, userId) {
       FROM companies c
       JOIN aspects a
         ON a.company_id = c.id
-      LEFT JOIN sap_base sb
-        ON sb.aspect_id = a.id
+      LEFT JOIN sap_agg sa
+        ON sa.aspect_id = a.id
+      LEFT JOIN ap_agg aa
+        ON aa.aspect_id = a.id
       WHERE
         c.company_type = 'bumd'
         AND ($1::BIGINT IS NULL OR c.id = $1)
-      GROUP BY
-        c.id,
-        c.name,
-        a.id,
-        a.name,
-        a.status,
-        a.progress_percentage,
-        a.target_percentage
       ORDER BY
         c.name,
         a.id
@@ -506,6 +573,21 @@ async function getProgressPerAspect(client, companyScopeId, userId) {
     dalam_progres: toNumber(row.dalam_progres),
     terlambat: toNumber(row.terlambat),
     belum_mulai: toNumber(row.belum_mulai),
+
+    total_sap: toNumber(row.total_sap),
+    selesai_sap: toNumber(row.selesai_sap),
+    selesai_terlambat_sap: toNumber(row.selesai_terlambat_sap),
+    dalam_progres_sap: toNumber(row.dalam_progres_sap),
+    terlambat_sap: toNumber(row.terlambat_sap),
+    belum_mulai_sap: toNumber(row.belum_mulai_sap),
+
+    total_ap: toNumber(row.total_ap),
+    selesai_ap: toNumber(row.selesai_ap),
+    selesai_terlambat_ap: toNumber(row.selesai_terlambat_ap),
+    dalam_progres_ap: toNumber(row.dalam_progres_ap),
+    terlambat_ap: toNumber(row.terlambat_ap),
+    belum_mulai_ap: toNumber(row.belum_mulai_ap),
+
     needs_my_verification: row.needs_my_verification,
   }));
 }
@@ -532,6 +614,21 @@ function groupAspectsByCompany(rows) {
       dalam_progres: row.dalam_progres,
       terlambat: row.terlambat,
       belum_mulai: row.belum_mulai,
+
+      total_sap: row.total_sap,
+      selesai_sap: row.selesai_sap,
+      selesai_terlambat_sap: row.selesai_terlambat_sap,
+      dalam_progres_sap: row.dalam_progres_sap,
+      terlambat_sap: row.terlambat_sap,
+      belum_mulai_sap: row.belum_mulai_sap,
+
+      total_ap: row.total_ap,
+      selesai_ap: row.selesai_ap,
+      selesai_terlambat_ap: row.selesai_terlambat_ap,
+      dalam_progres_ap: row.dalam_progres_ap,
+      terlambat_ap: row.terlambat_ap,
+      belum_mulai_ap: row.belum_mulai_ap,
+
       needs_my_verification: row.needs_my_verification,
     });
   }
