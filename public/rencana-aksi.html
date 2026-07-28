@@ -3454,7 +3454,7 @@
       }
       sraBody.innerHTML = sraList.map(r => {
         const isImported = !r.submitted_by;
-        const canDeleteSRA = currentUser && (isImported || (r.submitted_by && String(currentUser.id) === String(r.submitted_by.user_id)) || currentUser.role === 'superadmin');
+        const canDeleteSRA = currentUser && (isImported || (r.submitted_by && String(currentUser.id) === String(r.submitted_by.user_id)) || (r.pic && String(currentUser.id) === String(r.pic.user_id)) || currentUser.role === 'superadmin' || currentUser.role === 'admin');
         let actionBtn = `
           <button class="sra-action-btn" title="Lihat Detail" onclick="openDetailSRAModal(${r.sub_action_plan_id})">
             <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
@@ -4256,7 +4256,7 @@
       let canApprove = false;
       let isMyApproval = false;
 
-      const isSubmitter = !selectedSRA.submitted_by || (selectedSRA.submitted_by && String(selectedSRA.submitted_by.user_id) === String(currentUser.id)) || currentUser.role === 'superadmin';
+      const isSubmitter = !selectedSRA.submitted_by || (selectedSRA.submitted_by && String(selectedSRA.submitted_by.user_id) === String(currentUser.id)) || (selectedSRA.pic && String(selectedSRA.pic.user_id) === String(currentUser.id)) || currentUser.role === 'superadmin' || currentUser.role === 'admin';
       if (isSubmitter && (selectedSRA.status === 'ditolak' || selectedSRA.status === 'pengajuan' || selectedSRA.status === 'belum mulai')) {
         const actionText = selectedSRA.status === 'belum mulai' ? 'Ajukan Verifikasi' : 'Ajukan Ulang';
         footer.innerHTML = `

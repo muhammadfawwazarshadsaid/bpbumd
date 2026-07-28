@@ -179,10 +179,13 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
 
     const sap = existing.rows[0];
 
-    // ── Only submitter can edit (allow if null from import) ──
-    if (sap.submitted_by_user_id !== null && Number(sap.submitted_by_user_id) !== Number(user.id)) {
+    // ── Only submitter, PIC, admin, or superadmin can edit (allow if null from import) ──
+    const isSubmitter = sap.submitted_by_user_id === null || Number(sap.submitted_by_user_id) === Number(user.id);
+    const isPic = sap.pic_user_id !== null && Number(sap.pic_user_id) === Number(user.id);
+    const isAdmin = user.role === "superadmin" || user.role === "admin";
+    if (!isSubmitter && !isPic && !isAdmin) {
       const error = new Error(
-        "Hanya pembuat sub rencana aksi yang bisa mengubah",
+        "Hanya pembuat, PIC, atau admin yang bisa mengubah",
       );
       error.statusCode = 403;
       throw error;
@@ -343,14 +346,13 @@ async function deleteSubActionPlan(user, subActionPlanId) {
 
     const sap = existing.rows[0];
 
-    // Hanya pembuat atau superadmin yang bisa menghapus (atau jika hasil import/null)
-    if (
-      sap.submitted_by_user_id !== null && 
-      Number(sap.submitted_by_user_id) !== Number(user.id) &&
-      user.role !== "superadmin"
-    ) {
+    // Hanya pembuat, PIC, atau admin/superadmin yang bisa menghapus (atau jika hasil import/null)
+    const isSubmitter = sap.submitted_by_user_id === null || Number(sap.submitted_by_user_id) === Number(user.id);
+    const isPic = sap.pic_user_id !== null && Number(sap.pic_user_id) === Number(user.id);
+    const isAdmin = user.role === "superadmin" || user.role === "admin";
+    if (!isSubmitter && !isPic && !isAdmin) {
       const error = new Error(
-        "Hanya pembuat sub rencana aksi yang bisa menghapus",
+        "Hanya pembuat, PIC, atau admin yang bisa menghapus",
       );
       error.statusCode = 403;
       throw error;

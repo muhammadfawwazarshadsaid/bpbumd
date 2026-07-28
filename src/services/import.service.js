@@ -193,8 +193,8 @@ async function importToCompany(user, companyId, rows, subApConfig = null, verifi
 
           const insertSubAp = await client.query(
             `INSERT INTO sub_action_plans (action_plan_id, name, status, submitted_by_user_id, pic_user_id) 
-             VALUES ($1, $2, 'belum mulai', $3, $4) RETURNING id`,
-            [apId, sub_ap.trim(), user.id, subApPic]
+             VALUES ($1, $2, 'belum mulai', NULL, $3) RETURNING id`,
+            [apId, sub_ap.trim(), subApPic]
           );
           const subApId = insertSubAp.rows[0].id;
 
