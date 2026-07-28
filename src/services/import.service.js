@@ -23,7 +23,7 @@ function getCompanyScope(user) {
  * @param {number} companyId - The target company ID
  * @param {Array} rows - The validated rows from Excel
  */
-async function importToCompany(user, companyId, rows, subApConfig = null) {
+async function importToCompany(user, companyId, rows, subApConfig = null, verifikatorMap = null) {
   const companyScopeId = getCompanyScope(user);
 
   if (companyScopeId && Number(companyScopeId) !== Number(companyId)) {
@@ -174,9 +174,21 @@ async function importToCompany(user, companyId, rows, subApConfig = null) {
           
           let subApPic = null;
           let subApApprovers = [];
-          if (subApConfig) {
-            subApPic = subApConfig.pic_user_id || null;
-            subApApprovers = subApConfig.approver_user_ids || [];
+
+          // SRA inherits PIC from AP by default (this handles the "requester is the PIC" requirement)
+          subApPic = row.pic_user_id || null;
+
+          // If massal PIC is provided, it overrides the AP PIC (for legacy compatibility if any)
+          if (subApConfig && subApConfig.pic_user_id) {
+            subApPic = subApConfig.pic_user_id;
+          }
+
+          // Verifikator per-PIC mapping
+          if (verifikatorMap && subApPic && verifikatorMap[subApPic]) {
+            subApApprovers = verifikatorMap[subApPic];
+          } else if (subApConfig && subApConfig.approver_user_ids) {
+            // Fallback to massal verifikators if no map or no map entry
+            subApApprovers = subApConfig.approver_user_ids;
           }
 
           const insertSubAp = await client.query(

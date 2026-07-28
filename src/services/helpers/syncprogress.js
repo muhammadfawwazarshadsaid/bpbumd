@@ -34,8 +34,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
               WHEN ap.target_end_date IS NOT NULL AND (SELECT MAX(updated_at) FROM sub_action_plans WHERE action_plan_id = ap.id AND status = 'selesai')::DATE > ap.target_end_date THEN 'selesai terlambat'
               ELSE 'selesai'
             END
-          WHEN ap.target_end_date < CURRENT_DATE THEN 'terlambat'
           WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND status != 'belum mulai') = 0 THEN 'belum mulai'
+          WHEN ap.target_end_date < CURRENT_DATE THEN 'terlambat'
           ELSE 'dalam progres'
         END
       WHERE id = $1

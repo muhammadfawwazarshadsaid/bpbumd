@@ -133,6 +133,14 @@ async function uploadDocument(user, file, body) {
     const doc = result.rows[0];
 
     if (final_sub_action_plan_id) {
+      // Update Sub Action Plan status to 'pengajuan' if it was 'belum mulai'
+      await client.query(
+        `UPDATE sub_action_plans 
+         SET status = 'pengajuan' 
+         WHERE id = $1 AND status = 'belum mulai'`,
+        [final_sub_action_plan_id]
+      );
+
       // Get approvers from the SRA
       const sraApprovers = await client.query(
         `SELECT approver_user_id, approval_order 
@@ -152,6 +160,10 @@ async function uploadDocument(user, file, body) {
         }
       }
     }
+
+    // Sync hierarchy status and progress
+    const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
+    await syncProgressHierarchy(client, action_plan_id);
 
     // Log history
     await logHistory(
@@ -724,6 +736,33 @@ async function deleteDocument(user, documentId) {
     }
 
     await client.query("DELETE FROM documents WHERE id = $1", [documentId]);
+
+    // If sub_action_plan document was deleted, check if any documents remain
+    let apIdToSync = doc.action_plan_id;
+    if (doc.sub_action_plan_id) {
+      const rem = await client.query(
+        `SELECT COUNT(*) FROM documents WHERE sub_action_plan_id = $1`,
+        [doc.sub_action_plan_id]
+      );
+      if (Number(rem.rows[0].count) === 0) {
+        await client.query(
+          `UPDATE sub_action_plans SET status = 'belum mulai' WHERE id = $1 AND status != 'selesai'`,
+          [doc.sub_action_plan_id]
+        );
+      }
+      if (!apIdToSync) {
+        const sapRes = await client.query(
+          `SELECT action_plan_id FROM sub_action_plans WHERE id = $1`,
+          [doc.sub_action_plan_id]
+        );
+        if (sapRes.rowCount > 0) apIdToSync = sapRes.rows[0].action_plan_id;
+      }
+    }
+
+    if (apIdToSync) {
+      const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
+      await syncProgressHierarchy(client, apIdToSync);
+    }
 
     await client.query("COMMIT");
 

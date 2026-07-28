@@ -40,11 +40,12 @@ async function getAspectDetail(user, aspectId) {
     }
 
     // ── 2. Fetch all data in parallel ──
-    const [cards, strategies, activityGroups, actionPlans] = await Promise.all([
+    const [cards, strategies, activityGroups, actionPlans, subActionPlans] = await Promise.all([
       getAspectCards(client, aspectId),
       getStrategies(client, aspectId, user.id),
       getActivityGroups(client, aspectId, user.id),
       getActionPlans(client, aspectId, user.id),
+      getSubActionPlans(client, aspectId),
     ]);
 
     // ── 3. Build nested hierarchy ──
@@ -52,6 +53,7 @@ async function getAspectDetail(user, aspectId) {
       strategies,
       activityGroups,
       actionPlans,
+      subActionPlans,
     );
 
     return {
@@ -493,25 +495,81 @@ async function getActionPlans(client, aspectId, userId) {
 }
 
 // ─────────────────────────────────────────────
-//  BUILD NESTED TREE
-//  strategy → activity_groups → action_plans
+//  SUB ACTION PLANS
 // ─────────────────────────────────────────────
 
-function buildStrategyTree(strategies, activityGroups, actionPlans) {
+async function getSubActionPlans(client, aspectId) {
+  const result = await client.query(
+    `
+      SELECT
+        sap.id AS sub_action_plan_id,
+        sap.action_plan_id,
+        sap.name AS sub_action_plan_name,
+        sap.status,
+        sap.pic_user_id,
+        u.name AS pic_name
+      FROM sub_action_plans sap
+      JOIN action_plans ap ON ap.id = sap.action_plan_id
+      JOIN activity_groups ag ON ag.id = ap.activity_group_id
+      JOIN strategies s ON s.id = ag.strategy_id
+      LEFT JOIN users u ON u.id = sap.pic_user_id
+      WHERE s.aspect_id = $1
+      ORDER BY sap.id ASC
+    `,
+    [aspectId]
+  );
+
+  return result.rows.map((row) => ({
+    sub_action_plan_id: Number(row.sub_action_plan_id),
+    action_plan_id: Number(row.action_plan_id),
+    sub_action_plan_name: row.sub_action_plan_name,
+    status: row.status,
+    pic_user_id: row.pic_user_id ? Number(row.pic_user_id) : null,
+    pic_name: row.pic_name || null,
+  }));
+}
+
+function naturalCompareCodeOrder(a, b) {
+  const cleanA = (a.code_order || "").replace(/\.+/g, ".").replace(/\.$/, "");
+  const cleanB = (b.code_order || "").replace(/\.+/g, ".").replace(/\.$/, "");
+  return cleanA.localeCompare(cleanB, undefined, { numeric: true, sensitivity: "base" });
+}
+
+// ─────────────────────────────────────────────
+//  BUILD NESTED TREE
+//  strategy → activity_groups → action_plans → sub_action_plans
+// ─────────────────────────────────────────────
+
+function buildStrategyTree(strategies, activityGroups, actionPlans, subActionPlans = []) {
+  // Group sub action plans by action_plan_id
+  const sapByAp = new Map();
+  for (const sap of subActionPlans) {
+    const key = String(sap.action_plan_id);
+    if (!sapByAp.has(key)) {
+      sapByAp.set(key, []);
+    }
+    sapByAp.get(key).push(sap);
+  }
+
+  // Sort action plans naturally
+  const sortedAp = [...actionPlans].sort(naturalCompareCodeOrder);
+
   // Group action plans by activity_group_id
   const apByAg = new Map();
 
-  for (const ap of actionPlans) {
+  for (const ap of sortedAp) {
     const key = String(ap.activity_group_id);
 
     if (!apByAg.has(key)) {
       apByAg.set(key, []);
     }
 
+    const cleanCode = (ap.code_order || "").replace(/\.+/g, ".");
+
     apByAg.get(key).push({
       action_plan_id: ap.action_plan_id,
       action_plan_name: ap.action_plan_name,
-      code_order: ap.code_order,
+      code_order: cleanCode,
       status: ap.status,
       weight: ap.weight,
       pic_user_id: ap.pic_user_id,
@@ -522,6 +580,7 @@ function buildStrategyTree(strategies, activityGroups, actionPlans) {
       target_percentage: ap.target_percentage,
       needs_my_verification: ap.needs_my_verification,
       ditolak_sub: ap.ditolak_sub,
+      sub_action_plans: sapByAp.get(String(ap.action_plan_id)) || [],
       rencana_aksi: {
         selesai: ap.selesai_sub,
         total: ap.total_sub_rencana_aksi,
@@ -529,20 +588,25 @@ function buildStrategyTree(strategies, activityGroups, actionPlans) {
     });
   }
 
+  // Sort activity groups naturally
+  const sortedAg = [...activityGroups].sort(naturalCompareCodeOrder);
+
   // Group activity groups by strategy_id
   const agByStrategy = new Map();
 
-  for (const ag of activityGroups) {
+  for (const ag of sortedAg) {
     const key = String(ag.strategy_id);
 
     if (!agByStrategy.has(key)) {
       agByStrategy.set(key, []);
     }
 
+    const cleanCode = (ag.code_order || "").replace(/\.+/g, ".");
+
     agByStrategy.get(key).push({
       activity_group_id: ag.activity_group_id,
       activity_group_name: ag.activity_group_name,
-      code_order: ag.code_order,
+      code_order: cleanCode,
       status: ag.status,
       weight: ag.weight,
       progress_percentage: ag.progress_percentage,
@@ -558,14 +622,19 @@ function buildStrategyTree(strategies, activityGroups, actionPlans) {
     });
   }
 
+  // Sort strategies naturally
+  const sortedStrategies = [...strategies].sort(naturalCompareCodeOrder);
+
   // Group strategies
   const strategyList = [];
 
-  for (const s of strategies) {
+  for (const s of sortedStrategies) {
+    const cleanCode = (s.code_order || "").replace(/\.+/g, ".");
+
     strategyList.push({
       strategy_id: s.strategy_id,
       strategy_name: s.strategy_name,
-      code_order: s.code_order,
+      code_order: cleanCode,
       status: s.status,
       weight: s.weight,
       progress_percentage: s.progress_percentage,

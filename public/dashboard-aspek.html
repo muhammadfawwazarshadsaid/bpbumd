@@ -2131,7 +2131,7 @@
                     onchange="toggleBulkSelectAllAspek()"></th>
                 <th>Aspek</th>
                 <th>Progres</th>
-                <th style="text-align:center;">Total</th>
+                <th style="text-align:center;">Total Sub Rencana Aksi</th>
                 <th style="text-align:center;">Selesai</th>
                 <th style="text-align:center;">Selesai (Terlambat)</th>
                 <th style="text-align:center;">Dalam Progres</th>
@@ -2189,7 +2189,7 @@
       </div>
 
       <div class="modal-body"
-        style="padding: 24px 28px; min-height: 400px; max-height: 75vh; overflow-y: auto; background: #F8FAFC;">
+        style="padding: 24px 28px; min-height: 400px; max-height: calc(100vh - 200px); overflow-y: auto; background: #F8FAFC;">
 
         <div class="wizard-layout">
           <!-- Sidebar Stepper -->
@@ -2238,8 +2238,8 @@
               <div class="wizard-step" id="step4-indicator">
                 <div class="step-circle">
                   <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <line x1="9" y1="3" x2="9" y2="21"/>
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <line x1="9" y1="3" x2="9" y2="21" />
                   </svg>
                 </div>
                 <div class="step-info">
@@ -2286,13 +2286,17 @@
 
               <!-- Sheet Selector -->
               <div id="sheetSelectorContainer" style="display: none; margin-bottom: 16px;">
-                <label style="display: block; font-size: 13px; font-weight: 600; color: var(--slate-700); margin-bottom: 8px;">Pilih Sheet Excel</label>
-                <select id="sheetSelector" onchange="processSelectedSheet(this.value)" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--slate-300); outline: none; background: #F8FAFC; color: var(--slate-800); font-size: 14px; cursor: pointer;">
+                <label
+                  style="display: block; font-size: 13px; font-weight: 600; color: var(--slate-700); margin-bottom: 8px;">Pilih
+                  Sheet Excel</label>
+                <select id="sheetSelector" onchange="processSelectedSheet(this.value)"
+                  style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--slate-300); outline: none; background: #F8FAFC; color: var(--slate-800); font-size: 14px; cursor: pointer;">
                 </select>
               </div>
 
               <!-- Mapping Summary (auto-detected) -->
-              <div id="mappingSummary" style="display: none; background: white; border-radius: 10px; padding: 16px; border: 1px solid var(--slate-200); box-shadow: 0 1px 2px rgba(0,0,0,0.02); margin-bottom: 16px;">
+              <div id="mappingSummary"
+                style="display: none; background: white; border-radius: 10px; padding: 16px; border: 1px solid var(--slate-200); box-shadow: 0 1px 2px rgba(0,0,0,0.02); margin-bottom: 16px;">
               </div>
 
               <!-- Template Area -->
@@ -2470,44 +2474,104 @@
               <div class="step-card">
                 <div class="step-card-header" style="flex-direction: column; align-items: flex-start; gap: 16px;">
                   <div>
-                    <h4>Pengaturan Massal Sub Rencana Aksi</h4>
-                    <p>Tentukan Penanggung Jawab dan Verifikator untuk semua Sub Rencana Aksi yang diimpor dari file ini.</p>
+                    <h4>Pengaturan Sub Rencana Aksi & Verifikator</h4>
+                    <p>Atur pembuatan Sub Rencana Aksi otomatis dan petakan Verifikator untuk masing-masing Penanggung
+                      Jawab (PIC).</p>
                   </div>
                 </div>
-                <div class="step-card-body" style="padding: 0 20px 24px;">
-                  <div style="background: #F0F9FF; padding: 16px; border-radius: 8px; border: 1px solid #BAE6FD; margin-top: 16px; margin-bottom: 24px;">
+                <div class="step-card-body" style="padding: 0 20px 24px; position: relative;">
+                  <div
+                    style="background: #F0F9FF; padding: 16px; border-radius: 8px; border: 1px solid #BAE6FD; margin-top: 16px; margin-bottom: 24px;">
                     <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; margin: 0;">
-                      <input type="checkbox" id="autoGenerateSraToggle" checked style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--sky); cursor: pointer; flex-shrink: 0;">
+                      <input type="checkbox" id="autoGenerateSraToggle" checked
+                        style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--sky); cursor: pointer; flex-shrink: 0;">
                       <div>
-                        <div style="font-size: 14px; font-weight: 700; color: #0369A1; margin-bottom: 4px;">Buat SRA Otomatis jika kosong</div>
+                        <div style="font-size: 14px; font-weight: 700; color: #0369A1; margin-bottom: 4px;">Buat SRA
+                          Otomatis jika kosong</div>
                         <div style="font-size: 12px; color: #0284C7; line-height: 1.5;">
-                          Jika diaktifkan, sistem akan otomatis menyalin nama Rencana Aksi menjadi Sub Rencana Aksi pada baris data yang belum memiliki Sub Rencana Aksi.
+                          Jika diaktifkan, sistem akan otomatis menyalin nama Rencana Aksi menjadi Sub Rencana Aksi pada
+                          baris data yang belum memiliki Sub Rencana Aksi.
                         </div>
                       </div>
                     </label>
                   </div>
 
-                  <div class="form-group" style="margin-bottom: 24px;">
-                    <label class="form-label" style="display:block; font-size:14px; font-weight:700; color:var(--slate-700); margin-bottom:8px;">PIC (Penanggung Jawab) <span style="font-weight: 400; color: var(--slate-500); font-size: 12px;">(Opsional)</span></label>
-                    <select id="subApPicSelect" class="modern-dropdown" style="width: 100%;">
-                      <option value="">Pilih...</option>
-                    </select>
+                  <div class="import-table-wrap" style="max-height: 360px; margin: 0; border-top: none;">
+                    <table class="import-table" style="margin-bottom: 50px;">
+                      <thead>
+                        <tr>
+                          <th style="width: 44px; text-align: center;">
+                            <input type="checkbox" id="checkAllVerifikator" onchange="toggleAllVerifikator(this)">
+                          </th>
+                          <th style="width: 220px;">Penanggung Jawab (PIC)</th>
+                          <th>Verifikator 1</th>
+                          <th>Verifikator 2</th>
+                        </tr>
+                      </thead>
+                      <tbody id="verifikatorMappingBody">
+                        <!-- Populated via JS -->
+                      </tbody>
+                    </table>
                   </div>
-                  
-                  <div class="form-group">
-                    <label class="form-label" style="display:block; font-size:14px; font-weight:700; color:var(--slate-700); margin-bottom:8px;">Verifikator <span style="font-weight: 400; color: var(--slate-500); font-size: 12px;">(Opsional)</span></label>
-                    <div id="subApApproversContainer" style="display: flex; flex-direction: column; gap: 8px;">
-                       <!-- Populated via JS -->
+
+                  <!-- Bulk Action Bar for Step 4 -->
+                  <div id="verifikatorBulkActionBar"
+                    style="position: absolute; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--slate-200); padding: 12px 20px; display: none; align-items: center; justify-content: space-between; box-shadow: 0 -4px 12px rgba(0,0,0,0.05); z-index: 20;">
+                    <div style="font-size: 13px; font-weight: 600; color: var(--slate-700);">
+                      <span id="verifikatorSelectedCount">0</span> dipilih
                     </div>
-                    <button type="button" class="btn-add" style="margin-top:12px; width:100%; justify-content:center; display: flex; align-items: center; border: 1px dashed var(--sky); color: var(--sky); padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; background: white;" onclick="addBulkApproverRow()">
-                      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="margin-right: 6px;">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                      </svg>
-                      Tambah Verifikator
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                      <!-- Bulk Assign Verifikator 1 -->
+                      <div style="position: relative;">
+                        <button class="btn-outline" type="button"
+                          style="border-color:var(--emerald); color:var(--emerald); background:#ECFDF5; padding:6px 12px;"
+                          onclick="toggleBulkVerifikatorDropdown(1)">
+                          Assign Verifikator 1
+                        </button>
+                        <div id="bulkVerifikatorDropdown1"
+                          style="display: none; position: absolute; bottom: 100%; right: 0; margin-bottom: 8px; background: white; border: 1px solid var(--slate-200); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 260px; padding: 12px; z-index: 30;">
+                          <label
+                            style="display: block; font-size: 11px; font-weight: 600; color: var(--slate-500); margin-bottom: 8px;">Pilih
+                            Verifikator 1</label>
+                          <select id="bulkVerifikatorSelect1" class="mapping-select"
+                            style="width: 100%; margin-bottom: 12px;"></select>
+                          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                            <button class="btn-secondary" type="button" style="padding: 4px 10px; font-size: 11px;"
+                              onclick="closeBulkVerifikatorDropdown(1)">Batal</button>
+                            <button class="btn-primary" type="button"
+                              style="padding: 4px 10px; font-size: 11px; background: var(--sky);"
+                              onclick="submitBulkVerifikator(1)">Terapkan</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Bulk Assign Verifikator 2 -->
+                      <div style="position: relative;">
+                        <button class="btn-outline" type="button"
+                          style="border-color:var(--sky); color:var(--sky); background:#F0F9FF; padding:6px 12px;"
+                          onclick="toggleBulkVerifikatorDropdown(2)">
+                          Assign Verifikator 2
+                        </button>
+                        <div id="bulkVerifikatorDropdown2"
+                          style="display: none; position: absolute; bottom: 100%; right: 0; margin-bottom: 8px; background: white; border: 1px solid var(--slate-200); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); width: 260px; padding: 12px; z-index: 30;">
+                          <label
+                            style="display: block; font-size: 11px; font-weight: 600; color: var(--slate-500); margin-bottom: 8px;">Pilih
+                            Verifikator 2</label>
+                          <select id="bulkVerifikatorSelect2" class="mapping-select"
+                            style="width: 100%; margin-bottom: 12px;"></select>
+                          <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                            <button class="btn-secondary" type="button" style="padding: 4px 10px; font-size: 11px;"
+                              onclick="closeBulkVerifikatorDropdown(2)">Batal</button>
+                            <button class="btn-primary" type="button"
+                              style="padding: 4px 10px; font-size: 11px; background: var(--sky);"
+                              onclick="submitBulkVerifikator(2)">Terapkan</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+
+                </div> <!-- closes step-card-body -->
               </div> <!-- closes step-card -->
             </div> <!-- closes import-step-4 -->
 
@@ -2824,7 +2888,7 @@
         document.getElementById('templateSection').style.display = 'none';
         const selector = document.getElementById('sheetSelector');
         selector.innerHTML = '';
-        
+
         let bestSheetIndex = 0;
         let bestSheetMatches = -1;
 
@@ -2838,9 +2902,9 @@
 
           const sheet = importWorkbook.Sheets[sheetName];
           const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-          
+
           if (sheetData.length === 0) continue;
-          
+
           // Do a quick scan for headers on this sheet
           let sheetBestMatchCount = 0;
           const scanLimit = Math.min(30, sheetData.length);
@@ -2865,7 +2929,7 @@
               sheetBestMatchCount = rowMatchCount;
             }
           }
-          
+
           if (sheetBestMatchCount > bestSheetMatches) {
             bestSheetMatches = sheetBestMatchCount;
             bestSheetIndex = i;
@@ -2876,7 +2940,7 @@
         const bestSheetName = importWorkbook.SheetNames[bestSheetIndex];
         selector.value = bestSheetName;
         processSelectedSheet(bestSheetName);
-        
+
         document.getElementById('btnNextStep').style.display = 'block';
       };
       reader.readAsArrayBuffer(file);
@@ -2886,7 +2950,7 @@
       if (!importWorkbook) return;
       const sheet = importWorkbook.Sheets[sheetName];
       importDataRaw = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', blankrows: true });
-      
+
       // Mengabaikan baris yang di-hide di Excel
       if (sheet['!rows'] && sheet['!ref']) {
         const range = XLSX.utils.decode_range(sheet['!ref']);
@@ -3022,7 +3086,7 @@
       const barFill = document.getElementById('overallBarFill');
       barFill.style.width = overallPct + '%';
       barFill.style.background = getProgressBarGradient(overallPct, Math.round(company.cards.target_percentage));
-      document.getElementById('overallRAInfo').textContent = '(' + (company.cards.selesai || 0) + ' / ' + (company.cards.total_sub_rencana_aksi || 0) + ') rencana aktivitas';
+      document.getElementById('overallRAInfo').textContent = '(' + (company.cards.selesai || 0) + ' / ' + (company.cards.total_sub_rencana_aksi || 0) + ') sub rencana aksi';
       document.getElementById('overallTarget').textContent = 'Target: ' + Math.round(company.cards.target_percentage) + '%';
       renderAspectTable(company.progress_per_aspect, company.company_id, company.company_name);
     }
@@ -3173,7 +3237,7 @@
       if (bestRow >= 0 && bestMatchCount >= 2) {
         detectedHeaderRow = bestRow;
         Object.keys(bestMapping).forEach(k => currentMapping[k] = bestMapping[k]);
-        
+
         // Fallback: For any fields still not mapped (-1), scan the top 15 rows to see if they exist somewhere else
         // (sometimes merged cells put the text very far above or below the main header row)
         const missingFields = Object.keys(currentMapping).filter(k => currentMapping[k] === -1);
@@ -3238,7 +3302,7 @@
         chipsHtml += '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:' + bgColor + ';border-radius:6px;font-size:11px;color:' + textColor + ';font-weight:600;gap:4px;">' +
           '<span>' + icon + ' ' + label + '</span>' +
           '<span style="font-weight:400;">' + colText + '</span>' +
-        '</div>';
+          '</div>';
       });
 
       let warningHtml = '';
@@ -3246,7 +3310,7 @@
         warningHtml = '<div style="margin-top:10px;padding:8px 12px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;font-size:11px;color:#92400E;display:flex;align-items:flex-start;gap:8px;">' +
           '<span style="font-size:13px;flex-shrink:0;">⚠️</span>' +
           '<span>Kolom <strong>Activity Group</strong> tidak ditemukan. Sistem akan otomatis membuat 1 Activity Group per Strategi.</span>' +
-        '</div>';
+          '</div>';
       }
 
       // Build manual mapping dropdowns
@@ -3268,12 +3332,12 @@
 
       container.innerHTML =
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
-          '<div style="font-weight:700;font-size:13px;color:var(--slate-900);display:flex;align-items:center;gap:8px;">' +
-            '<span style="width:22px;height:22px;background:#D1FAE5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#059669;">✓</span>' +
-            detectedCount + '/' + fields.length + ' kolom terdeteksi' +
-            '<span style="font-size:10px;font-weight:400;color:var(--slate-400);">Header baris ' + (detectedHeaderRow + 1) + '</span>' +
-          '</div>' +
-          '<button type="button" onclick="toggleManualMapping()" style="font-size:11px;color:var(--sky);background:none;border:none;cursor:pointer;font-weight:600;">Atur Manual ▼</button>' +
+        '<div style="font-weight:700;font-size:13px;color:var(--slate-900);display:flex;align-items:center;gap:8px;">' +
+        '<span style="width:22px;height:22px;background:#D1FAE5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#059669;">✓</span>' +
+        detectedCount + '/' + fields.length + ' kolom terdeteksi' +
+        '<span style="font-size:10px;font-weight:400;color:var(--slate-400);">Header baris ' + (detectedHeaderRow + 1) + '</span>' +
+        '</div>' +
+        '<button type="button" onclick="toggleManualMapping()" style="font-size:11px;color:var(--sky);background:none;border:none;cursor:pointer;font-weight:600;">Atur Manual ▼</button>' +
         '</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;">' + chipsHtml + '</div>' +
         warningHtml +
@@ -3292,13 +3356,13 @@
 
     function cleanText(text) {
       if (!text) return '';
-      return text.toString().replace(/^([\d\.A-Z]+)\s/, '').trim();
+      return text.toString().replace(/^([\d\.A-Z]+)[,\:\-\;\.]*(?:\s+|$)/, '').trim();
     }
 
     function extractCodeOrder(text) {
       if (!text) return 'Z';
-      const match = text.toString().match(/^([\d\.A-Z]+)\s/);
-      if (match) return match[1];
+      const match = text.toString().match(/^([\d\.A-Z]+?)[,\:\-\;\.]*(?:\s+|$)/);
+      if (match) return match[1].replace(/\.$/, '');
       return 'Z';
     }
 
@@ -3320,10 +3384,14 @@
 
         // If both main AP and Sub AP are empty, skip row
         if ((!apRaw || apRaw.toString().trim() === '') && (!subApRaw || subApRaw.toString().trim() === '')) continue;
-        
-        // If main AP is empty but Sub AP is filled, use Sub AP as the main Rencana Aksi
-        if (!apRaw || apRaw.toString().trim() === '') {
-          apRaw = subApRaw;
+
+        // If main AP is empty but Sub AP is filled, append Sub AP to the last parsed entry's sub_aps
+        // (This handles merged cells where Rencana Aksi only appears in the first row)
+        if ((!apRaw || apRaw.toString().trim() === '') && subApRaw && subApRaw.toString().trim() !== '') {
+          if (importDataParsed.length > 0) {
+            importDataParsed[importDataParsed.length - 1].sub_aps.push(subApRaw.toString().trim());
+          }
+          continue;
         }
 
         // Prevent importing secondary header rows as data (e.g., Row 3 which has "TIMELINE")
@@ -3422,7 +3490,7 @@
         const tRaw = ap.timeline_raw.toUpperCase();
         let rDate = null;
         let sDate = null; // Start Date
-        
+
         function getQuarterStart(q1StartStr, qNumber) {
           const d = new Date(q1StartStr);
           d.setMonth(d.getMonth() + ((qNumber - 1) * 3));
@@ -3526,26 +3594,97 @@
       picAssignmentData = [];
       currentPicTab = 'Semua'; // reset tab
 
-      // Remove prefixes to help matching
+      // Remove job title prefixes AND division prefixes to help matching
       const cleanDivisionName = (name) => {
-        return name.toLowerCase()
-          .replace(/^(divisi|div\.|sbu|departemen|dept\.)\s+/i, '')
+        let cleaned = name.toLowerCase()
+          // Strip parenthetical suffixes like "(Komersil)" or "(Manajemen Risiko)"
+          .replace(/\s*\([^)]*\)\s*/g, '')
+          // Normalize ampersand variations
+          .replace(/\s*&\s*/g, ' ')
+          // Remove punctuation
+          .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ')
+          // Remove stop words (do this before prefixes so things like "dan" are just gone)
+          .replace(/\b(dan|atau|serta|yang|di|ke|dari)\b/g, ' ')
+          // Synonym mappings (English -> Indo & Abbreviations)
+          .replace(/\b(marketing|pemasaran)\b/g, 'pemasaran')
+          .replace(/\b(mis|management\s+information\s+system|manajemen\s+informasi\s+sistem|manajemen\s+informasi\s+system)\b/g, 'mis')
+          .replace(/\b(spi|satuan\s+pengawasan\s+internal|kesatuan\s+pengawas\s+intern|pengawas\s+intern|pengawasan\s+internal|pengawasan\s+intern)\b/g, 'spi')
+          .replace(/\b(hr|hrd|human\s+resource|human\s+resources|human\s+capital)\b/g, 'sdm')
+          .replace(/\b(it|information\s+technology|ict)\b/g, 'teknologi')
+          .replace(/\b(finance|accounting)\b/g, 'keuangan')
+          .replace(/\b(legal|law)\b/g, 'hukum')
+          .replace(/\b(corp\s*sec|corporate\s*secretary)\b/g, 'sekretaris perusahaan')
+          .replace(/\s+/g, ' ')
           .trim();
+
+        // Strip job title prefixes
+        cleaned = cleaned.replace(/^(plt|plh)\s+/i, '')
+          .replace(/^(direktur|dir|kepala|ka|gm|general\s+manager|head\s+of|manager|manajer|kesatuan|vp|svp|avp)\s+/i, '');
+
+        // Strip division/unit prefixes
+        cleaned = cleaned.replace(/^(divisi|div|sbu|departemen|dept|bagian|unit|satuan|subdivisi|sub\s+divisi|biro|bidang)\s+/i, '');
+
+        return cleaned.trim();
       };
 
       picArray.forEach(picRaw => {
         const apCount = importDataParsed.filter(ap => ap.pic_raw === picRaw).length;
         const cleanedPic = cleanDivisionName(picRaw);
 
-        // Find best match in users
+        // Filter users to ONLY include the selected company and BPBUMD HQ users
+        // Also EXCLUDE Direktur/Komisaris from being auto-assigned as PIC
+        let relevantUsers = companyUsers;
+        if (selectedCompanyId) {
+          relevantUsers = companyUsers.filter(u => Number(u.company_id) === Number(selectedCompanyId) || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
+        }
+        relevantUsers = relevantUsers.filter(u => !u.position || !/\b(direktur|komisaris|direksi)\b/i.test(u.position));
+
+        // Find best match in users using multiple strategies
         let bestMatchUserId = null;
         let bestScore = 999;
 
-        companyUsers.forEach(u => {
+        relevantUsers.forEach(u => {
           if (!u.position) return;
           const cleanedPos = cleanDivisionName(u.position);
-          const score = getLevenshtein(cleanedPic, cleanedPos);
-          if (score < bestScore && score < 5) {
+
+          let score = 999;
+
+          if (cleanedPic === cleanedPos) {
+            score = 0;
+          } else {
+            // Strategy 1: Word overlap
+            const picWords = cleanedPic.split(/\s+/).filter(w => w.length > 1);
+            const posWords = cleanedPos.split(/\s+/).filter(w => w.length > 1);
+
+            // Count matching words (exact match or substring match for words > 2 chars)
+            const commonWords = picWords.filter(w => posWords.some(pw => pw === w || (w.length > 2 && (pw.includes(w) || w.includes(pw)))));
+
+            if (commonWords.length > 0) {
+              // Word match found! Score based on the proportion of matching words
+              // The higher the proportion, the lower (better) the score. (Range approx 1 to 4)
+              const matchRatio = commonWords.length / Math.max(picWords.length, posWords.length);
+              score = 5 - (matchRatio * 4); // Exact word match would be 1.
+
+              // Add penalty for leftover unmatched words (distinguishes exact matches from partial matches)
+              score += Math.abs(picWords.length - posWords.length) * 0.5;
+            } else {
+              // Strategy 2: Levenshtein distance ONLY if it's very close and not just short acronyms
+              const lev = getLevenshtein(cleanedPic, cleanedPos);
+              const maxLen = Math.max(cleanedPic.length, cleanedPos.length);
+
+              // Only allow fuzzy matching if the distance is < 40% of the total string length
+              if (lev < maxLen * 0.4 && lev < 5) {
+                score = 5 + lev; // Score starts from 6 up to 9
+              }
+            }
+          }
+
+          // Add penalty for users not in the selected company (e.g. BPBUMD HQ users) so they are only picked if it's a perfect match and no one else exists
+          if (Number(u.company_id) !== Number(selectedCompanyId)) {
+            score += 5;
+          }
+
+          if (score < bestScore && score < 8) {
             bestScore = score;
             bestMatchUserId = u.id;
           }
@@ -3566,17 +3705,27 @@
       // Populate bulk assign dropdown
       const select = document.getElementById('bulkAssignSelect');
       select.innerHTML = '<option value="">Belum Diatur</option>';
-      
+
       const subApPicSelect = document.getElementById('subApPicSelect');
       if (subApPicSelect) subApPicSelect.innerHTML = '<option value="">-- Tidak Ada / Kosong --</option>';
-      
+
       const subApApproversContainer = document.getElementById('subApApproversContainer');
       if (subApApproversContainer) subApApproversContainer.innerHTML = '';
 
-      companyUsers.forEach(u => {
-        const optText = `${u.name} (${u.position || '-'})`;
+      let relevantUsers = companyUsers;
+      if (selectedCompanyId) {
+        relevantUsers = companyUsers.filter(u => Number(u.company_id) === Number(selectedCompanyId) || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
+      }
+      // EXCLUDE Direktur/Komisaris from PIC dropdowns
+      relevantUsers = relevantUsers.filter(u => !u.position || !/\b(direktur|komisaris|direksi)\b/i.test(u.position));
+
+      relevantUsers.forEach(u => {
+        const cName = u.company_name || 'BPBUMD';
+        const pos = u.position || '-';
+        const optText = Number(u.company_id) === Number(selectedCompanyId) ? `${u.name} (${pos})` : `${u.name} (${cName} - ${pos})`;
+
         select.innerHTML += `<option value="${u.id}">${optText}</option>`;
-        
+
         if (subApPicSelect) {
           subApPicSelect.innerHTML += `<option value="${u.id}">${optText}</option>`;
         }
@@ -3634,7 +3783,13 @@
       filteredData.forEach((data) => {
         let optionsHtml = `<option value="">Belum Diatur</option>`;
         let selectedUser = null;
-        companyUsers.forEach(u => {
+        let picEligibleUsers = companyUsers;
+        if (selectedCompanyId) {
+          picEligibleUsers = companyUsers.filter(u => Number(u.company_id) === Number(selectedCompanyId) || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
+        }
+        picEligibleUsers = picEligibleUsers.filter(u => !u.position || !/\b(direktur|komisaris|direksi)\b/i.test(u.position));
+
+        picEligibleUsers.forEach(u => {
           const isSelected = (u.id == data.userId);
           if (isSelected) selectedUser = u;
           optionsHtml += `<option value="${u.id}" ${isSelected ? 'selected' : ''}>${u.name} (${u.position || '-'})</option>`;
@@ -3805,13 +3960,13 @@
             debugInfo = '\n\nHeader TIDAK terdeteksi. Pastikan file Excel memiliki baris header yang berisi kata-kata seperti "ASPEK", "STRATEGI", "RENCANA AKSI", dll.';
             debugInfo += '\nTotal baris Excel: ' + importDataRaw.length;
           }
-          
+
           let rowDump = '\n\n--- PREVIEW 3 BARIS DATA PERTAMA ---\n';
           const startRow = detectedHeaderRow >= 0 ? detectedHeaderRow + 1 : 4;
-          for(let i=startRow; i < Math.min(startRow + 3, importDataRaw.length); i++) {
-            rowDump += 'Baris ' + (i+1) + ': ' + JSON.stringify(importDataRaw[i]) + '\n';
+          for (let i = startRow; i < Math.min(startRow + 3, importDataRaw.length); i++) {
+            rowDump += 'Baris ' + (i + 1) + ': ' + JSON.stringify(importDataRaw[i]) + '\n';
           }
-          
+
           alert('Data kosong atau belum di-map dengan benar (Rencana Aksi wajib ada).' + debugInfo + rowDump);
           return;
         }
@@ -3825,6 +3980,9 @@
         // Update badge count
         const el = document.getElementById('picCount');
         if (el) el.textContent = distinctPics.size + ' divisi';
+      }
+      if (n === 4) {
+        renderVerifikatorMapping();
       }
 
       importStep = n;
@@ -3848,51 +4006,192 @@
       document.getElementById('btnSubmitImport').style.display = n === 4 ? 'inline-flex' : 'none';
     }
 
-    let bulkApproverCounter = 0;
-    function addBulkApproverRow() {
-      bulkApproverCounter++;
-      const container = document.getElementById('subApApproversContainer');
-      const idx = container.children.length + 1;
-      const rowDiv = document.createElement('div');
-      rowDiv.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:8px;';
-      
-      const label = document.createElement('span');
-      label.style.cssText = 'min-width:20px; font-size:13px; font-weight:700; color:var(--slate-500);';
-      label.textContent = idx + '.';
-      
-      const select = document.createElement('select');
-      select.className = 'modern-dropdown bulk-approver-select';
-      select.style.flex = '1';
-      select.style.minWidth = '0';
-      select.innerHTML = '<option value="">Pilih Verifikator ' + idx + '</option>';
-      
-      // Populate with users
-      companyUsers.forEach(u => {
-        const cName = u.company_name || 'BPBUMD';
-        const pos = u.position || 'Tidak ada posisi';
-        select.innerHTML += `<option value="${u.id}">${u.name} (${cName} - ${pos})</option>`;
+    let verifikatorMapData = []; // [{ picId: 15, v1: 20, v2: 21 }, ...]
+
+    function renderVerifikatorMapping() {
+      const tbody = document.getElementById('verifikatorMappingBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      // Get unique assigned PICs from picAssignmentData
+      const uniquePicUserIds = Array.from(new Set(
+        picAssignmentData.map(d => d.userId).filter(Boolean)
+      ));
+
+      if (uniquePicUserIds.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 24px; color: var(--slate-500); font-style: italic;">Belum ada Penanggung Jawab (PIC) yang terpilih. Silakan atur di Langkah 3.</td></tr>';
+        return;
+      }
+
+      // Sync verifikatorMapData with uniquePicUserIds
+      const newMapData = [];
+      uniquePicUserIds.forEach(picId => {
+        const existing = verifikatorMapData.find(item => item.picId == picId);
+        newMapData.push(existing || { picId: picId, v1: null, v2: null });
       });
-      
-      const removeBtn = document.createElement('button');
-      removeBtn.type = 'button';
-      removeBtn.style.cssText = 'background:none; border:1px solid var(--slate-300); border-radius:6px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--rose); flex-shrink:0;';
-      removeBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-      removeBtn.onclick = function() {
-        rowDiv.remove();
-        // Update labels
-        Array.from(container.children).forEach((child, i) => {
-          child.querySelector('span').textContent = (i + 1) + '.';
-          const sel = child.querySelector('select');
-          if (sel.options[0].value === "") {
-            sel.options[0].text = 'Pilih Verifikator ' + (i + 1);
-          }
+      verifikatorMapData = newMapData;
+
+      // Populate bulk assign dropdowns
+      let relevantUsers = companyUsers;
+      if (selectedCompanyId) {
+        relevantUsers = companyUsers.filter(u => Number(u.company_id) === Number(selectedCompanyId) || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
+      }
+
+      ['bulkVerifikatorSelect1', 'bulkVerifikatorSelect2'].forEach(selectId => {
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Belum Diatur</option>';
+        relevantUsers.forEach(u => {
+          const cName = u.company_name || 'BPBUMD';
+          const pos = u.position || '-';
+          const optText = Number(u.company_id) === Number(selectedCompanyId) ? `${u.name} (${pos})` : `${u.name} (${cName} - ${pos})`;
+          sel.innerHTML += `<option value="${u.id}">${optText}</option>`;
         });
-      };
-      
-      rowDiv.appendChild(label);
-      rowDiv.appendChild(select);
-      rowDiv.appendChild(removeBtn);
-      container.appendChild(rowDiv);
+      });
+
+      // Render rows
+      verifikatorMapData.forEach(item => {
+        const picUser = companyUsers.find(u => u.id == item.picId);
+        if (!picUser) return;
+
+        const v1User = companyUsers.find(u => u.id == item.v1);
+        const v2User = companyUsers.find(u => u.id == item.v2);
+
+        const v1Chip = renderUserChipForVerifikator(v1User, item.picId, 1, relevantUsers);
+        const v2Chip = renderUserChipForVerifikator(v2User, item.picId, 2, relevantUsers);
+
+        tbody.innerHTML += `
+          <tr>
+            <td style="text-align: center;">
+              <input type="checkbox" class="verifikator-checkbox" value="${item.picId}" onchange="toggleVerifikator()">
+            </td>
+            <td style="font-weight:600; color:var(--slate-800);">
+              <div>${picUser.name}</div>
+              <div style="font-size: 11px; font-weight: 400; color: var(--slate-500); margin-top: 2px;">${picUser.position || '-'}</div>
+            </td>
+            <td style="font-size: 13px;">${v1Chip}</td>
+            <td style="font-size: 13px;">${v2Chip}</td>
+          </tr>
+        `;
+      });
+
+      const checkAllBtn = document.getElementById('checkAllVerifikator');
+      if (checkAllBtn) {
+        checkAllBtn.checked = false;
+        checkAllBtn.indeterminate = false;
+      }
+      toggleVerifikator();
+    }
+
+    function renderUserChipForVerifikator(selectedUser, picId, order, relevantUsers) {
+      let optionsHtml = `<option value="">Belum Diatur</option>`;
+      relevantUsers.forEach(u => {
+        const isSelected = selectedUser && (u.id == selectedUser.id);
+        optionsHtml += `<option value="${u.id}" ${isSelected ? 'selected' : ''}>${u.name} (${u.position || '-'})</option>`;
+      });
+
+      let chipHtml = '';
+      if (selectedUser) {
+        const initial = selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : 'U';
+        chipHtml = `
+          <div class="user-chip">
+            <span class="chip-avatar">${initial}</span>
+            <span style="padding-right: 8px;">${selectedUser.name}</span>
+          </div>
+        `;
+      } else {
+        chipHtml = `
+          <div class="user-chip empty-slot">
+            <span>Belum Diatur</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="user-chip-wrap">
+          ${chipHtml}
+          <select class="hidden-select" onchange="assignSingleVerifikator(${picId}, ${order}, this.value)">
+            ${optionsHtml}
+          </select>
+        </div>
+      `;
+    }
+
+    function assignSingleVerifikator(picId, order, userIdStr) {
+      const uId = userIdStr ? parseInt(userIdStr) : null;
+      const item = verifikatorMapData.find(d => d.picId == picId);
+      if (item) {
+        if (order === 1) item.v1 = uId;
+        if (order === 2) item.v2 = uId;
+      }
+      renderVerifikatorMapping();
+    }
+
+    function toggleAllVerifikator(el) {
+      const checkboxes = document.querySelectorAll('.verifikator-checkbox');
+      checkboxes.forEach(cb => cb.checked = el.checked);
+      updateVerifikatorActionBar();
+    }
+
+    function toggleVerifikator() {
+      const checkboxes = document.querySelectorAll('.verifikator-checkbox');
+      const allChecked = Array.from(checkboxes).length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+      const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+      const checkAllBtn = document.getElementById('checkAllVerifikator');
+      if (checkAllBtn) {
+        checkAllBtn.checked = allChecked;
+        checkAllBtn.indeterminate = anyChecked && !allChecked;
+      }
+      updateVerifikatorActionBar();
+    }
+
+    function updateVerifikatorActionBar() {
+      const selected = document.querySelectorAll('.verifikator-checkbox:checked');
+      const actionBar = document.getElementById('verifikatorBulkActionBar');
+      const selectedCount = document.getElementById('verifikatorSelectedCount');
+      if (!actionBar) return;
+
+      if (selected.length > 0) {
+        actionBar.style.display = 'flex';
+        selectedCount.textContent = selected.length;
+      } else {
+        actionBar.style.display = 'none';
+        closeBulkVerifikatorDropdown(1);
+        closeBulkVerifikatorDropdown(2);
+      }
+    }
+
+    function toggleBulkVerifikatorDropdown(order) {
+      const otherOrder = order === 1 ? 2 : 1;
+      closeBulkVerifikatorDropdown(otherOrder);
+
+      const dropdown = document.getElementById(`bulkVerifikatorDropdown${order}`);
+      if (!dropdown) return;
+      dropdown.style.display = (dropdown.style.display === 'none' || !dropdown.style.display) ? 'block' : 'none';
+    }
+
+    function closeBulkVerifikatorDropdown(order) {
+      const dropdown = document.getElementById(`bulkVerifikatorDropdown${order}`);
+      if (dropdown) dropdown.style.display = 'none';
+    }
+
+    function submitBulkVerifikator(order) {
+      const select = document.getElementById(`bulkVerifikatorSelect${order}`);
+      const val = select ? select.value : '';
+      const targetUserId = val ? parseInt(val) : null;
+
+      const checkedBoxes = document.querySelectorAll('.verifikator-checkbox:checked');
+      checkedBoxes.forEach(cb => {
+        const picId = parseInt(cb.value);
+        const item = verifikatorMapData.find(d => d.picId == picId);
+        if (item) {
+          if (order === 1) item.v1 = targetUserId;
+          if (order === 2) item.v2 = targetUserId;
+        }
+      });
+
+      closeBulkVerifikatorDropdown(order);
+      renderVerifikatorMapping();
     }
 
     async function submitImport() {
@@ -3904,6 +4203,16 @@
       btn.disabled = true;
       document.getElementById('importLoadingOverlay').style.display = 'flex';
 
+      const verifikatorMap = {};
+      verifikatorMapData.forEach(item => {
+        const approvers = [];
+        if (item.v1) approvers.push(item.v1);
+        if (item.v2) approvers.push(item.v2);
+        if (approvers.length > 0) {
+          verifikatorMap[item.picId] = approvers;
+        }
+      });
+
       try {
         const CHUNK_SIZE = 50;
         let totalAspects = 0;
@@ -3913,32 +4222,23 @@
 
         for (let i = 0; i < importDataParsed.length; i += CHUNK_SIZE) {
           const chunk = importDataParsed.slice(i, i + CHUNK_SIZE);
-          const bulkPicSelect = document.getElementById('subApPicSelect');
-          const approversSelects = document.querySelectorAll('.bulk-approver-select');
           const autoGenerateToggle = document.getElementById('autoGenerateSraToggle');
-          
+
           const isAutoGenerate = autoGenerateToggle ? autoGenerateToggle.checked : false;
-          
+
           if (isAutoGenerate) {
             chunk.forEach(row => {
               if (!row.sub_aps || row.sub_aps.length === 0) {
                 if (row.ap_name && row.ap_name.trim() !== '') {
-                   row.sub_aps = [row.ap_name.trim()];
+                  row.sub_aps = [row.ap_name.trim()];
                 }
               }
             });
           }
 
-          const approverIds = [...new Set(Array.from(approversSelects)
-                                .map(sel => parseInt(sel.value))
-                                .filter(val => !isNaN(val)))];
-          
           const payload = {
             company_id: selectedCompanyId,
-            sub_ap_config: {
-               pic_user_id: bulkPicSelect && bulkPicSelect.value ? parseInt(bulkPicSelect.value) : null,
-               approver_user_ids: approverIds
-            },
+            verifikator_map: verifikatorMap,
             rows: chunk
           };
 

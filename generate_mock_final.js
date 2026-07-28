@@ -57,15 +57,17 @@ function getEndDate(timeline) {
 
 function extractCodeOrder(text) {
     if (!text) return 'Z';
-    const match = text.match(/^([\d\.A-Z]+)\s/);
-    if (match) return match[1];
+    const match = text.toString().match(/^([\d\.A-Z]+?)[,\:\-\;\.]*(?:\s+|$)/);
+    if (match) return match[1].replace(/\.$/, '');
     return 'Z';
 }
 
 function cleanText(text) {
     if (!text) return '';
-    return text.replace(/^([\d\.A-Z]+)\s/, '').trim();
+    return text.toString().replace(/^([\d\.A-Z]+)[,\:\-\;\.]*(?:\s+|$)/, '').trim();
 }
+
+let currentAP = '';
 
 // Data typically starts from row 4 or 5. We'll start from 4 as before.
 for (let i = 4; i < data.length; i++) {
@@ -76,12 +78,13 @@ for (let i = 4; i < data.length; i++) {
     const strategiRaw = row[3];
     const agRaw = row[4];
     const apRaw = row[5];
+    const subApRaw = row[6];
     const outputRaw = row[7];
     const timelineRaw = row[9];
     const indicatorRaw = row[10];
     const kpiRaw = row[11];
 
-    if (!apRaw) continue; // Skip if no Action Plan
+    if (!apRaw && !subApRaw) continue; // Skip if no Action Plan and no Sub Action Plan
 
     if (aspekRaw && cleanText(aspekRaw) !== cleanText(currentAspek)) {
         currentAspek = aspekRaw;
@@ -100,29 +103,37 @@ for (let i = 4; i < data.length; i++) {
         currentAG = agRaw;
         currentApSeq = 0; // Reset counter for new AG
         const name = escapeSql(cleanText(currentAG));
-        const code = escapeSql(extractCodeOrder(currentAG));
+        const code = escapeSql(extractCodeOrder(currentAG)).replace(/\.+/g, '.').replace(/\.$/, '');
         sql += `    -- Activity Group\n    INSERT INTO activity_groups (strategy_id, name, code_order, target_percentage)\n    VALUES (v_strategy_id, '${name}', '${code}', 100)\n    RETURNING id INTO v_ag_id;\n\n`;
     }
 
-    currentApSeq++;
-    const agCodeOrder = extractCodeOrder(currentAG);
-    const apName = escapeSql(cleanText(apRaw));
-    const apCode = escapeSql(`${agCodeOrder}.${currentApSeq}`);
-    const apOutput = escapeSql(outputRaw);
-    const apIndicator = escapeSql(indicatorRaw);
-    const apEnd = getEndDate(timelineRaw);
-    const apEndSql = apEnd ? `'${apEnd}'` : 'NULL';
+    if (apRaw && cleanText(apRaw) !== cleanText(currentAP)) {
+        currentAP = apRaw;
+        currentApSeq++;
+        const agCodeOrder = extractCodeOrder(currentAG).replace(/\.+/g, '.').replace(/\.$/, '');
+        const apName = escapeSql(cleanText(apRaw));
+        const apCode = escapeSql(`${agCodeOrder}.${currentApSeq}`);
+        const apOutput = escapeSql(outputRaw);
+        const apIndicator = escapeSql(indicatorRaw);
+        const apEnd = getEndDate(timelineRaw);
+        const apEndSql = apEnd ? `'${apEnd}'` : 'NULL';
 
-    sql += `    -- Action Plan\n    INSERT INTO action_plans (activity_group_id, name, code_order, target_percentage, output, indicator, pic_user_id, target_end_date, status)\n    VALUES (v_ag_id, '${apName}', '${apCode}', 100, '${apOutput}', '${apIndicator}', v_pic_id, ${apEndSql}, 'belum mulai')\n    RETURNING id INTO v_ap_id;\n`;
+        sql += `    -- Action Plan\n    INSERT INTO action_plans (activity_group_id, name, code_order, target_percentage, output, indicator, pic_user_id, target_end_date, status)\n    VALUES (v_ag_id, '${apName}', '${apCode}', 100, '${apOutput}', '${apIndicator}', v_pic_id, ${apEndSql}, 'belum mulai')\n    RETURNING id INTO v_ap_id;\n`;
 
-    if (kpiRaw) {
-        const kpis = kpiRaw.toString().split('\n').map(k => k.replace(/^-/, '').trim()).filter(k => k);
-        for (const kpi of kpis) {
-            sql += `    INSERT INTO kpis (action_plan_id, name, status) VALUES (v_ap_id, '${escapeSql(kpi)}', 'belum mulai');\n`;
+        if (kpiRaw) {
+            const kpis = kpiRaw.toString().split('\n').map(k => k.replace(/^-/, '').trim()).filter(k => k);
+            for (const kpi of kpis) {
+                sql += `    INSERT INTO kpis (action_plan_id, name, status) VALUES (v_ap_id, '${escapeSql(kpi)}', 'belum mulai');\n`;
+            }
         }
+
+        sql += `    INSERT INTO history_activities (action_plan_id, user_id, description)\n    VALUES (v_ap_id, v_pic_id, 'Rencana Aksi dibuat dan di-assign ke Tito Hadi Dewan (VP Strategic Plan & Program)');\n\n`;
     }
 
-    sql += `    INSERT INTO history_activities (action_plan_id, user_id, description)\n    VALUES (v_ap_id, v_pic_id, 'Rencana Aksi dibuat dan di-assign ke Tito Hadi Dewan (VP Strategic Plan & Program)');\n\n`;
+    if (subApRaw && subApRaw.toString().trim().length > 0 && subApRaw.toString().trim() !== 'N/A') {
+        const subApName = escapeSql(subApRaw.toString().trim());
+        sql += `    INSERT INTO sub_action_plans (action_plan_id, name, pic_user_id, status)\n    VALUES (v_ap_id, '${subApName}', v_pic_id, 'belum mulai');\n`;
+    }
 }
 
 sql += `END $$;\n`;
