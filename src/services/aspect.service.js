@@ -137,6 +137,15 @@ async function getAspectCards(client, aspectId) {
           ON s.id = ag.strategy_id
         WHERE
           s.aspect_id = $1
+      ),
+      action_plan_rows AS (
+        SELECT
+          ap.id,
+          ap.status
+        FROM action_plans ap
+        JOIN activity_groups ag ON ag.id = ap.activity_group_id
+        JOIN strategies s ON s.id = ag.strategy_id
+        WHERE s.aspect_id = $1
       )
       SELECT
         (SELECT COALESCE(progress_percentage, 0) FROM aspects WHERE id = $1) AS progress_percentage,
@@ -181,7 +190,42 @@ async function getAspectCards(client, aspectId) {
           SELECT COUNT(*)
           FROM sub_action_plan_rows
           WHERE effective_status = 'belum_mulai'
-        )::INT AS belum_mulai
+        )::INT AS belum_mulai,
+
+        (
+          SELECT COUNT(*)
+          FROM action_plan_rows
+        )::INT AS total_ap,
+
+        (
+          SELECT COUNT(*)
+          FROM action_plan_rows
+          WHERE status = 'selesai'
+        )::INT AS selesai_ap,
+
+        (
+          SELECT COUNT(*)
+          FROM action_plan_rows
+          WHERE status = 'selesai terlambat'
+        )::INT AS selesai_terlambat_ap,
+
+        (
+          SELECT COUNT(*)
+          FROM action_plan_rows
+          WHERE status = 'dalam progres'
+        )::INT AS dalam_progres_ap,
+
+        (
+          SELECT COUNT(*)
+          FROM action_plan_rows
+          WHERE status = 'terlambat'
+        )::INT AS terlambat_ap,
+
+        (
+          SELECT COUNT(*)
+          FROM action_plan_rows
+          WHERE status = 'belum mulai' OR status IS NULL OR status = ''
+        )::INT AS belum_mulai_ap
     `,
     [aspectId],
   );
@@ -198,6 +242,12 @@ async function getAspectCards(client, aspectId) {
     ditolak_count: toNumber(row.ditolak_count),
     terlambat: toNumber(row.terlambat),
     belum_mulai: toNumber(row.belum_mulai),
+    total_ap: toNumber(row.total_ap),
+    selesai_ap: toNumber(row.selesai_ap),
+    selesai_terlambat_ap: toNumber(row.selesai_terlambat_ap),
+    dalam_progres_ap: toNumber(row.dalam_progres_ap),
+    terlambat_ap: toNumber(row.terlambat_ap),
+    belum_mulai_ap: toNumber(row.belum_mulai_ap),
   };
 }
 
@@ -223,6 +273,12 @@ async function getStrategies(client, aspectId, userId) {
         COUNT(DISTINCT sap.id) FILTER (
           WHERE sap.status = 'selesai'
         )::INT AS selesai,
+
+        COUNT(DISTINCT ap.id)::INT AS total_ap,
+
+        COUNT(DISTINCT ap.id) FILTER (
+          WHERE ap.status IN ('selesai', 'selesai terlambat')
+        )::INT AS selesai_ap,
 
         COUNT(DISTINCT sap.id) FILTER (
           WHERE sap.status = 'ditolak'
@@ -290,6 +346,8 @@ async function getStrategies(client, aspectId, userId) {
     target_percentage: toNumber(row.target_percentage),
     total_rencana_aksi: toNumber(row.total_rencana_aksi),
     selesai: toNumber(row.selesai),
+    total_ap: toNumber(row.total_ap),
+    selesai_ap: toNumber(row.selesai_ap),
     ditolak_sub: toNumber(row.ditolak_sub),
     dalam_progres: toNumber(row.dalam_progres),
     terlambat: toNumber(row.terlambat),
@@ -321,6 +379,12 @@ async function getActivityGroups(client, aspectId, userId) {
         COUNT(DISTINCT sap.id) FILTER (
           WHERE sap.status = 'selesai'
         )::INT AS selesai,
+
+        COUNT(DISTINCT ap.id)::INT AS total_ap,
+
+        COUNT(DISTINCT ap.id) FILTER (
+          WHERE ap.status IN ('selesai', 'selesai terlambat')
+        )::INT AS selesai_ap,
 
         COUNT(DISTINCT sap.id) FILTER (
           WHERE sap.status = 'ditolak'
@@ -389,6 +453,8 @@ async function getActivityGroups(client, aspectId, userId) {
     target_percentage: toNumber(row.target_percentage),
     total_rencana_aksi: toNumber(row.total_rencana_aksi),
     selesai: toNumber(row.selesai),
+    total_ap: toNumber(row.total_ap),
+    selesai_ap: toNumber(row.selesai_ap),
     ditolak_sub: toNumber(row.ditolak_sub),
     dalam_progres: toNumber(row.dalam_progres),
     terlambat: toNumber(row.terlambat),
@@ -613,6 +679,8 @@ function buildStrategyTree(strategies, activityGroups, actionPlans, subActionPla
       target_percentage: ag.target_percentage,
       total_rencana_aksi: ag.total_rencana_aksi,
       selesai: ag.selesai,
+      total_ap: ag.total_ap,
+      selesai_ap: ag.selesai_ap,
       ditolak_sub: ag.ditolak_sub,
       dalam_progres: ag.dalam_progres,
       terlambat: ag.terlambat,
@@ -641,6 +709,8 @@ function buildStrategyTree(strategies, activityGroups, actionPlans, subActionPla
       target_percentage: s.target_percentage,
       total_rencana_aksi: s.total_rencana_aksi,
       selesai: s.selesai,
+      total_ap: s.total_ap,
+      selesai_ap: s.selesai_ap,
       ditolak_sub: s.ditolak_sub,
       dalam_progres: s.dalam_progres,
       terlambat: s.terlambat,

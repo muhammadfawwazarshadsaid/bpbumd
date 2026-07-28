@@ -351,8 +351,52 @@
     .page-heading {
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
       margin-bottom: 24px;
+    }
+
+    .page-heading-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-tab-switcher {
+      display: inline-flex;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 3px;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      gap: 2px;
+    }
+    .tab-switch-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 18px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748B;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+      line-height: 1.2;
+    }
+    .tab-switch-btn:hover {
+      color: #0F2044;
+    }
+    .tab-switch-btn.active {
+      background: #0F2044;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(15, 32, 68, 0.2);
+      font-weight: 600;
     }
 
     .page-heading-icon {
@@ -1617,12 +1661,18 @@
 
         <!-- PAGE HEADING -->
         <div class="page-heading">
-          <div class="page-heading-icon" onclick="history.back()">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <polyline points="15,18 9,12 15,6" />
-            </svg>
+          <div class="page-heading-left">
+            <div class="page-heading-icon" onclick="history.back()">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <polyline points="15,18 9,12 15,6" />
+              </svg>
+            </div>
+            <div class="page-heading-title" id="pageHeadingTitle">—</div>
           </div>
-          <div class="page-heading-title" id="pageHeadingTitle">—</div>
+          <div class="progress-tab-switcher" id="progressTabSwitcher">
+            <button type="button" class="tab-switch-btn" id="tab-btn-sap" onclick="switchProgressTab('sap')">Sub Rencana Aksi</button>
+            <button type="button" class="tab-switch-btn active" id="tab-btn-ap" onclick="switchProgressTab('ap')">Rencana Aksi</button>
+          </div>
         </div>
 
         <!-- SUMMARY CARDS -->
@@ -1652,8 +1702,8 @@
               </div>
             </div>
             <div class="sum-card-value" id="cardTotal">0</div>
-            <div class="sum-card-label">Total Aktivitas</div>
-            <div class="kpi-sub">Seluruh aktivitas di aspek ini</div>
+            <div class="sum-card-label" id="labelCardTotal">Total Rencana Aksi</div>
+            <div class="kpi-sub" id="subCardTotal">Seluruh rencana aksi di aspek ini</div>
           </div>
           <div class="sum-card green">
             <div class="kpi-top">
@@ -1666,7 +1716,7 @@
             </div>
             <div class="sum-card-value" id="cardSelesai">0</div>
             <div class="sum-card-label">Selesai</div>
-            <div class="kpi-sub">Aktivitas telah selesai</div>
+            <div class="kpi-sub" id="subCardSelesai">Rencana aksi telah selesai</div>
           </div>
           <div class="sum-card amber">
             <div class="kpi-top">
@@ -1679,7 +1729,7 @@
             </div>
             <div class="sum-card-value" id="cardSelesaiTerlambat">0</div>
             <div class="sum-card-label">Selesai (Terlambat)</div>
-            <div class="kpi-sub">Selesai melewati tenggat</div>
+            <div class="kpi-sub" id="subCardSelesaiTerlambat">Selesai melewati tenggat</div>
           </div>
           <div class="sum-card blue">
             <div class="kpi-top">
@@ -1692,7 +1742,7 @@
             </div>
             <div class="sum-card-value" id="cardDalamProgres">0</div>
             <div class="sum-card-label">Dalam Progres</div>
-            <div class="kpi-sub">Aktivitas sedang berjalan</div>
+            <div class="kpi-sub" id="subCardDalamProgres">Rencana aksi sedang berjalan</div>
           </div>
           <div class="sum-card rose">
             <div class="kpi-top">
@@ -1705,7 +1755,7 @@
             </div>
             <div class="sum-card-value" id="cardTerlambat">0</div>
             <div class="sum-card-label">Terlambat (Dalam Proses)</div>
-            <div class="kpi-sub">Sedang berjalan melewati tenggat</div>
+            <div class="kpi-sub" id="subCardTerlambat">Sedang berjalan melewati tenggat</div>
           </div>
           <div class="sum-card gray">
             <div class="kpi-top">
@@ -1717,7 +1767,7 @@
             </div>
             <div class="sum-card-value" id="cardBelumMulai">0</div>
             <div class="sum-card-label">Belum Mulai</div>
-            <div class="kpi-sub">Aktivitas belum dikerjakan</div>
+            <div class="kpi-sub" id="subCardBelumMulai">Rencana aksi belum dikerjakan</div>
           </div>
         </div>
 
@@ -1749,7 +1799,7 @@
           <div class="strategy-col-header">
             <div>Strategi</div>
             <div>Progres</div>
-            <div>Rencana Aksi</div>
+            <div id="thTotalTitle">Rencana Aksi</div>
             <div>Bobot</div>
             <div>Status</div>
             <div></div>
@@ -1969,6 +2019,8 @@
     // ── GLOBALS ──────────────────────────────────────────────
     let aspectData = null;
     let currentAspectId = null;
+    let currentAspectCards = null;
+    let currentProgressTab = 'ap';
 
     // ── INIT ─────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async function () {
@@ -2029,6 +2081,7 @@
       document.title = 'BPBUMD Control Tower — ' + title;
 
       // Summary cards
+      currentAspectCards = cards;
       renderCards(cards);
 
       // Strategi tree
@@ -2037,39 +2090,88 @@
 
     // ── RENDER SUMMARY CARDS ────────────────────────────────
     function renderCards(cards) {
-      const pct = Math.round(cards.progress_percentage);
-      const target = Math.round(cards.target_percentage);
+      if (!cards) return;
+      const pct = Math.round(cards.progress_percentage || 0);
+      const target = Math.round(cards.target_percentage || 0);
 
       // Progress card
       const progPctEl = document.getElementById('progPct');
-      progPctEl.textContent = pct + '%';
+      if (progPctEl) progPctEl.textContent = pct + '%';
 
       // Color bar: green if >= target, amber if near, red if far below
-      if (pct >= target) {
-        document.getElementById('progBar').style.background = 'linear-gradient(90deg, var(--emerald), #34D399)';
-      } else if (pct >= target * 0.75) {
-        document.getElementById('progBar').style.background = 'linear-gradient(90deg, var(--amber), #FCD34D)';
-      } else {
-        document.getElementById('progBar').style.background = 'linear-gradient(90deg, var(--rose), #F87171)';
+      const progBar = document.getElementById('progBar');
+      if (progBar) {
+        if (pct >= target) {
+          progBar.style.background = 'linear-gradient(90deg, var(--emerald), #34D399)';
+        } else if (pct >= target * 0.75) {
+          progBar.style.background = 'linear-gradient(90deg, var(--amber), #FCD34D)';
+        } else {
+          progBar.style.background = 'linear-gradient(90deg, var(--rose), #F87171)';
+        }
+        progBar.style.width = pct + '%';
       }
-
-      document.getElementById('progBar').style.width = pct + '%';
-      document.getElementById('progTarget').textContent = 'Target: ' + target + '%';
+      const progTarget = document.getElementById('progTarget');
+      if (progTarget) progTarget.textContent = 'Target: ' + target + '%';
 
       // Count cards
-      document.getElementById('cardTotal').textContent = cards.total_aktivitas;
-      document.getElementById('cardSelesai').textContent = cards.selesai;
-      document.getElementById('cardSelesaiTerlambat').textContent = cards.selesai_terlambat || 0;
+      if (currentProgressTab === 'sap') {
+        document.getElementById('labelCardTotal').textContent = 'Total Sub Rencana Aksi';
+        document.getElementById('subCardTotal').textContent = 'Seluruh sub rencana aksi di aspek ini';
+        document.getElementById('subCardSelesai').textContent = 'Sub rencana aksi telah selesai';
+        document.getElementById('subCardSelesaiTerlambat').textContent = 'Selesai melewati tenggat';
+        document.getElementById('subCardDalamProgres').textContent = 'Sub rencana aksi sedang berjalan';
+        document.getElementById('subCardTerlambat').textContent = 'Sedang berjalan melewati tenggat';
+        document.getElementById('subCardBelumMulai').textContent = 'Sub rencana aksi belum dikerjakan';
 
-      const dalamProgresCard = document.getElementById('cardDalamProgres');
-      if (cards.ditolak_count > 0) {
-        dalamProgresCard.innerHTML = `${cards.dalam_progres} <span style="font-size: 13px; font-weight: 600; color: var(--rose); margin-left: 6px; padding: 2px 6px; background: #FEE2E2; border-radius: 4px; vertical-align: middle;">${cards.ditolak_count} Ditolak</span>`;
+        document.getElementById('cardTotal').textContent = cards.total_aktivitas || 0;
+        document.getElementById('cardSelesai').textContent = cards.selesai || 0;
+        document.getElementById('cardSelesaiTerlambat').textContent = cards.selesai_terlambat || 0;
+
+        const dalamProgresCard = document.getElementById('cardDalamProgres');
+        if (cards.ditolak_count > 0) {
+          dalamProgresCard.innerHTML = `${cards.dalam_progres || 0} <span style="font-size: 13px; font-weight: 600; color: var(--rose); margin-left: 6px; padding: 2px 6px; background: #FEE2E2; border-radius: 4px; vertical-align: middle;">${cards.ditolak_count} Ditolak</span>`;
+        } else {
+          dalamProgresCard.textContent = cards.dalam_progres || 0;
+        }
+        document.getElementById('cardTerlambat').textContent = cards.terlambat || 0;
+        document.getElementById('cardBelumMulai').textContent = cards.belum_mulai || 0;
       } else {
-        dalamProgresCard.textContent = cards.dalam_progres;
-      }
+        document.getElementById('labelCardTotal').textContent = 'Total Rencana Aksi';
+        document.getElementById('subCardTotal').textContent = 'Seluruh rencana aksi di aspek ini';
+        document.getElementById('subCardSelesai').textContent = 'Rencana aksi telah selesai';
+        document.getElementById('subCardSelesaiTerlambat').textContent = 'Selesai melewati tenggat';
+        document.getElementById('subCardDalamProgres').textContent = 'Rencana aksi sedang berjalan';
+        document.getElementById('subCardTerlambat').textContent = 'Sedang berjalan melewati tenggat';
+        document.getElementById('subCardBelumMulai').textContent = 'Rencana aksi belum dikerjakan';
 
-      document.getElementById('cardTerlambat').textContent = cards.terlambat;
-      document.getElementById('cardBelumMulai').textContent = cards.belum_mulai;
+        document.getElementById('cardTotal').textContent = cards.total_ap || 0;
+        document.getElementById('cardSelesai').textContent = cards.selesai_ap || 0;
+        document.getElementById('cardSelesaiTerlambat').textContent = cards.selesai_terlambat_ap || 0;
+        document.getElementById('cardDalamProgres').textContent = cards.dalam_progres_ap || 0;
+        document.getElementById('cardTerlambat').textContent = cards.terlambat_ap || 0;
+        document.getElementById('cardBelumMulai').textContent = cards.belum_mulai_ap || 0;
+      }
+    }
+
+    function switchProgressTab(tab) {
+      currentProgressTab = tab;
+      const btnSap = document.getElementById('tab-btn-sap');
+      const btnAp = document.getElementById('tab-btn-ap');
+      if (btnSap && btnAp) {
+        if (tab === 'sap') {
+          btnSap.classList.add('active');
+          btnAp.classList.remove('active');
+        } else {
+          btnAp.classList.add('active');
+          btnSap.classList.remove('active');
+        }
+      }
+      if (currentAspectCards) {
+        renderCards(currentAspectCards);
+      }
+      if (aspectData && aspectData.daftar_strategi) {
+        renderStrategies(aspectData.daftar_strategi);
+      }
     }
 
     // ── RENDER DROPDOWN ─────────────────────────────────────
@@ -2094,6 +2196,15 @@
     // ── RENDER STRATEGIES ───────────────────────────────────
     function renderStrategies(strategies) {
       const container = document.getElementById('strategiContainer');
+      const thTotalTitle = document.getElementById('thTotalTitle');
+      if (thTotalTitle) {
+        thTotalTitle.textContent = currentProgressTab === 'sap' ? 'Sub Rencana Aksi' : 'Rencana Aksi';
+      }
+
+      const openStrategies = new Set();
+      document.querySelectorAll('.strategy-body.open').forEach(el => openStrategies.add(el.id));
+      const openAGs = new Set();
+      document.querySelectorAll('.ra-body.open').forEach(el => openAGs.add(el.id));
 
       if (!strategies || strategies.length === 0) {
         container.innerHTML = `
@@ -2158,8 +2269,9 @@
         const sBarColor = getBarColorClass(sPct, sTarget);
         const sStatusClass = getStatusClass(s.status);
         const sStatusLabel = getStatusLabel(s.status);
-        const sSelesai = s.selesai || 0;
-        const sTotal = s.total_rencana_aksi || 0;
+        const sSelesai = currentProgressTab === 'sap' ? (s.selesai || 0) : (s.selesai_ap || 0);
+        const sTotal = currentProgressTab === 'sap' ? (s.total_rencana_aksi || 0) : (s.total_ap || 0);
+        const sLabel = currentProgressTab === 'sap' ? 'Sub Rencana Aksi' : 'Rencana Aksi';
 
         // Activity groups HTML
         const agHtml = (s.activity_groups || []).map((ag, agIdx) => {
@@ -2169,8 +2281,9 @@
           const agBarColor = getBarColorClass(agPct, agTarget);
           const agStatusClass = getStatusClass(ag.status);
           const agStatusLabel = getStatusLabel(ag.status);
-          const agSelesai = ag.selesai || 0;
-          const agTotal = ag.total_rencana_aksi || 0;
+          const agSelesai = currentProgressTab === 'sap' ? (ag.selesai || 0) : (ag.selesai_ap || 0);
+          const agTotal = currentProgressTab === 'sap' ? (ag.total_rencana_aksi || 0) : (ag.total_ap || 0);
+          const agLabel = currentProgressTab === 'sap' ? 'Sub Rencana Aksi' : 'Rencana Aksi';
 
           // Action plans (Rencana Aksi) HTML
           const apHtml = (ag.action_plans || []).map(ap => {
@@ -2246,7 +2359,7 @@
                 <div class="ra-cell">
                   <div style="display:flex;align-items:center;"><span class="ra-count">${agSelesai}/${agTotal}</span></div>
                   <div style="height: 6px;"></div>
-                  <div class="ra-label">Rencana Aksi</div>
+                  <div class="ra-label">${agLabel}</div>
                 </div>
                 <div class="bobot-cell">${ag.weight}%</div>
                 <div><span class="status-pill ${agStatusClass}">${agStatusLabel}</span></div>
@@ -2296,7 +2409,7 @@
               <div class="ra-cell">
                 <div style="display:flex;align-items:center;"><span class="ra-count">${sSelesai}/${sTotal}</span></div>
                 <div style="height: 6px;"></div>
-                <div class="ra-label">Rencana Aksi</div>
+                <div class="ra-label">${sLabel}</div>
               </div>
               <div class="bobot-cell">${s.weight}%</div>
               <div><span class="status-pill ${sStatusClass}">${sStatusLabel}</span></div>
@@ -2317,6 +2430,23 @@
             </div>
           </div>`;
       }).join('');
+
+      openStrategies.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.add('open');
+          const btn = document.getElementById(id.replace('body-', 'expand-'));
+          if (btn) btn.classList.add('open');
+        }
+      });
+      openAGs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.add('open');
+          const btn = document.getElementById(id.replace('ra-body-', 'expand-ag-'));
+          if (btn) btn.classList.add('open');
+        }
+      });
     }
 
     // ── STATUS & COLOR HELPERS ─────────────────────────────
