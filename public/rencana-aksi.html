@@ -1692,23 +1692,24 @@
       border-radius: 10px;
       overflow: hidden;
       background: var(--slate-50);
-      min-height: 300px;
-      max-height: 50vh;
+      min-height: 350px;
+      height: 60vh;
+      max-height: 65vh;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
     }
 
     .doc-preview-frame iframe {
       width: 100%;
-      height: 50vh;
+      height: 100%;
       border: none;
     }
 
     .doc-preview-frame img {
       max-width: 100%;
-      max-height: 50vh;
+      max-height: 100%;
       object-fit: contain;
+      margin: auto;
     }
 
     .doc-preview-nopreview {
@@ -1719,6 +1720,7 @@
       gap: 10px;
       padding: 40px 20px;
       color: var(--slate-400);
+      margin: auto;
     }
 
     .doc-preview-nopreview-icon {
@@ -1764,9 +1766,14 @@
     }
 
     /* ── EXCEL PREVIEW STYLES ── */
+    .excel-table-container {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+    }
     .excel-table-container table {
       border-collapse: collapse;
-      width: 100%;
+      min-width: 100%;
       font-size: 12px;
       font-family: inherit;
       color: var(--slate-800);
@@ -1779,10 +1786,24 @@
       text-align: left;
       white-space: nowrap;
     }
-    .excel-table-container table tr:first-child {
+    .excel-table-container table td[contenteditable="true"] {
+      cursor: cell;
+    }
+    .excel-table-container table td[contenteditable="true"]:focus {
+      outline: 2px solid var(--primary) !important;
+      outline-offset: -1px;
+      background-color: #EFF6FF !important;
+      color: var(--slate-900) !important;
+    }
+    .excel-table-container table tr:first-child th,
+    .excel-table-container table tr:first-child td {
+      position: sticky;
+      top: 0;
+      z-index: 5;
       background: var(--slate-100);
       font-weight: 600;
       color: var(--slate-700);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
     }
     .excel-table-container table tr:nth-child(even):not(:first-child) {
       background-color: var(--slate-50);
@@ -1790,8 +1811,55 @@
     .excel-table-container table tr:hover:not(:first-child) {
       background-color: var(--blue-50);
     }
+    .excel-tab-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1 !important;
+      background: #ffffff !important;
+      color: #334155 !important;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
     .excel-tab-btn:hover:not(.active) {
-      background: var(--slate-200) !important;
+      background: #f1f5f9 !important;
+      color: #0f172a !important;
+      border-color: #94a3b8 !important;
+    }
+    .excel-tab-btn.active {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      border-color: #0284c7 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25) !important;
+    }
+
+    /* ── DOCX PREVIEW STYLES ── */
+    .docx-preview-pane h1, .docx-preview-pane h2, .docx-preview-pane h3 {
+      color: var(--slate-900);
+      margin-top: 1.2em;
+      margin-bottom: 0.5em;
+      font-weight: 700;
+    }
+    .docx-preview-pane p {
+      margin-bottom: 0.8em;
+      color: var(--slate-700);
+    }
+    .docx-preview-pane table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1em 0;
+    }
+    .docx-preview-pane table td, .docx-preview-pane table th {
+      border: 1px solid var(--slate-300);
+      padding: 8px 12px;
+    }
+    .docx-preview-pane ul, .docx-preview-pane ol {
+      padding-left: 24px;
+      margin-bottom: 1em;
     }
 
     /* ── UPLOAD DROPZONE ── */
@@ -2939,7 +3007,7 @@
 
   <!-- MODAL PREVIEW DOKUMEN -->
   <div class="modal-overlay" id="modalPreviewDoc">
-    <div class="modal-container" style="max-width: 800px; width: 90%;">
+    <div class="modal-container" style="max-width: 950px; width: 92%;">
       <div class="modal-header">
         <div class="modal-title">Pratinjau Dokumen</div>
         <button class="modal-close" onclick="closePreviewDocModal()">
@@ -3008,6 +3076,9 @@
     </div>
   </div>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.3/dist/docx-preview.min.js"></script>
   <script src="/diagnosticreview-demo/auth.js?v=1781666555006"></script>
 
   <script>
@@ -4693,11 +4764,14 @@
         return;
       }
 
-      const ext = getFileExtension(doc.original_file_name || doc.document_name);
-      const fileName = doc.original_file_name || doc.document_name;
+      let ext = getFileExtension(doc.original_file_name || doc.document_name);
+      if (!ext && doc.file_type) {
+        ext = doc.file_type.toLowerCase().trim().replace(/^\./, '');
+      }
+      const fileName = doc.original_file_name || doc.document_name || 'Dokumen';
 
       document.getElementById('previewDocName').textContent = fileName;
-      document.getElementById('previewDocType').textContent = (ext || 'FILE').toUpperCase();
+      document.getElementById('previewDocType').textContent = (ext || doc.file_type || 'FILE').toUpperCase();
 
       const frame = document.getElementById('previewDocFrame');
       const docUrl = resolveAppUrl(doc.file_path || `/api/documents/${docId}/download`);
@@ -4706,16 +4780,19 @@
       document.getElementById('btnDownloadPreview').setAttribute('onclick', `downloadDocument(${docId})`);
 
       // Determine how to preview based on extension
-      if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
-        frame.innerHTML = `<img src="${docUrl}" alt="${fileName}" />`;
-      } else if (ext === 'pdf') {
-        frame.innerHTML = `<iframe src="${docUrl}#toolbar=0"></iframe>`;
+      if (ext === 'pdf') {
+        previewPdfDocument(docUrl, frame);
+      } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+        frame.innerHTML = `<img src="${docUrl}" alt="${escapeHtml(fileName)}" />`;
       } else if (['xls', 'xlsx', 'csv'].includes(ext)) {
         previewExcelDocument(docUrl, frame, ext);
+      } else if (['doc', 'docx'].includes(ext)) {
+        previewDocxDocument(docUrl, frame, ext);
+      } else if (['ppt', 'pptx'].includes(ext)) {
+        previewPptxDocument(docUrl, frame, ext);
       } else {
-        // Fallback for types that can't be rendered in browser (docx, pptx, etc)
+        // Fallback for types that can't be rendered in browser (zip, rar, etc)
         let iconCSS = 'default';
-        if (['doc', 'docx'].includes(ext)) iconCSS = 'docx';
 
         frame.innerHTML = `
           <div class="doc-preview-nopreview">
@@ -4727,6 +4804,191 @@
       }
 
       document.getElementById('modalPreviewDoc').classList.add('active');
+    }
+
+    async function previewPptxDocument(url, frame, ext) {
+      frame.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:var(--slate-50); color:var(--slate-600); font-family:inherit; padding:40px;">
+          <div class="spinner" style="width:36px; height:36px; border:3px solid var(--slate-200); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+          <div style="margin-top:16px; font-weight:600; font-size:14px; color:var(--slate-700);">Memuat Slide Presentasi (${ext.toUpperCase()})...</div>
+          <div style="margin-top:4px; font-size:12px; color:var(--slate-400);">Harap tunggu sebentar</div>
+        </div>
+      `;
+
+      try {
+        if (typeof JSZip === 'undefined') {
+          throw new Error('Library JSZip belum dimuat');
+        }
+        const res = await fetch(url, { credentials: 'same-origin' });
+        if (!res.ok) {
+          if (res.status === 404) {
+            throw new Error('File fisik presentasi tidak ditemukan di server (404 Not Found)');
+          }
+          throw new Error(`Gagal mengunduh file (${res.status})`);
+        }
+        const arrayBuffer = await res.arrayBuffer();
+        const zip = await JSZip.loadAsync(arrayBuffer);
+
+        const slideFiles = Object.keys(zip.files)
+          .filter(filename => /^ppt\/slides\/slide\d+\.xml$/i.test(filename))
+          .sort((a, b) => {
+            const numA = parseInt(a.match(/\d+/)[0], 10);
+            const numB = parseInt(b.match(/\d+/)[0], 10);
+            return numA - numB;
+          });
+
+        if (slideFiles.length === 0) {
+          throw new Error('Tidak ditemukan slide dalam berkas presentasi ini');
+        }
+
+        const parser = new DOMParser();
+        let slidesHTML = '';
+
+        for (let i = 0; i < slideFiles.length; i++) {
+          const xmlStr = await zip.files[slideFiles[i]].async('text');
+          const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
+          
+          const textNodes = xmlDoc.getElementsByTagName('a:t');
+          let textList = [];
+          for (let j = 0; j < textNodes.length; j++) {
+            const val = textNodes[j].textContent.trim();
+            if (val) textList.push(escapeHtml(val));
+          }
+
+          let slideBody = '';
+          if (textList.length > 0) {
+            slideBody = textList.map((t, idx) => idx === 0 
+              ? `<h3 style="margin-top:0; color:var(--slate-900); font-size:17px; font-weight:700;">${t}</h3>` 
+              : `<p style="margin:6px 0; color:var(--slate-700); font-size:13px; line-height:1.5;">${t}</p>`
+            ).join('');
+          } else {
+            slideBody = `<p style="color:var(--slate-400); font-style:italic; font-size:12px;">(Slide Presentasi Visual / Tanpa Teks Utama)</p>`;
+          }
+
+          slidesHTML += `
+            <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:20px 24px; margin-bottom:16px; box-shadow:0 2px 4px rgba(0,0,0,0.04);">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:6px; margin-bottom:12px;">
+                <span style="font-size:11px; font-weight:700; color:#0284c7; letter-spacing:0.5px;">SLIDE ${i + 1} DARI ${slideFiles.length}</span>
+                <span style="font-size:10px; font-weight:600; background:#f1f5f9; color:#64748b; padding:2px 8px; border-radius:4px;">PowerPoint</span>
+              </div>
+              <div class="slide-content">${slideBody}</div>
+            </div>
+          `;
+        }
+
+        frame.innerHTML = `
+          <div style="overflow:auto; height:100%; width:100%; background:#f8fafc; padding:20px; box-sizing:border-box;">
+            <div style="max-width:760px; margin:0 auto;">
+              ${slidesHTML}
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        frame.innerHTML = `
+          <div class="doc-preview-nopreview">
+            <div class="doc-preview-nopreview-icon default">PPT</div>
+            <div class="doc-preview-nopreview-text">Gagal Menampilkan Pratinjau Presentasi</div>
+            <div class="doc-preview-nopreview-hint" style="max-width:400px; margin:8px auto; color:var(--rose); font-weight:500;">${escapeHtml(err.message || 'Terjadi kesalahan saat membaca file')}</div>
+            <div class="doc-preview-nopreview-hint">Silakan unduh file untuk membuka langsung di Microsoft PowerPoint.</div>
+          </div>
+        `;
+      }
+    }
+
+    async function previewDocxDocument(url, frame, ext) {
+      frame.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:var(--slate-50); color:var(--slate-600); font-family:inherit; padding:40px;">
+          <div class="spinner" style="width:36px; height:36px; border:3px solid var(--slate-200); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+          <div style="margin-top:16px; font-weight:600; font-size:14px; color:var(--slate-700);">Memuat Pratinjau Word...</div>
+          <div style="margin-top:4px; font-size:12px; color:var(--slate-400);">Harap tunggu sebentar</div>
+        </div>
+      `;
+
+      try {
+        const res = await fetch(url, { credentials: 'same-origin' });
+        if (!res.ok) {
+          if (res.status === 404) {
+            throw new Error('File fisik dokumen tidak ditemukan di server (404 Not Found)');
+          }
+          throw new Error(`Gagal mengunduh file (${res.status})`);
+        }
+        const arrayBuffer = await res.arrayBuffer();
+
+        const toolbar = document.createElement('div');
+        toolbar.className = 'docx-preview-toolbar';
+        toolbar.style.cssText = 'display:flex; align-items:center; justify-content:flex-end; gap:8px; background:var(--slate-100); padding:6px 16px; border-bottom:1px solid var(--slate-200); font-size:12px; flex-shrink:0;';
+        toolbar.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-weight:600; color:var(--slate-600); margin-right:2px;">Zoom:</span>
+            <button class="btn btn-outline" style="padding:2px 8px; font-size:12px; height:24px; min-height:24px;" onclick="zoomDocxPreview(-0.1)">-</button>
+            <span id="docxZoomText" style="font-weight:600; width:42px; text-align:center; color:var(--slate-800);">100%</span>
+            <button class="btn btn-outline" style="padding:2px 8px; font-size:12px; height:24px; min-height:24px;" onclick="zoomDocxPreview(0.1)">+</button>
+            <button class="btn btn-outline" style="padding:2px 10px; font-size:11px; height:24px; min-height:24px;" onclick="resetDocxZoom()">Reset</button>
+          </div>
+        `;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'docx-wrapper-container';
+        wrapper.style.cssText = 'overflow:auto; flex:1; width:100%; height:100%; background:#f1f5f9; padding:20px; box-sizing:border-box;';
+
+        frame.innerHTML = '';
+        frame.appendChild(toolbar);
+        frame.appendChild(wrapper);
+        window.currentDocxZoom = 1.0;
+
+        if (window.docx && typeof window.docx.renderAsync === 'function') {
+          await window.docx.renderAsync(arrayBuffer, wrapper, null, {
+            className: 'docx',
+            inWrapper: true,
+            ignoreWidth: false,
+            ignoreHeight: false,
+            breakPages: true
+          });
+        } else if (typeof mammoth !== 'undefined') {
+          const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+          wrapper.style.background = '#fff';
+          wrapper.style.padding = '30px 40px';
+          wrapper.innerHTML = `<div style="max-width:800px; margin:0 auto; line-height:1.6;">${result.value || '<p>Dokumen tidak memiliki konten teks.</p>'}</div>`;
+        } else {
+          throw new Error('Library renderer Word belum dimuat');
+        }
+      } catch (err) {
+        frame.innerHTML = `
+          <div class="doc-preview-nopreview">
+            <div class="doc-preview-nopreview-icon docx">DOCX</div>
+            <div class="doc-preview-nopreview-text">Gagal Menampilkan Pratinjau Word</div>
+            <div class="doc-preview-nopreview-hint" style="max-width:400px; margin:8px auto; color:var(--rose); font-weight:500;">${escapeHtml(err.message || 'Terjadi kesalahan saat membaca file')}</div>
+            <div class="doc-preview-nopreview-hint">Silakan unduh file untuk membuka langsung di Microsoft Word.</div>
+          </div>
+        `;
+      }
+    }
+
+    async function previewPdfDocument(url, frame) {
+      frame.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:var(--slate-50); color:var(--slate-600); font-family:inherit; padding:40px;">
+          <div class="spinner" style="width:36px; height:36px; border:3px solid var(--slate-200); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+          <div style="margin-top:16px; font-weight:600; font-size:14px; color:var(--slate-700);">Memuat PDF...</div>
+        </div>
+      `;
+      try {
+        const res = await fetch(url, { method: 'HEAD', credentials: 'same-origin' });
+        if (!res.ok) {
+          throw new Error(`File fisik dokumen tidak ditemukan di server (${res.status} Not Found)`);
+        }
+        frame.innerHTML = `<iframe src="${url}#page=1&toolbar=1" style="width:100%; height:100%; border:none;"></iframe>`;
+      } catch (err) {
+        frame.innerHTML = `
+          <div class="doc-preview-nopreview">
+            <div class="doc-preview-nopreview-icon pdf">PDF</div>
+            <div class="doc-preview-nopreview-text">File Dokumen Tidak Ditemukan</div>
+            <div class="doc-preview-nopreview-hint" style="max-width:420px; margin:8px auto; color:var(--rose); font-weight:500;">
+              ${escapeHtml(err.message || 'File fisik dokumen belum diunggah atau tidak ditemukan di server.')}
+            </div>
+            <div class="doc-preview-nopreview-hint">Silakan unduh atau unggah kembali dokumen tersebut.</div>
+          </div>
+        `;
+      }
     }
 
     async function previewExcelDocument(url, frame, ext) {
@@ -4743,7 +5005,12 @@
           throw new Error('Library SheetJS (XLSX) belum dimuat');
         }
         const res = await fetch(url, { credentials: 'same-origin' });
-        if (!res.ok) throw new Error(`Gagal mengunduh file (${res.status})`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            throw new Error('File fisik dokumen tidak ditemukan di server (404 Not Found)');
+          }
+          throw new Error(`Gagal mengunduh file (${res.status})`);
+        }
         const arrayBuffer = await res.arrayBuffer();
         
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -4756,26 +5023,27 @@
           tabsHtml = `<div class="excel-preview-tabs" style="display:flex; gap:6px; padding:8px 16px; background:var(--slate-100); border-bottom:1px solid var(--slate-200); overflow-x:auto; flex-shrink:0;">` +
             workbook.SheetNames.map((name, i) => `
               <button class="excel-tab-btn ${i === 0 ? 'active' : ''}" 
-                      style="padding:6px 14px; border-radius:6px; border:1px solid ${i === 0 ? 'var(--primary)' : 'var(--slate-300)'}; background:${i === 0 ? 'var(--primary)' : '#fff'}; color:${i === 0 ? '#fff' : 'var(--slate-700)'}; font-weight:600; font-size:12px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.05);"
                       onclick="switchExcelSheet(this, '${escapeHtml(name)}')">${escapeHtml(name)}</button>
             `).join('') + `</div>`;
         }
 
         const sheetsHtml = workbook.SheetNames.map((name, i) => {
           const sheet = workbook.Sheets[name];
-          const htmlTable = XLSX.utils.sheet_to_html(sheet, { id: `table-sheet-${i}` });
-          return `<div class="excel-sheet-pane" data-sheet="${escapeHtml(name)}" style="display:${i === 0 ? 'block' : 'none'}; overflow:auto; flex:1; padding:20px; background:#fff;">
+          let htmlTable = XLSX.utils.sheet_to_html(sheet, { id: `table-sheet-${i}` });
+          // Make all cells editable
+          htmlTable = htmlTable.replace(/<td/g, '<td contenteditable="true"');
+          return `<div class="excel-sheet-pane" data-sheet="${escapeHtml(name)}" style="display:${i === 0 ? 'block' : 'none'}; overflow:auto; flex:1; height:100%; max-height:100%; min-height:0; padding:16px; background:#fff; box-sizing:border-box;">
                     <div class="excel-table-container">${htmlTable}</div>
                   </div>`;
         }).join('');
 
-        frame.innerHTML = `<div style="display:flex; flex-direction:column; height:100%; width:100%; background:#fff; overflow:hidden;">${tabsHtml}<div style="display:flex; flex-direction:column; flex:1; overflow:hidden;">${sheetsHtml}</div></div>`;
+        frame.innerHTML = `<div style="display:flex; flex-direction:column; height:100%; width:100%; background:#fff; overflow:hidden;">${tabsHtml}<div style="display:flex; flex-direction:column; flex:1; min-height:0; height:100%; overflow:hidden;">${sheetsHtml}</div></div>`;
       } catch (err) {
         frame.innerHTML = `
           <div class="doc-preview-nopreview">
             <div class="doc-preview-nopreview-icon xlsx">XLSX</div>
             <div class="doc-preview-nopreview-text">Gagal Menampilkan Pratinjau Excel</div>
-            <div class="doc-preview-nopreview-hint" style="max-width:400px; margin:8px auto; color:var(--red-500); font-weight:500;">${escapeHtml(err.message || 'Terjadi kesalahan saat membaca file')}</div>
+            <div class="doc-preview-nopreview-hint" style="max-width:400px; margin:8px auto; color:var(--rose); font-weight:500;">${escapeHtml(err.message || 'Terjadi kesalahan saat membaca file')}</div>
             <div class="doc-preview-nopreview-hint">Silakan unduh file untuk membuka langsung di Microsoft Excel.</div>
           </div>
         `;
@@ -4784,15 +5052,7 @@
 
     function switchExcelSheet(btn, sheetName) {
       const container = btn.closest('.excel-preview-tabs').parentElement;
-      container.querySelectorAll('.excel-tab-btn').forEach(b => {
-        b.style.background = '#fff';
-        b.style.color = 'var(--slate-700)';
-        b.style.borderColor = 'var(--slate-300)';
-        b.classList.remove('active');
-      });
-      btn.style.background = 'var(--primary)';
-      btn.style.color = '#fff';
-      btn.style.borderColor = 'var(--primary)';
+      container.querySelectorAll('.excel-tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
       container.querySelectorAll('.excel-sheet-pane').forEach(pane => {

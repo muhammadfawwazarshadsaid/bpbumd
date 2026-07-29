@@ -31,6 +31,10 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
+  const allowedExts = [
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ".jpg", ".jpeg", ".png", ".gif", ".webp", ".txt", ".csv", ".zip", ".rar"
+  ];
   const allowedTypes = [
     "application/pdf",
     "application/msword",
@@ -39,6 +43,9 @@ const fileFilter = (req, file, cb) => {
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "application/vnd.ms-powerpoint",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "application/vnd.mspowerpoint",
+    "application/x-mspowerpoint",
+    "application/powerpoint",
     "image/jpeg",
     "image/png",
     "image/gif",
@@ -47,9 +54,11 @@ const fileFilter = (req, file, cb) => {
     "text/csv",
     "application/zip",
     "application/x-rar-compressed",
+    "application/octet-stream",
   ];
 
-  if (allowedTypes.includes(file.mimetype)) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (allowedTypes.includes(file.mimetype) || allowedExts.includes(ext)) {
     cb(null, true);
   } else {
     cb(
@@ -65,7 +74,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 25 * 1024 * 1024, // 25MB
+    fileSize: 100 * 1024 * 1024, // 100MB
   },
 });
 
@@ -283,7 +292,7 @@ router.use((err, req, res, next) => {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,
-        message: "Ukuran file maksimal 25MB",
+        message: "Ukuran file maksimal 100MB",
       });
     }
     return res.status(400).json({
