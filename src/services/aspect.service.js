@@ -137,6 +137,7 @@ async function getAspectCards(client, aspectId) {
           ON s.id = ag.strategy_id
         WHERE
           s.aspect_id = $1
+          AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
       ),
       action_plan_rows AS (
         SELECT
@@ -145,7 +146,7 @@ async function getAspectCards(client, aspectId) {
         FROM action_plans ap
         JOIN activity_groups ag ON ag.id = ap.activity_group_id
         JOIN strategies s ON s.id = ag.strategy_id
-        WHERE s.aspect_id = $1
+        WHERE s.aspect_id = $1 AND ap.deleted_at IS NULL
       )
       SELECT
         (SELECT COALESCE(progress_percentage, 0) FROM aspects WHERE id = $1) AS progress_percentage,
@@ -316,9 +317,9 @@ async function getStrategies(client, aspectId, userId) {
       LEFT JOIN activity_groups ag
         ON ag.strategy_id = s.id
       LEFT JOIN action_plans ap
-        ON ap.activity_group_id = ag.id
+        ON ap.activity_group_id = ag.id AND ap.deleted_at IS NULL
       LEFT JOIN sub_action_plans sap
-        ON sap.action_plan_id = ap.id
+        ON sap.action_plan_id = ap.id AND sap.deleted_at IS NULL
       WHERE
         s.aspect_id = $1
       GROUP BY
@@ -421,9 +422,9 @@ async function getActivityGroups(client, aspectId, userId) {
       JOIN strategies s
         ON s.id = ag.strategy_id
       LEFT JOIN action_plans ap
-        ON ap.activity_group_id = ag.id
+        ON ap.activity_group_id = ag.id AND ap.deleted_at IS NULL
       LEFT JOIN sub_action_plans sap
-        ON sap.action_plan_id = ap.id
+        ON sap.action_plan_id = ap.id AND sap.deleted_at IS NULL
       WHERE
         s.aspect_id = $1
       GROUP BY
@@ -517,9 +518,9 @@ async function getActionPlans(client, aspectId, userId) {
       JOIN strategies s
         ON s.id = ag.strategy_id
       LEFT JOIN sub_action_plans sap
-        ON sap.action_plan_id = ap.id
+        ON sap.action_plan_id = ap.id AND sap.deleted_at IS NULL
       WHERE
-        s.aspect_id = $1
+        s.aspect_id = $1 AND ap.deleted_at IS NULL
       GROUP BY
         ap.id,
         ap.activity_group_id,
@@ -579,7 +580,7 @@ async function getSubActionPlans(client, aspectId) {
       JOIN activity_groups ag ON ag.id = ap.activity_group_id
       JOIN strategies s ON s.id = ag.strategy_id
       LEFT JOIN users u ON u.id = sap.pic_user_id
-      WHERE s.aspect_id = $1
+      WHERE s.aspect_id = $1 AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
       ORDER BY sap.id ASC
     `,
     [aspectId]

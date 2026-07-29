@@ -91,7 +91,7 @@ async function getOverallCards(client, companyScopeId) {
             JOIN action_plans ap ON ap.id = sap.action_plan_id
             JOIN activity_groups ag ON ag.id = ap.activity_group_id
             JOIN strategies s ON s.id = ag.strategy_id
-            WHERE s.aspect_id = a.id
+            WHERE s.aspect_id = a.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
           ) AS has_sap
         FROM aspects a
         JOIN scoped_companies sc
@@ -123,6 +123,7 @@ async function getOverallCards(client, companyScopeId) {
           ON a.id = s.aspect_id
         JOIN scoped_companies sc
           ON sc.id = a.company_id
+        WHERE ap.deleted_at IS NULL
       ),
       sub_action_plan_rows AS (
         SELECT
@@ -146,6 +147,7 @@ async function getOverallCards(client, companyScopeId) {
           ON a.id = s.aspect_id
         JOIN scoped_companies sc
           ON sc.id = a.company_id
+        WHERE sap.deleted_at IS NULL AND ap.deleted_at IS NULL
       )
       SELECT
         COALESCE(
@@ -247,6 +249,7 @@ async function getCompanyCards(client, companyScopeId) {
                 JOIN aspects a2 ON a2.id = s.aspect_id
                 WHERE a2.company_id = a.company_id
                   AND sap.status = 'selesai'
+                  AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
               ) / NULLIF(
                 (
                   SELECT COUNT(*)::NUMERIC FROM sub_action_plans sap
@@ -255,6 +258,7 @@ async function getCompanyCards(client, companyScopeId) {
                   JOIN strategies s ON s.id = ag.strategy_id
                   JOIN aspects a2 ON a2.id = s.aspect_id
                   WHERE a2.company_id = a.company_id
+                    AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
                 )
               , 0) * 100
             , 2),
@@ -269,6 +273,7 @@ async function getCompanyCards(client, companyScopeId) {
                 JOIN activity_groups ag ON ag.id = ap.activity_group_id
                 JOIN strategies s ON s.id = ag.strategy_id
                 WHERE s.aspect_id = a.id
+                  AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
               )
             ), 2),
             0
@@ -306,6 +311,7 @@ async function getCompanyCards(client, companyScopeId) {
           ON a.id = s.aspect_id
         JOIN scoped_companies sc
           ON sc.id = a.company_id
+        WHERE ap.deleted_at IS NULL
         GROUP BY
           a.company_id
       ),
@@ -345,6 +351,7 @@ async function getCompanyCards(client, companyScopeId) {
           ON a.id = s.aspect_id
         JOIN scoped_companies sc
           ON sc.id = a.company_id
+        WHERE sap.deleted_at IS NULL AND ap.deleted_at IS NULL
         GROUP BY
           a.company_id
       )
@@ -469,7 +476,8 @@ async function getProgressPerAspect(client, companyScopeId, userId) {
         JOIN aspects a
           ON a.id = s.aspect_id
         WHERE
-          ($1::BIGINT IS NULL OR a.company_id = $1)
+          sap.deleted_at IS NULL AND ap.deleted_at IS NULL
+          AND ($1::BIGINT IS NULL OR a.company_id = $1)
         GROUP BY
           a.id
       ),
@@ -490,7 +498,8 @@ async function getProgressPerAspect(client, companyScopeId, userId) {
         JOIN aspects a
           ON a.id = s.aspect_id
         WHERE
-          ($1::BIGINT IS NULL OR a.company_id = $1)
+          ap.deleted_at IS NULL
+          AND ($1::BIGINT IS NULL OR a.company_id = $1)
         GROUP BY
           a.id
       )

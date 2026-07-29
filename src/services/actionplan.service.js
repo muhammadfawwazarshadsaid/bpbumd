@@ -171,6 +171,7 @@ async function getActionPlan(client, actionPlanId, companyScopeId) {
         ON pic.id = ap.pic_user_id
       WHERE
         ap.id = $1
+        AND ap.deleted_at IS NULL
         AND c.company_type = 'bumd'
         AND ($2::BIGINT IS NULL OR a.company_id = $2)
     `,
@@ -247,7 +248,7 @@ async function getProgressBreakdown(client, actionPlanId) {
         )::INT AS belum_mulai
 
       FROM sub_action_plans
-      WHERE action_plan_id = $1
+      WHERE deleted_at IS NULL AND action_plan_id = $1
     `,
     [actionPlanId],
   );
@@ -297,10 +298,9 @@ async function getDocumentSummary(client, actionPlanId) {
 
       FROM documents d
       WHERE
-        d.action_plan_id = $1
-        OR d.sub_action_plan_id IN (
-          SELECT id FROM sub_action_plans WHERE action_plan_id = $1
-        )
+        (d.action_plan_id = $1 OR d.sub_action_plan_id IN (
+          SELECT id FROM sub_action_plans WHERE action_plan_id = $1 AND deleted_at IS NULL
+        ))
     `,
     [actionPlanId],
   );
@@ -348,6 +348,7 @@ async function getRiwayatAktivitas(client, actionPlanId) {
       SELECT
         ha.id            AS history_id,
         ha.description,
+        ha.metadata,
         ha.updated_at,
         u.name           AS user_name
 
@@ -365,6 +366,7 @@ async function getRiwayatAktivitas(client, actionPlanId) {
   return result.rows.map((row) => ({
     history_id: Number(row.history_id),
     description: row.description,
+    metadata: row.metadata || null,
     updated_at: row.updated_at,
     user_name: row.user_name,
   }));
@@ -397,7 +399,8 @@ async function getSubRencanaAksi(client, actionPlanId, userId) {
       LEFT JOIN users submitter
         ON submitter.id = sap.submitted_by_user_id
       WHERE
-        sap.action_plan_id = $1
+        sap.deleted_at IS NULL
+        AND sap.action_plan_id = $1
       ORDER BY
         sap.id
     `,
@@ -556,7 +559,7 @@ async function getDokumen(client, actionPlanId) {
       WHERE
         d.action_plan_id = $1
         OR d.sub_action_plan_id IN (
-          SELECT id FROM sub_action_plans WHERE action_plan_id = $1
+          SELECT id FROM sub_action_plans WHERE action_plan_id = $1 AND deleted_at IS NULL
         )
       ORDER BY
         d.uploaded_at DESC
@@ -917,7 +920,7 @@ async function deleteActionPlan(user, actionPlanId) {
         JOIN strategies s ON s.id = ag.strategy_id
         JOIN aspects a ON a.id = s.aspect_id
         JOIN companies c ON c.id = a.company_id
-        WHERE ap.id = $1 AND c.company_type = 'bumd'
+        WHERE ap.id = $1 AND ap.deleted_at IS NULL AND c.company_type = 'bumd'
         FOR UPDATE
       `,
       [actionPlanId],
@@ -933,7 +936,7 @@ async function deleteActionPlan(user, actionPlanId) {
 
     // Check for child sub action plans
     const childCheck = await client.query(
-      "SELECT COUNT(*)::INT AS count FROM sub_action_plans WHERE action_plan_id = $1",
+      "SELECT COUNT(*)::INT AS count FROM sub_action_plans WHERE action_plan_id = $1 AND deleted_at IS NULL",
       [actionPlanId],
     );
 
@@ -945,12 +948,24 @@ async function deleteActionPlan(user, actionPlanId) {
       throw error;
     }
 
-    // Delete related data (cascades handle documents, kpis, history)
-    // History is cascade-deleted automatically due to ON DELETE CASCADE.
-
-    await client.query("DELETE FROM action_plans WHERE id = $1", [
-      actionPlanId,
+    // Soft delete action plan
+    await client.query("UPDATE action_plans SET deleted_at = CURRENT_TIMESTAMP, deleted_by_user_id = $2 WHERE id = $1", [
+      actionPlanId, user.id
     ]);
+
+    // Tambahkan pencatatan riwayat aktivitas
+    await client.query(
+      `
+        INSERT INTO history_activities (action_plan_id, user_id, description, metadata)
+        VALUES ($1, $2, $3, $4)
+      `,
+      [
+        actionPlanId, 
+        user.id, 
+        `Menghapus rencana aksi: ${ap.name}`,
+        JSON.stringify({ deleted_action_plan_id: actionPlanId })
+      ]
+    );
 
     await syncProgressHierarchy(client, null, ap.activity_group_id);
     await client.query("COMMIT");
@@ -966,10 +981,66 @@ async function deleteActionPlan(user, actionPlanId) {
     client.release();
   }
 }
+async function restoreActionPlan(user, actionPlanId) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    
+    // Check if it exists and is deleted
+    const check = await client.query(
+      "SELECT id, activity_group_id, name, deleted_at FROM action_plans WHERE id = $1 FOR UPDATE", 
+      [actionPlanId]
+    );
+
+    if (check.rowCount === 0) {
+      const error = new Error("Rencana aksi tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const ap = check.rows[0];
+    if (!ap.deleted_at) {
+      const error = new Error("Rencana aksi ini tidak dalam status terhapus");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Restore
+    await client.query(
+      "UPDATE action_plans SET deleted_at = NULL, deleted_by_user_id = NULL WHERE id = $1",
+      [actionPlanId]
+    );
+
+    // Add history
+    await client.query(
+      `
+        INSERT INTO history_activities (action_plan_id, user_id, description, metadata)
+        VALUES ($1, $2, $3, $4)
+      `,
+      [
+        actionPlanId, 
+        user.id, 
+        `Memulihkan (restore) rencana aksi: ${ap.name}`,
+        JSON.stringify({ restored_action_plan_id: actionPlanId })
+      ]
+    );
+
+    await syncProgressHierarchy(client, null, ap.activity_group_id);
+    await client.query("COMMIT");
+    
+    return { id: actionPlanId, message: "Berhasil dipulihkan" };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
 
 module.exports = {
   getActionPlanDetail,
   createActionPlan,
   updateActionPlan,
   deleteActionPlan,
+  restoreActionPlan,
 };

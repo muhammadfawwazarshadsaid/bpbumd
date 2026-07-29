@@ -1763,6 +1763,37 @@
       color: var(--slate-400);
     }
 
+    /* ── EXCEL PREVIEW STYLES ── */
+    .excel-table-container table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--slate-800);
+      background: #fff;
+    }
+    .excel-table-container table th,
+    .excel-table-container table td {
+      border: 1px solid var(--slate-300);
+      padding: 6px 10px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .excel-table-container table tr:first-child {
+      background: var(--slate-100);
+      font-weight: 600;
+      color: var(--slate-700);
+    }
+    .excel-table-container table tr:nth-child(even):not(:first-child) {
+      background-color: var(--slate-50);
+    }
+    .excel-table-container table tr:hover:not(:first-child) {
+      background-color: var(--blue-50);
+    }
+    .excel-tab-btn:hover:not(.active) {
+      background: var(--slate-200) !important;
+    }
+
     /* ── UPLOAD DROPZONE ── */
     .upload-dropzone {
       border: 2px dashed var(--slate-300);
@@ -2976,6 +3007,7 @@
       </div>
     </div>
   </div>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="/diagnosticreview-demo/auth.js?v=1781666555006"></script>
 
   <script>
@@ -3080,6 +3112,18 @@
       if (!filename) return '';
       const parts = filename.split('.');
       return parts.length > 1 ? parts.pop().toLowerCase() : '';
+    }
+
+    function resolveAppUrl(url) {
+      if (!url) return '';
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      const base = (window.BPBUMDAuth && typeof window.BPBUMDAuth.getBasePath === 'function')
+        ? window.BPBUMDAuth.getBasePath()
+        : (window.__BASE_PATH__ || '/' + window.location.pathname.split('/').filter(Boolean)[0] || '/diagnosticreview-demo');
+      if (url.startsWith('/') && !url.startsWith(base)) {
+        return (base === '/' ? '' : base) + url;
+      }
+      return url;
     }
 
     // ── API HELPERS ──────────────────────────────────────────────
@@ -3900,14 +3944,28 @@
         feed.innerHTML = `<li style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada aktivitas</li>`;
         return;
       }
-      feed.innerHTML = activities.map(a => `
+      feed.innerHTML = activities.map(a => {
+        let restoreBtnHtml = '';
+        if (a.metadata) {
+          let meta = {};
+          try { meta = typeof a.metadata === 'string' ? JSON.parse(a.metadata) : a.metadata; } catch(e) {}
+          if (meta.deleted_sub_action_plan_id) {
+             restoreBtnHtml = `<button onclick="restoreSubActionPlan(${meta.deleted_sub_action_plan_id})" class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-top:8px;">Pulihkan</button>`;
+          }
+          if (meta.deleted_action_plan_id) {
+             restoreBtnHtml = `<button onclick="restoreActionPlan(${meta.deleted_action_plan_id})" class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-top:8px;">Pulihkan</button>`;
+          }
+        }
+        return `
         <li class="activity-item">
           <div class="act-dot"></div>
           <div>
             <div class="act-text"><span class="act-name">${escapeHtml(a.user_name || 'System')}</span> ${escapeHtml(a.description)}</div>
             <div class="act-time">${formatDateTime(a.updated_at)}</div>
+            ${restoreBtnHtml}
           </div>
-        </li>`).join('');
+        </li>`;
+      }).join('');
     }
 
     // ── INFO EDIT MODE ─────────────────────────────────────────
@@ -4234,7 +4292,7 @@
         docContainer.style.display = 'block';
         docList.innerHTML = sraDocs.map(doc => {
           return `<div style="margin-bottom: 8px;">
-                    <a href="/diagnosticreview-demo/api/documents/${doc.document_id}/download" 
+                    <a href="${resolveAppUrl('/api/documents/' + doc.document_id + '/download')}" 
                        target="_blank" 
                        style="color: var(--primary); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
                       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -4288,6 +4346,26 @@
         await loadActionPlanDetail(currentActionPlanId);
       } catch (err) {
         alert("Gagal menghapus: " + err.message);
+      }
+    }
+
+    async function restoreSubActionPlan(id) {
+      if (!confirm("Apakah Anda yakin ingin memulihkan (restore) Sub Rencana Aksi ini?")) return;
+      try {
+        await apiFetch(`/diagnosticreview-demo/api/sub-action-plans/${id}/restore`, { method: 'POST' });
+        await loadActionPlanDetail(currentActionPlanId);
+      } catch (err) {
+        alert("Gagal memulihkan: " + err.message);
+      }
+    }
+
+    async function restoreActionPlan(id) {
+      if (!confirm("Apakah Anda yakin ingin memulihkan (restore) Rencana Aksi ini?")) return;
+      try {
+        await apiFetch(`/diagnosticreview-demo/api/action-plans/${id}/restore`, { method: 'POST' });
+        await loadActionPlanDetail(currentActionPlanId);
+      } catch (err) {
+        alert("Gagal memulihkan: " + err.message);
       }
     }
 
@@ -4622,7 +4700,7 @@
       document.getElementById('previewDocType').textContent = (ext || 'FILE').toUpperCase();
 
       const frame = document.getElementById('previewDocFrame');
-      const docUrl = doc.file_path || `/diagnosticreview-demo/api/documents/${docId}/download`;
+      const docUrl = resolveAppUrl(doc.file_path || `/api/documents/${docId}/download`);
 
       // Set download button
       document.getElementById('btnDownloadPreview').setAttribute('onclick', `downloadDocument(${docId})`);
@@ -4632,11 +4710,12 @@
         frame.innerHTML = `<img src="${docUrl}" alt="${fileName}" />`;
       } else if (ext === 'pdf') {
         frame.innerHTML = `<iframe src="${docUrl}#toolbar=0"></iframe>`;
+      } else if (['xls', 'xlsx', 'csv'].includes(ext)) {
+        previewExcelDocument(docUrl, frame, ext);
       } else {
-        // Fallback for types that can't be rendered in browser (docx, xlsx, etc)
+        // Fallback for types that can't be rendered in browser (docx, pptx, etc)
         let iconCSS = 'default';
-        if (['xls', 'xlsx'].includes(ext)) iconCSS = 'xlsx';
-        else if (['doc', 'docx'].includes(ext)) iconCSS = 'docx';
+        if (['doc', 'docx'].includes(ext)) iconCSS = 'docx';
 
         frame.innerHTML = `
           <div class="doc-preview-nopreview">
@@ -4648,6 +4727,81 @@
       }
 
       document.getElementById('modalPreviewDoc').classList.add('active');
+    }
+
+    async function previewExcelDocument(url, frame, ext) {
+      frame.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:var(--slate-50); color:var(--slate-600); font-family:inherit; padding:40px;">
+          <div class="spinner" style="width:36px; height:36px; border:3px solid var(--slate-200); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+          <div style="margin-top:16px; font-weight:600; font-size:14px; color:var(--slate-700);">Memuat Pratinjau Excel...</div>
+          <div style="margin-top:4px; font-size:12px; color:var(--slate-400);">Harap tunggu sebentar</div>
+        </div>
+      `;
+
+      try {
+        if (typeof XLSX === 'undefined') {
+          throw new Error('Library SheetJS (XLSX) belum dimuat');
+        }
+        const res = await fetch(url, { credentials: 'same-origin' });
+        if (!res.ok) throw new Error(`Gagal mengunduh file (${res.status})`);
+        const arrayBuffer = await res.arrayBuffer();
+        
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+          throw new Error('File Excel tidak memiliki lembar kerja (sheet)');
+        }
+
+        let tabsHtml = '';
+        if (workbook.SheetNames.length > 1) {
+          tabsHtml = `<div class="excel-preview-tabs" style="display:flex; gap:6px; padding:8px 16px; background:var(--slate-100); border-bottom:1px solid var(--slate-200); overflow-x:auto; flex-shrink:0;">` +
+            workbook.SheetNames.map((name, i) => `
+              <button class="excel-tab-btn ${i === 0 ? 'active' : ''}" 
+                      style="padding:6px 14px; border-radius:6px; border:1px solid ${i === 0 ? 'var(--primary)' : 'var(--slate-300)'}; background:${i === 0 ? 'var(--primary)' : '#fff'}; color:${i === 0 ? '#fff' : 'var(--slate-700)'}; font-weight:600; font-size:12px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease; box-shadow:0 1px 2px rgba(0,0,0,0.05);"
+                      onclick="switchExcelSheet(this, '${escapeHtml(name)}')">${escapeHtml(name)}</button>
+            `).join('') + `</div>`;
+        }
+
+        const sheetsHtml = workbook.SheetNames.map((name, i) => {
+          const sheet = workbook.Sheets[name];
+          const htmlTable = XLSX.utils.sheet_to_html(sheet, { id: `table-sheet-${i}` });
+          return `<div class="excel-sheet-pane" data-sheet="${escapeHtml(name)}" style="display:${i === 0 ? 'block' : 'none'}; overflow:auto; flex:1; padding:20px; background:#fff;">
+                    <div class="excel-table-container">${htmlTable}</div>
+                  </div>`;
+        }).join('');
+
+        frame.innerHTML = `<div style="display:flex; flex-direction:column; height:100%; width:100%; background:#fff; overflow:hidden;">${tabsHtml}<div style="display:flex; flex-direction:column; flex:1; overflow:hidden;">${sheetsHtml}</div></div>`;
+      } catch (err) {
+        frame.innerHTML = `
+          <div class="doc-preview-nopreview">
+            <div class="doc-preview-nopreview-icon xlsx">XLSX</div>
+            <div class="doc-preview-nopreview-text">Gagal Menampilkan Pratinjau Excel</div>
+            <div class="doc-preview-nopreview-hint" style="max-width:400px; margin:8px auto; color:var(--red-500); font-weight:500;">${escapeHtml(err.message || 'Terjadi kesalahan saat membaca file')}</div>
+            <div class="doc-preview-nopreview-hint">Silakan unduh file untuk membuka langsung di Microsoft Excel.</div>
+          </div>
+        `;
+      }
+    }
+
+    function switchExcelSheet(btn, sheetName) {
+      const container = btn.closest('.excel-preview-tabs').parentElement;
+      container.querySelectorAll('.excel-tab-btn').forEach(b => {
+        b.style.background = '#fff';
+        b.style.color = 'var(--slate-700)';
+        b.style.borderColor = 'var(--slate-300)';
+        b.classList.remove('active');
+      });
+      btn.style.background = 'var(--primary)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'var(--primary)';
+      btn.classList.add('active');
+
+      container.querySelectorAll('.excel-sheet-pane').forEach(pane => {
+        if (pane.getAttribute('data-sheet') === sheetName) {
+          pane.style.display = 'block';
+        } else {
+          pane.style.display = 'none';
+        }
+      });
     }
 
     function closePreviewDocModal() {
@@ -4666,7 +4820,7 @@
 
       // Trigger download via hidden link
       const link = document.createElement('a');
-      link.href = `/diagnosticreview-demo/api/documents/${docId}/download`;
+      link.href = resolveAppUrl(`/api/documents/${docId}/download`);
       link.style.display = 'none';
       document.body.appendChild(link);
       link.click();

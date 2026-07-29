@@ -165,7 +165,7 @@ async function updateSubActionPlan(user, subActionPlanId, payload) {
       `
         SELECT id, action_plan_id, name, status, submitted_by_user_id
         FROM sub_action_plans
-        WHERE id = $1
+        WHERE id = $1 AND deleted_at IS NULL
         FOR UPDATE
       `,
       [subActionPlanId],
@@ -332,7 +332,7 @@ async function deleteSubActionPlan(user, subActionPlanId) {
       `
         SELECT id, action_plan_id, name, status, submitted_by_user_id
         FROM sub_action_plans
-        WHERE id = $1
+        WHERE id = $1 AND deleted_at IS NULL
         FOR UPDATE
       `,
       [subActionPlanId],
@@ -360,18 +360,24 @@ async function deleteSubActionPlan(user, subActionPlanId) {
 
     // Diizinkan hapus meski sudah diverifikasi/selesai (sesuai permintaan)
 
-    // Approvals cascade on delete
-    await client.query("DELETE FROM sub_action_plans WHERE id = $1", [
-      subActionPlanId,
-    ]);
+    // Soft delete the sub action plan
+    await client.query(
+      "UPDATE sub_action_plans SET deleted_at = CURRENT_TIMESTAMP, deleted_by_user_id = $2 WHERE id = $1", 
+      [subActionPlanId, user.id]
+    );
 
     // ── Tambahkan pencatatan riwayat aktivitas ──
     await client.query(
       `
-        INSERT INTO history_activities (action_plan_id, user_id, description)
-        VALUES ($1, $2, $3)
+        INSERT INTO history_activities (action_plan_id, user_id, description, metadata)
+        VALUES ($1, $2, $3, $4)
       `,
-      [sap.action_plan_id, user.id, `Menghapus sub rencana aksi: ${sap.name}`],
+      [
+        sap.action_plan_id, 
+        user.id, 
+        `Menghapus sub rencana aksi: ${sap.name}`,
+        JSON.stringify({ deleted_sub_action_plan_id: subActionPlanId })
+      ],
     );
 
     await syncProgressHierarchy(client, sap.action_plan_id);
@@ -416,7 +422,7 @@ async function approveSubActionPlan(user, subActionPlanId, payload) {
       `
         SELECT id, action_plan_id, name, status
         FROM sub_action_plans
-        WHERE id = $1
+        WHERE id = $1 AND deleted_at IS NULL
         FOR UPDATE
       `,
       [subActionPlanId],
@@ -577,7 +583,7 @@ async function rejectSubActionPlan(user, subActionPlanId, payload) {
       `
         SELECT id, action_plan_id, name, status
         FROM sub_action_plans
-        WHERE id = $1
+        WHERE id = $1 AND deleted_at IS NULL
         FOR UPDATE
       `,
       [subActionPlanId],
@@ -723,6 +729,61 @@ function formatSubActionPlan(row) {
     updated_at: row.updated_at,
   };
 }
+async function restoreSubActionPlan(user, subActionPlanId) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    
+    // Check if it exists and is deleted
+    const check = await client.query(
+      "SELECT id, action_plan_id, name, deleted_at FROM sub_action_plans WHERE id = $1 FOR UPDATE", 
+      [subActionPlanId]
+    );
+
+    if (check.rowCount === 0) {
+      const error = new Error("Sub rencana aksi tidak ditemukan");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const sap = check.rows[0];
+    if (!sap.deleted_at) {
+      const error = new Error("Sub rencana aksi ini tidak dalam status terhapus");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Restore
+    await client.query(
+      "UPDATE sub_action_plans SET deleted_at = NULL, deleted_by_user_id = NULL WHERE id = $1",
+      [subActionPlanId]
+    );
+
+    // Add history
+    await client.query(
+      `
+        INSERT INTO history_activities (action_plan_id, user_id, description, metadata)
+        VALUES ($1, $2, $3, $4)
+      `,
+      [
+        sap.action_plan_id, 
+        user.id, 
+        `Memulihkan (restore) sub rencana aksi: ${sap.name}`,
+        JSON.stringify({ restored_sub_action_plan_id: subActionPlanId })
+      ]
+    );
+
+    await syncProgressHierarchy(client, sap.action_plan_id);
+    await client.query("COMMIT");
+    
+    return { id: subActionPlanId, message: "Berhasil dipulihkan" };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
 
 module.exports = {
   createSubActionPlan,
@@ -730,4 +791,5 @@ module.exports = {
   deleteSubActionPlan,
   approveSubActionPlan,
   rejectSubActionPlan,
+  restoreSubActionPlan,
 };

@@ -145,5 +145,37 @@ router.delete("/:actionPlanId", authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+/**
+ * POST /api/action-plans/:actionPlanId/restore
+ */
+router.post("/:actionPlanId/restore", authMiddleware, async (req, res) => {
+  try {
+    const actionPlanId = Number(req.params.actionPlanId);
 
+    if (!actionPlanId || isNaN(actionPlanId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Parameter actionPlanId harus berupa angka",
+      });
+    }
+
+    const data = await actionPlanService.restoreActionPlan(
+      req.user,
+      actionPlanId,
+    );
+
+    res.json({
+      success: true,
+      message: "Rencana aksi berhasil dipulihkan",
+      data,
+    });
+  } catch (error) {
+    console.error("Restore action plan error:", error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal memulihkan rencana aksi",
+    });
+  }
+});
+
+module.exports = router;

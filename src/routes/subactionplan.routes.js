@@ -187,4 +187,35 @@ router.post("/:id/reject", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/sub-action-plans/:id/restore
+ */
+router.post("/:id/restore", authMiddleware, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Parameter id harus berupa angka",
+      });
+    }
+
+    const data = await sapService.restoreSubActionPlan(req.user, id);
+
+    res.json({
+      success: true,
+      message: "Sub rencana aksi berhasil dipulihkan",
+      data,
+    });
+  } catch (error) {
+    console.error("Restore sub action plan error:", error);
+
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal memulihkan sub rencana aksi",
+    });
+  }
+});
+
 module.exports = router;
