@@ -2089,9 +2089,14 @@
     }
 
     // ── RENDER SUMMARY CARDS ────────────────────────────────
+    function formatPct(val) {
+      const num = Number(val || 0);
+      return Number.isInteger(num) ? num : Math.round(num * 10) / 10;
+    }
+
     function renderCards(cards) {
       if (!cards) return;
-      const pct = Math.round(cards.progress_percentage || 0);
+      const pct = formatPct(cards.progress_percentage || 0);
       const target = Math.round(cards.target_percentage || 0);
 
       // Progress card
@@ -2264,7 +2269,7 @@
 
       container.innerHTML = calloutHtml + strategies.map((s, sIdx) => {
         const sKey = 's' + s.strategy_id;
-        const sPct = Math.round(s.progress_percentage);
+        const sPct = formatPct(s.progress_percentage);
         const sTarget = Math.round(s.target_percentage);
         const sBarColor = getBarColorClass(sPct, sTarget);
         const sStatusClass = getStatusClass(s.status);
@@ -2276,7 +2281,7 @@
         // Activity groups HTML
         const agHtml = (s.activity_groups || []).map((ag, agIdx) => {
           const agKey = 'ag' + ag.activity_group_id;
-          const agPct = Math.round(ag.progress_percentage);
+          const agPct = formatPct(ag.progress_percentage);
           const agTarget = Math.round(ag.target_percentage);
           const agBarColor = getBarColorClass(agPct, agTarget);
           const agStatusClass = getStatusClass(ag.status);
@@ -2287,7 +2292,7 @@
 
           // Action plans (Rencana Aksi) HTML
           const apHtml = (ag.action_plans || []).map(ap => {
-            const apPct = Math.round(ap.progress_percentage);
+            const apPct = formatPct(ap.progress_percentage);
             const apTarget = Math.round(ap.target_percentage);
             const apBarColor = getBarColorClass(apPct, apTarget);
             const apStatusClass = getStatusClass(ap.status);

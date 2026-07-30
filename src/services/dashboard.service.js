@@ -135,7 +135,13 @@ async function getOverallCards(client, companyScopeId) {
             WHEN ap.status = 'terlambat' THEN 'terlambat'
             WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
             ELSE 'belum_mulai'
-          END AS effective_status
+          END AS effective_status,
+          CASE
+            WHEN sap.status = 'pengajuan' THEN 30
+            WHEN sap.status = 'verifikasi' THEN 65
+            WHEN sap.status = 'selesai' THEN 100
+            ELSE 0
+          END AS progress_weight
         FROM sub_action_plans sap
         JOIN action_plans ap
           ON ap.id = sap.action_plan_id
@@ -152,8 +158,7 @@ async function getOverallCards(client, companyScopeId) {
       SELECT
         COALESCE(
           ROUND(
-            (SELECT COUNT(*)::NUMERIC FROM sub_action_plan_rows WHERE effective_status IN ('selesai', 'selesai_terlambat')) /
-            NULLIF((SELECT COUNT(*)::NUMERIC FROM sub_action_plan_rows), 0) * 100
+            (SELECT AVG(progress_weight) FROM sub_action_plan_rows)
           , 2),
           0
         ) AS progress_percentage,
@@ -242,13 +247,13 @@ async function getCompanyCards(client, companyScopeId) {
           COALESCE(
             ROUND(
               (
-                SELECT COUNT(*)::NUMERIC FROM sub_action_plans sap
+                SELECT SUM(CASE WHEN sap.status = 'pengajuan' THEN 30 WHEN sap.status = 'verifikasi' THEN 65 WHEN sap.status = 'selesai' THEN 100 ELSE 0 END)::NUMERIC
+                FROM sub_action_plans sap
                 JOIN action_plans ap ON ap.id = sap.action_plan_id
                 JOIN activity_groups ag ON ag.id = ap.activity_group_id
                 JOIN strategies s ON s.id = ag.strategy_id
                 JOIN aspects a2 ON a2.id = s.aspect_id
                 WHERE a2.company_id = a.company_id
-                  AND sap.status = 'selesai'
                   AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
               ) / NULLIF(
                 (
@@ -260,7 +265,7 @@ async function getCompanyCards(client, companyScopeId) {
                   WHERE a2.company_id = a.company_id
                     AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
                 )
-              , 0) * 100
+              , 0)
             , 2),
             0
           ) AS progress_percentage,

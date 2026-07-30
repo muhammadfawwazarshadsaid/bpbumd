@@ -3074,9 +3074,14 @@
       } catch (error) { console.error('Error loading dashboard:', error); }
     }
 
+    function formatPct(val) {
+      const num = Number(val || 0);
+      return Number.isInteger(num) ? num : Math.round(num * 10) / 10;
+    }
+
     function renderKPICards(cards) {
       if (!cards) return;
-      const pct = Math.round(cards.progress_percentage);
+      const pct = formatPct(cards.progress_percentage);
       const targetPct = Math.round(cards.target_percentage);
       const circumference = 2 * Math.PI * 32;
       const fillLength = (pct / 100) * circumference;
@@ -3099,7 +3104,7 @@
 
     function renderCompanyDropdown(companies) {
       const dropdown = document.getElementById('companyDropdown');
-      dropdown.innerHTML = '<option value="">Pilih BUMD...</option>';
+      dropdown.innerHTML = '<option value="">Semua BUMD</option>';
       companies.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.company_id;
@@ -3115,6 +3120,8 @@
         document.getElementById('aspectTable').style.display = 'none';
         document.getElementById('emptyState').style.display = '';
         localStorage.removeItem('dashboardAspekSelectedCompany');
+        // Restore overall KPI cards
+        renderKPICards(dashboardData ? dashboardData.cards : null);
         return;
       }
       selectedCompanyId = Number(companyId);
@@ -3132,14 +3139,16 @@
       overallEl.style.display = '';
       const progressTabSwitcher = document.getElementById('progressTabSwitcher');
       if (progressTabSwitcher) progressTabSwitcher.style.display = 'flex';
-      const overallPct = Math.round(company.cards.progress_percentage);
+      const overallPct = formatPct(company.cards.progress_percentage);
       document.getElementById('overallPct').textContent = overallPct + '%';
       const barFill = document.getElementById('overallBarFill');
-      barFill.style.width = overallPct + '%';
+      barFill.style.width = Math.min(100, Math.max(0, overallPct)) + '%';
       barFill.style.background = getProgressBarGradient(overallPct, Math.round(company.cards.target_percentage));
       document.getElementById('overallTarget').textContent = 'Target: ' + Math.round(company.cards.target_percentage) + '%';
       updateCompanyOverallInfo(company);
       renderAspectTable(company.progress_per_aspect, company.company_id, company.company_name);
+      // Update top KPI cards with selected company's data
+      renderKPICards(company.cards);
     }
 
     function switchProgressTab(tab) {
@@ -3193,7 +3202,7 @@
         thTotal.textContent = currentProgressTab === 'sap' ? 'Total Sub Rencana Aksi' : 'Total Rencana Aksi';
       }
       tbody.innerHTML = aspects.map((asp, i) => {
-        const pct = Math.round(asp.progress_percentage || 0);
+        const pct = formatPct(asp.progress_percentage || 0);
         const barColor = getBarColor(pct, Math.round(asp.target_percentage || 0));
         const total = currentProgressTab === 'sap' ? (asp.total_sap !== undefined ? asp.total_sap : (asp.total || 0)) : (asp.total_ap || 0);
         const selesai = currentProgressTab === 'sap' ? (asp.selesai_sap !== undefined ? asp.selesai_sap : (asp.selesai || 0)) : (asp.selesai_ap || 0);

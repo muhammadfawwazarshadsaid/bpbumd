@@ -571,8 +571,10 @@
     /* DONUT PROGRESS */
     .donut-wrap {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
+      width: 100%;
     }
 
     .donut-svg {
@@ -598,7 +600,10 @@
     .donut-legend {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
+      width: 100%;
+      padding-top: 4px;
+      border-top: 1px dashed var(--slate-200);
     }
 
     .dl-row {
@@ -2247,20 +2252,20 @@
             </div>
             <div class="donut-legend">
               <div class="dl-row">
-                <div class="dl-dot" style="background:#10B981"></div>Selesai<div class="dl-val" id="legSelesai">50%
+                <div class="dl-dot" style="background:#10B981"></div>Selesai (100%)<div class="dl-val" id="legSelesai">0 (0%)
                 </div>
               </div>
               <div class="dl-row">
-                <div class="dl-dot" style="background:#0EA5E9"></div>Dalam Proses<div class="dl-val" id="legProgress">0%
+                <div class="dl-dot" style="background:#6366F1"></div>Verifikasi (65%)<div class="dl-val" id="legVerifikasi">0 (0%)
                 </div>
               </div>
               <div class="dl-row">
-                <div class="dl-dot" style="background:#F43F5E"></div>Ditolak<div class="dl-val" id="legDitolak">0%
+                <div class="dl-dot" style="background:#0EA5E9"></div>Pengajuan (30%)<div class="dl-val" id="legPengajuan">0 (0%)
                 </div>
               </div>
               <div class="dl-row">
-                <div class="dl-dot" style="background:#F1F5F9;border:1px solid #CBD5E1"></div>Belum Mulai<div
-                  class="dl-val" id="legBelum">25%</div>
+                <div class="dl-dot" style="background:#CBD5E1"></div>Belum Mulai (0%)<div
+                  class="dl-val" id="legBelum">0 (0%)</div>
               </div>
             </div>
           </div>
@@ -3215,10 +3220,11 @@
         }
       }
 
+      const { headers: finalHeaders, ...restOptions } = finalOptions;
       const res = await fetch(url, {
         credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', ...finalOptions.headers },
-        ...finalOptions,
+        ...restOptions,
+        headers: { 'Content-Type': 'application/json', ...finalHeaders },
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -3243,6 +3249,7 @@
       } else {
         // No ID in URL — show empty state
         document.getElementById('pageTitle').textContent = 'Rencana Aksi tidak ditemukan. Silakan pilih rencana aksi dari halaman aspek.';
+        document.querySelectorAll('.summary-row, .section-card, .btn-add').forEach(el => el.style.display = 'none');
       }
     });
 
@@ -3305,25 +3312,39 @@
         : 'Belum ada pembaruan';
 
       // ── Progress Donut ──
-      const breakdown = cards.progres.breakdown;
-      const total = breakdown.total || 1;
-      const selesaiPct = breakdown.selesai_percentage || 0;
-      const ditolakPct = breakdown.ditolak_percentage || 0;
-      const progressPct = (total === 0) ? 0 : (breakdown.pengajuan_percentage || 0) + (breakdown.verifikasi_percentage || 0) + (breakdown.terlambat_percentage || 0);
-      const belumPct = breakdown.belum_mulai_percentage || 0;
+      const progresData = cards.progres || {};
+      const rawPct = Number(progresData.progress_percentage || 0);
+      const pctVal = Number.isInteger(rawPct) ? rawPct : Math.round(rawPct * 10) / 10;
+      const breakdown = progresData.breakdown || {};
+      const total = breakdown.total || 0;
 
       const circ = 2 * Math.PI * 28;
-      const selesaiLen = (selesaiPct / 100) * circ;
+      const fillLen = (Math.min(100, Math.max(0, pctVal)) / 100) * circ;
 
-      // Draw Selesai starting from the top
-      document.getElementById('donutSelesai').setAttribute('stroke-dasharray', `${selesaiLen} ${circ}`);
-      document.getElementById('donutSelesai').setAttribute('stroke-dashoffset', 0);
+      const donutCircle = document.getElementById('donutSelesai');
+      if (donutCircle) {
+        donutCircle.setAttribute('stroke-dasharray', `${fillLen} ${circ}`);
+        donutCircle.setAttribute('stroke-dashoffset', 0);
+      }
 
-      document.getElementById('donutLabel').textContent = Math.round(selesaiPct) + '%';
-      document.getElementById('legSelesai').textContent = Math.round(selesaiPct) + '%';
-      document.getElementById('legProgress').textContent = Math.round(progressPct) + '%';
-      document.getElementById('legDitolak').textContent = Math.round(ditolakPct) + '%';
-      document.getElementById('legBelum').textContent = Math.max(0, Math.round(belumPct)) + '%';
+      const donutLabel = document.getElementById('donutLabel');
+      if (donutLabel) {
+        donutLabel.textContent = pctVal + '%';
+      }
+
+      const calcPct = (cnt) => total > 0 ? Math.round((cnt / total) * 100) : 0;
+
+      const legSelesai = document.getElementById('legSelesai');
+      if (legSelesai) legSelesai.textContent = `${breakdown.selesai || 0} (${calcPct(breakdown.selesai || 0)}%)`;
+
+      const legVerifikasi = document.getElementById('legVerifikasi');
+      if (legVerifikasi) legVerifikasi.textContent = `${breakdown.verifikasi || 0} (${calcPct(breakdown.verifikasi || 0)}%)`;
+
+      const legPengajuan = document.getElementById('legPengajuan');
+      if (legPengajuan) legPengajuan.textContent = `${breakdown.pengajuan || 0} (${calcPct(breakdown.pengajuan || 0)}%)`;
+
+      const legBelum = document.getElementById('legBelum');
+      if (legBelum) legBelum.textContent = `${breakdown.belum_mulai || 0} (${calcPct(breakdown.belum_mulai || 0)}%)`;
 
       // ── PIC Card ──
       const pic = cards.pic_utama;

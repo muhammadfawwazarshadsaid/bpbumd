@@ -9,6 +9,32 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
   let sId = null;
   let aId = null;
 
+  // ── 0. Update status Sub Rencana Aksi berdasarkan persetujuan (approvals) ──
+  await client.query(`
+    UPDATE sub_action_plans sap
+    SET status = CASE
+      WHEN EXISTS (
+        SELECT 1 FROM sub_action_plan_approvals sapa 
+        WHERE sapa.sub_action_plan_id = sap.id AND sapa.status = 'ditolak'
+      ) THEN 'ditolak'
+      WHEN (
+        SELECT COUNT(*) FROM sub_action_plan_approvals sapa 
+        WHERE sapa.sub_action_plan_id = sap.id
+      ) > 0 AND NOT EXISTS (
+        SELECT 1 FROM sub_action_plan_approvals sapa 
+        WHERE sapa.sub_action_plan_id = sap.id AND sapa.status != 'setujui'
+      ) THEN 'selesai'
+      WHEN EXISTS (
+        SELECT 1 FROM sub_action_plan_approvals sapa 
+        WHERE sapa.sub_action_plan_id = sap.id AND sapa.status = 'setujui'
+      ) THEN 'verifikasi'
+      WHEN sap.status = 'belum mulai' THEN 'belum mulai'
+      ELSE 'pengajuan'
+    END
+    WHERE sap.deleted_at IS NULL
+      AND ($1::BIGINT IS NULL OR sap.action_plan_id = $1)
+  `, [actionPlanId || null]);
+
   // ── 1. Update Rencana Aksi (Action Plan) berdasarkan Sub Rencana Aksi ──
   if (actionPlanId) {
     await client.query(`
