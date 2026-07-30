@@ -15,7 +15,7 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
       UPDATE action_plans ap
       SET 
         progress_percentage = COALESCE(
-          (SELECT ROUND((COUNT(*) FILTER (WHERE status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+          (SELECT ROUND((SUM(CASE WHEN status = 'pengajuan' THEN 30 WHEN status = 'verifikasi' THEN 65 WHEN status = 'selesai' THEN 100 ELSE 0 END))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC, 2)
            FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL), 0
         ),
         start_date = COALESCE(
@@ -86,7 +86,7 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
            CASE 
              WHEN SUM(COALESCE(ap.weight, 0)) = 0 THEN 
                COALESCE(
-                 (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+                 (SELECT ROUND((SUM(CASE WHEN sap.status = 'pengajuan' THEN 30 WHEN sap.status = 'verifikasi' THEN 65 WHEN sap.status = 'selesai' THEN 100 ELSE 0 END))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC, 2)
                   FROM sub_action_plans sap JOIN action_plans ap2 ON ap2.id = sap.action_plan_id WHERE ap2.activity_group_id = ag.id AND sap.deleted_at IS NULL AND ap2.deleted_at IS NULL)
                , 0)
              ELSE ROUND(SUM((ap.progress_percentage * COALESCE(ap.weight, 0)) / 100.0), 2)
@@ -113,7 +113,7 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
            CASE 
              WHEN SUM(COALESCE(ag.weight, 0)) = 0 THEN 
                COALESCE(
-                 (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+                 (SELECT ROUND((SUM(CASE WHEN sap.status = 'pengajuan' THEN 30 WHEN sap.status = 'verifikasi' THEN 65 WHEN sap.status = 'selesai' THEN 100 ELSE 0 END))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC, 2)
                   FROM sub_action_plans sap JOIN action_plans ap2 ON ap2.id = sap.action_plan_id JOIN activity_groups ag2 ON ag2.id = ap2.activity_group_id WHERE ag2.strategy_id = s.id AND sap.deleted_at IS NULL AND ap2.deleted_at IS NULL)
                , 0)
              ELSE ROUND(SUM((ag.progress_percentage * COALESCE(ag.weight, 0)) / 100.0), 2)
@@ -140,7 +140,7 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
            CASE 
              WHEN SUM(COALESCE(s.weight, 0)) = 0 THEN 
                COALESCE(
-                 (SELECT ROUND((COUNT(*) FILTER (WHERE sap.status = 'selesai'))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC * 100, 2)
+                 (SELECT ROUND((SUM(CASE WHEN sap.status = 'pengajuan' THEN 30 WHEN sap.status = 'verifikasi' THEN 65 WHEN sap.status = 'selesai' THEN 100 ELSE 0 END))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC, 2)
                   FROM sub_action_plans sap JOIN action_plans ap2 ON ap2.id = sap.action_plan_id JOIN activity_groups ag2 ON ag2.id = ap2.activity_group_id JOIN strategies s2 ON s2.id = ag2.strategy_id WHERE s2.aspect_id = a.id AND sap.deleted_at IS NULL AND ap2.deleted_at IS NULL)
                , 0)
              ELSE ROUND(SUM((s.progress_percentage * COALESCE(s.weight, 0)) / 100.0), 2)

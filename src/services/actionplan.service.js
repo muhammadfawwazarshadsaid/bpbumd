@@ -960,8 +960,8 @@ async function deleteActionPlan(user, actionPlanId) {
         VALUES ($1, $2, $3, $4)
       `,
       [
-        actionPlanId, 
-        user.id, 
+        actionPlanId,
+        user.id,
         `Menghapus rencana aksi: ${ap.name}`,
         JSON.stringify({ deleted_action_plan_id: actionPlanId })
       ]
@@ -985,10 +985,10 @@ async function restoreActionPlan(user, actionPlanId) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    
+
     // Check if it exists and is deleted
     const check = await client.query(
-      "SELECT id, activity_group_id, name, deleted_at FROM action_plans WHERE id = $1 FOR UPDATE", 
+      "SELECT id, activity_group_id, name, deleted_at FROM action_plans WHERE id = $1 FOR UPDATE",
       [actionPlanId]
     );
 
@@ -1018,8 +1018,8 @@ async function restoreActionPlan(user, actionPlanId) {
         VALUES ($1, $2, $3, $4)
       `,
       [
-        actionPlanId, 
-        user.id, 
+        actionPlanId,
+        user.id,
         `Memulihkan (restore) rencana aksi: ${ap.name}`,
         JSON.stringify({ restored_action_plan_id: actionPlanId })
       ]
@@ -1027,8 +1027,153 @@ async function restoreActionPlan(user, actionPlanId) {
 
     await syncProgressHierarchy(client, null, ap.activity_group_id);
     await client.query("COMMIT");
-    
+
     return { id: actionPlanId, message: "Berhasil dipulihkan" };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+async function mapSaranaJayaSubActions() {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // 1. Get Sarana Jaya Company
+    const compRes = await client.query(
+      `SELECT id FROM companies WHERE name ILIKE '%sarana jaya%' OR name ILIKE '%saranajaya%' LIMIT 1`
+    );
+    if (compRes.rowCount === 0) {
+      throw new Error("Perusahaan Sarana Jaya tidak ditemukan");
+    }
+    const companyId = compRes.rows[0].id;
+
+    // 2. Load all users for matching
+    const userRes = await client.query(`SELECT id, name FROM users`);
+    const users = userRes.rows;
+
+    function findUserId(query) {
+      if (!query) return null;
+      const q = query.toLowerCase();
+      const u = users.find(usr => usr.name && usr.name.toLowerCase().includes(q));
+      return u ? u.id : null;
+    }
+
+    const picNameMap = {
+      "Andy Sakti P.Purba": findUserId("andy sakti"),
+      "Nurfaried Qoriantoro": findUserId("nurfaried"),
+      "Bodro Bahwono": findUserId("bodro"),
+      "Retty Wahyu Susanti": findUserId("retty"),
+      "I Gede Aldi Pradana": findUserId("gede aldi"),
+      "Bayu Romas": findUserId("bayu romas"),
+      "Dwi Ananto": findUserId("dwi ananto")
+    };
+
+    const verifikatorsMap = {
+      "Andy Sakti P.Purba": [findUserId("arjo baroto"), findUserId("bidang usaha transportasi")],
+      "Nurfaried Qoriantoro": [findUserId("ignatius tri"), findUserId("bidang usaha transportasi")],
+      "Bodro Bahwono": [findUserId("arjo baroto"), findUserId("bidang usaha transportasi")],
+      "Retty Wahyu Susanti": [findUserId("ignatius tri"), findUserId("bidang usaha transportasi")],
+      "I Gede Aldi Pradana": [findUserId("bernard yohanes"), findUserId("bidang usaha transportasi")],
+      "Bayu Romas": [findUserId("arjo baroto"), findUserId("bidang usaha transportasi")],
+      "Dwi Ananto": [findUserId("ignatius tri"), findUserId("bidang usaha transportasi")]
+    };
+
+    const divisionToPicName = {
+      "divisi pengembangan bisnis": "Andy Sakti P.Purba",
+      "sdm": "Nurfaried Qoriantoro",
+      "divisi pengembangan bisnis (subdivisi pemasaran)": "Andy Sakti P.Purba",
+      "divisi bisnis & operasional swp": "Andy Sakti P.Purba",
+      "direksi": null,
+      "it": "Bodro Bahwono",
+      "hr": "Nurfaried Qoriantoro",
+      "divisi bisnis dan operasional swp": "Andy Sakti P.Purba",
+      "divisi keuangan": "Retty Wahyu Susanti",
+      "direksi swp": null,
+      "divisi finance": "Retty Wahyu Susanti",
+      "divisi legal": "I Gede Aldi Pradana",
+      "divisi teknologi": "Bodro Bahwono",
+      "divisi sdm, umum, dan aset": "Nurfaried Qoriantoro",
+      "divisi pmo": "Bayu Romas",
+      "divisi sdm": "Nurfaried Qoriantoro",
+      "divisi pengembangan bisnis - kerjasama bisnis": "Andy Sakti P.Purba",
+      "divisi pengembangan bisnis - kerja sama bisnis": "Andy Sakti P.Purba",
+      "divisi sekretaris perusahaan": "Dwi Ananto",
+      "divisi keuangan dan akuntansi.": "Retty Wahyu Susanti",
+      "divisi keuangan dan akuntansi": "Retty Wahyu Susanti"
+    };
+
+    // 3. Find Action Plans without Sub Action Plans
+    const apRes = await client.query(`
+      SELECT ap.id, ap.name, ap.status, ap.division
+      FROM action_plans ap
+      JOIN activity_groups ag ON ag.id = ap.activity_group_id
+      JOIN strategies s ON s.id = ag.strategy_id
+      JOIN aspects a ON a.id = s.aspect_id
+      WHERE a.company_id = $1
+        AND ap.deleted_at IS NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM sub_action_plans sap
+          WHERE sap.action_plan_id = ap.id AND sap.deleted_at IS NULL
+        )
+      ORDER BY ap.id ASC
+    `, [companyId]);
+
+    let createdCount = 0;
+
+    for (const ap of apRes.rows) {
+      const divClean = (ap.division || "").trim().toLowerCase();
+      const picName = divisionToPicName[divClean] || null;
+      const picUserId = picName ? picNameMap[picName] : null;
+
+      // Insert Sub Action Plan with exact same name as Action Plan
+      const sraRes = await client.query(`
+        INSERT INTO sub_action_plans (action_plan_id, name, status, pic_user_id)
+        VALUES ($1, $2, COALESCE($3, 'belum mulai'), $4)
+        RETURNING id
+      `, [ap.id, ap.name, ap.status, picUserId]);
+
+      const sraId = sraRes.rows[0].id;
+      createdCount++;
+
+      // Insert PIC if matched
+      if (picUserId) {
+        await client.query(`
+          INSERT INTO sub_action_plan_pics (sub_action_plan_id, pic_user_id)
+          VALUES ($1, $2)
+          ON CONFLICT DO NOTHING
+        `, [sraId, picUserId]);
+      }
+
+      // Insert Approvers if matched
+      if (picName && verifikatorsMap[picName]) {
+        const verifs = verifikatorsMap[picName];
+        for (let i = 0; i < verifs.length; i++) {
+          const verifId = verifs[i];
+          if (verifId) {
+            await client.query(`
+              INSERT INTO sub_action_plan_approvals (sub_action_plan_id, approver_user_id, approval_order, status)
+              VALUES ($1, $2, $3, 'menunggu')
+              ON CONFLICT DO NOTHING
+            `, [sraId, verifId, i + 1]);
+          }
+        }
+      }
+
+      // Sync progress hierarchy
+      await syncProgressHierarchy(client, ap.id);
+    }
+
+    await client.query("COMMIT");
+
+    return {
+      success: true,
+      message: `Berhasil memetakan ${createdCount} Rencana Aksi ke Sub Rencana Aksi baru untuk Sarana Jaya.`,
+      mapped_count: createdCount
+    };
   } catch (err) {
     await client.query("ROLLBACK");
     throw err;
@@ -1043,4 +1188,5 @@ module.exports = {
   updateActionPlan,
   deleteActionPlan,
   restoreActionPlan,
+  mapSaranaJayaSubActions,
 };
