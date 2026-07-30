@@ -275,6 +275,25 @@
       color: #94A3B8;
       margin-top: 24px;
     }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #94A3B8;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .toggle-password:hover {
+      color: #0EA5E9;
+    }
   </style>
 </head>
 
@@ -320,14 +339,20 @@
             </svg>
           </span>
           <input type="password" id="password" name="password" placeholder="Masukkan password"
-            autocomplete="current-password" required />
+            autocomplete="current-password" required style="padding-right: 40px;" />
+          <button type="button" class="toggle-password" id="togglePassword" onclick="togglePasswordVisibility()" title="Tampilkan/Sembunyikan Password">
+            <svg id="eyeIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
         </div>
       </div>
       <div class="remember-row">
         <label class="remember-label">
           <input type="checkbox" id="remember" /> Ingat saya
         </label>
-        <a href="#" class="forgot-link">Lupa password?</a>
+        <a href="#" class="forgot-link" style="display: none;">Lupa password?</a>
       </div>
       <button type="submit" class="btn-login" id="btnLogin">
         <span id="btnText">Masuk ke Sistem</span>
@@ -339,6 +364,29 @@
 
   <script src="/diagnosticreview-demo/auth.js?v=1781666555003"></script>
   <script>
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+      } else {
+        pwdInput.type = 'password';
+        eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+      }
+    }
+
+    // Restore remembered username if checked previously
+    document.addEventListener('DOMContentLoaded', function () {
+      const savedUser = localStorage.getItem('bpbumd_remembered_user');
+      if (savedUser) {
+        const usernameInput = document.getElementById('username');
+        if (usernameInput) usernameInput.value = savedUser;
+        const rememberCb = document.getElementById('remember');
+        if (rememberCb) rememberCb.checked = true;
+      }
+    });
+
     // If already authenticated, redirect to dashboard
     (async function () {
       if (BPBUMDAuth.isAuthenticated()) {
@@ -358,6 +406,7 @@
       e.preventDefault();
       const u = document.getElementById('username').value.trim();
       const p = document.getElementById('password').value;
+      const remember = document.getElementById('remember').checked;
       const btn = document.getElementById('btnLogin');
       const spinner = document.getElementById('spinner');
       const btnText = document.getElementById('btnText');
@@ -379,6 +428,12 @@
         const result = await response.json();
 
         if (result.success && result.data) {
+          // Handle "Ingat Saya"
+          if (remember) {
+            localStorage.setItem('bpbumd_remembered_user', u);
+          } else {
+            localStorage.removeItem('bpbumd_remembered_user');
+          }
           // Cookie sudah di-set oleh server (httpOnly)
           // Simpan user display data saja (non-sensitive)
           BPBUMDAuth.setUser(result.data.user);
