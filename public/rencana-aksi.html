@@ -2264,6 +2264,10 @@
                 </div>
               </div>
               <div class="dl-row">
+                <div class="dl-dot" style="background:#EF4444"></div>Ditolak (0%)<div class="dl-val" id="legDitolak">0 (0%)
+                </div>
+              </div>
+              <div class="dl-row">
                 <div class="dl-dot" style="background:#CBD5E1"></div>Belum Mulai (0%)<div
                   class="dl-val" id="legBelum">0 (0%)</div>
               </div>
@@ -2820,6 +2824,11 @@
                 <input type="radio" name="editUploadType" value="link" onchange="toggleEditUploadType('link')"> Tautan
                 (Link)
               </label>
+              <label
+                style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
+                <input type="radio" name="editUploadType" value="tindak_lanjut" onchange="toggleEditUploadType('tindak_lanjut')"> 
+                Tindak Lanjut Saja
+              </label>
             </div>
           </div>
           <div class="form-group" id="editFileGroup">
@@ -2887,7 +2896,7 @@
         <form id="formUploadDoc" onsubmit="submitUploadDoc(event)">
           <div class="form-group">
             <label class="form-label">Tipe Upload</label>
-            <div style="display:flex; gap: 16px; margin-bottom: 8px;">
+            <div style="display:flex; gap: 16px; align-items:center; flex-wrap:wrap; margin-bottom: 8px;">
               <label
                 style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
                 <input type="radio" name="uploadType" value="file" checked onchange="toggleUploadType('file')"> File
@@ -2896,7 +2905,14 @@
                 style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
                 <input type="radio" name="uploadType" value="link" onchange="toggleUploadType('link')"> Tautan (Link)
               </label>
+              <label
+                style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
+                <input type="radio" name="uploadType" value="tindak_lanjut" onchange="toggleUploadType('tindak_lanjut')"> Tindak Lanjut Saja
+              </label>
             </div>
+          </div>
+          <div id="uploadTindakLanjutNotice" style="display:none; margin-bottom:16px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:10px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
+            💡 <strong>Tindak Lanjut Saja:</strong> Pengunggahan file/tautan dapat dilewati saat ini. Dokumen akan tetap dicatat sebagai unggahan resmi dan dapat dilengkapi nanti.
           </div>
           <div class="form-group" id="uploadFileGroup">
             <label class="form-label">File Dokumen</label>
@@ -3364,6 +3380,9 @@
       const legPengajuan = document.getElementById('legPengajuan');
       if (legPengajuan) legPengajuan.textContent = `${breakdown.pengajuan || 0} (${breakdown.pengajuan_percentage !== undefined ? breakdown.pengajuan_percentage : calcPct(breakdown.pengajuan || 0)}%)`;
 
+      const legDitolak = document.getElementById('legDitolak');
+      if (legDitolak) legDitolak.textContent = `${breakdown.ditolak || 0} (${breakdown.ditolak_percentage !== undefined ? breakdown.ditolak_percentage : calcPct(breakdown.ditolak || 0)}%)`;
+
       const legBelum = document.getElementById('legBelum');
       if (legBelum) legBelum.textContent = `${breakdown.belum_mulai || 0} (${breakdown.belum_mulai_percentage !== undefined ? breakdown.belum_mulai_percentage : calcPct(breakdown.belum_mulai || 0)}%)`;
 
@@ -3773,7 +3792,8 @@
       docBody.innerHTML = docs.map((doc, index) => {
         let ext = getFileExtension(doc.original_file_name || doc.document_name);
         if (doc.file_type === 'link') ext = 'link';
-        const extCSS = ext === 'link' ? 'default' : ext === 'pdf' ? 'pdf' : ext === 'xlsx' || ext === 'xls' ? 'xlsx' : ext === 'docx' || ext === 'doc' ? 'docx' : 'pdf';
+        if (doc.file_type === 'tindak_lanjut') ext = 'tindak_lanjut';
+        const extCSS = ext === 'link' ? 'default' : ext === 'tindak_lanjut' ? 'default' : ext === 'pdf' ? 'pdf' : ext === 'xlsx' || ext === 'xls' ? 'xlsx' : ext === 'docx' || ext === 'doc' ? 'docx' : 'pdf';
         const statusBadge = doc.status === 'terverifikasi'
           ? '<span class="verified-badge">Terverifikasi</span>'
           : doc.status === 'ditolak'
@@ -3876,6 +3896,14 @@
                   <line x1="10" y1="14" x2="21" y2="3"></line>
                 </svg>
               </button>
+        ` : (doc.file_type === 'tindak_lanjut' || !doc.file_path) ? `
+              <button class="doc-action-btn" title="Lengkapi File / Tautan Nanti" onclick="openEditDocModal(${doc.document_id})">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17,8 12,3 7,8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </button>
         ` : `
               <button class="doc-action-btn" title="Unduh" onclick="downloadDocument(${doc.document_id})">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -3898,6 +3926,12 @@
                 </svg>
               </button>
               ${downloadOrRedirectBtn}
+              <button class="doc-action-btn" title="Edit Dokumen" onclick="openEditDocModal(${doc.document_id})">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
               ${verifyBtn}
               ${canDelete ? `
               <button class="doc-action-btn danger" title="Hapus" onclick="openDeleteDocModal(${doc.document_id})">
@@ -3910,10 +3944,11 @@
           </td>
           <td>
             <div class="doc-file">
-              <div class="doc-icon ${extCSS}">${ext.toUpperCase() || 'FILE'}</div>
+              <div class="doc-icon ${extCSS}" ${ext === 'tindak_lanjut' ? 'style="background:#F0F9FF; color:#0369A1; font-weight:700; border:1px solid #BAE6FD;"' : ''}>${ext === 'tindak_lanjut' ? 'TL' : ext.toUpperCase() || 'FILE'}</div>
               <div style="display:flex; flex-direction:column; gap:2px;">
                 <span class="doc-name">${escapeHtml(doc.document_name || doc.original_file_name || 'Dokumen')}</span>
                 ${doc.file_type === 'link' ? `<a href="${doc.file_path}" target="_blank" style="font-size: 11px; color: var(--blue-600); text-decoration: none; word-break: break-all;">${escapeHtml(doc.file_path)}</a>` : ''}
+                ${doc.file_type === 'tindak_lanjut' || !doc.file_path ? `<span class="badge" style="background:#F0F9FF; color:#0369A1; border:1px solid #BAE6FD; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:600; width:fit-content;">Tindak Lanjut Saja</span>` : ''}
               </div>
             </div>
           </td>
@@ -4421,16 +4456,22 @@
       if (sraDocs.length > 0) {
         docContainer.style.display = 'block';
         docList.innerHTML = sraDocs.map(doc => {
+          const isLink = doc.file_type === 'link';
+          const isTL = doc.file_type === 'tindak_lanjut' || !doc.file_path;
+          const href = isLink ? doc.file_path : isTL ? '#' : resolveAppUrl('/api/documents/' + doc.document_id + '/download');
+          const clickAttr = isTL ? `onclick="alert('Dokumen berstatus Tindak Lanjut Saja (belum ada file).'); return false;"` : '';
+          const badge = isTL ? ` <span style="font-size:10px; background:#F0F9FF; color:#0369A1; border:1px solid #BAE6FD; padding:1px 5px; border-radius:3px; font-weight:600;">Tindak Lanjut</span>` : '';
+
           return `<div style="margin-bottom: 8px;">
-                    <a href="${resolveAppUrl('/api/documents/' + doc.document_id + '/download')}" 
-                       target="_blank" 
+                    <a href="${href}" 
+                       target="${isLink ? '_blank' : '_self'}" ${clickAttr}
                        style="color: var(--primary); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
                       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                       </svg>
                       ${escapeHtml(doc.document_name || doc.original_file_name || 'Dokumen')}
-                    </a>
+                    </a>${badge}
                   </div>`;
         }).join('');
       } else {
@@ -4552,24 +4593,271 @@
     let selectedUploadFile = null;
 
     function toggleUploadType(type) {
+      const notice = document.getElementById('uploadTindakLanjutNotice');
       if (type === 'file') {
+        if (notice) notice.style.display = 'none';
         document.getElementById('uploadFileGroup').style.display = 'block';
         document.getElementById('uploadLinkGroup').style.display = 'none';
         document.getElementById('uploadDocLink').required = false;
-      } else {
+      } else if (type === 'link') {
+        if (notice) notice.style.display = 'none';
         document.getElementById('uploadFileGroup').style.display = 'none';
         document.getElementById('uploadLinkGroup').style.display = 'block';
         document.getElementById('uploadDocLink').required = true;
+      } else if (type === 'tindak_lanjut') {
+        if (notice) notice.style.display = 'block';
+        document.getElementById('uploadFileGroup').style.display = 'none';
+        document.getElementById('uploadLinkGroup').style.display = 'none';
+        document.getElementById('uploadDocLink').required = false;
       }
     }
+
+
+
+    let selectedEditFile = null;
 
     function toggleEditUploadType(type) {
       if (type === 'file') {
         document.getElementById('editFileGroup').style.display = 'block';
         document.getElementById('editLinkGroup').style.display = 'none';
-      } else {
+      } else if (type === 'link') {
         document.getElementById('editFileGroup').style.display = 'none';
         document.getElementById('editLinkGroup').style.display = 'block';
+      } else {
+        document.getElementById('editFileGroup').style.display = 'none';
+        document.getElementById('editLinkGroup').style.display = 'none';
+      }
+    }
+
+    function openEditDocModal(docId) {
+      const doc = currentData.dokumen.find(d => Number(d.document_id) === Number(docId));
+      if (!doc) {
+        alert('Dokumen tidak ditemukan.');
+        return;
+      }
+
+      selectedEditFile = null;
+      document.getElementById('editDocId').value = docId;
+      document.getElementById('editDocName').value = doc.document_name || doc.original_file_name || '';
+      document.getElementById('editDocDesc').value = doc.description || '';
+      document.getElementById('editDocLink').value = doc.file_type === 'link' ? (doc.file_path || '') : '';
+
+      const hint = document.getElementById('editCurrentFileHint');
+      if (doc.file_type === 'tindak_lanjut' || !doc.file_path) {
+        hint.textContent = 'Status saat ini: Tindak Lanjut Saja (Belum ada file)';
+      } else if (doc.file_type === 'link') {
+        hint.textContent = `Tautan saat ini: ${doc.file_path}`;
+      } else {
+        hint.textContent = `File saat ini: ${doc.original_file_name || doc.document_name || 'Tersedia'}`;
+      }
+
+      document.getElementById('editFilePreview').style.display = 'none';
+      document.getElementById('editFilePreview').innerHTML = '';
+      document.getElementById('editDropzone').style.display = '';
+      document.getElementById('editProgress').style.display = 'none';
+      document.getElementById('editProgressBar').style.width = '0%';
+
+      const radios = document.getElementsByName('editUploadType');
+      if (radios.length > 0) {
+        if (doc.file_type === 'link') {
+          radios[1].checked = true;
+          toggleEditUploadType('link');
+        } else if (doc.file_type === 'tindak_lanjut') {
+          if (radios.length > 2) {
+            radios[2].checked = true;
+          }
+          toggleEditUploadType('tindak_lanjut');
+        } else {
+          radios[0].checked = true;
+          toggleEditUploadType('file');
+        }
+      }
+
+      document.getElementById('modalEditDoc').classList.add('active');
+      setupEditDropzone();
+    }
+
+    function closeEditDocModal() {
+      document.getElementById('modalEditDoc').classList.remove('active');
+    }
+
+    function setupEditDropzone() {
+      const dropzone = document.getElementById('editDropzone');
+      const fileInput = document.getElementById('editFileInput');
+      if (!dropzone || !fileInput) return;
+
+      dropzone.onclick = () => fileInput.click();
+
+      fileInput.onchange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+          handleEditFileSelected(e.target.files[0]);
+        }
+      };
+
+      dropzone.ondragover = (e) => {
+        e.preventDefault();
+        dropzone.classList.add('drag-over');
+      };
+
+      dropzone.ondragleave = () => {
+        dropzone.classList.remove('drag-over');
+      };
+
+      dropzone.ondrop = (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('drag-over');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleEditFileSelected(e.dataTransfer.files[0]);
+        }
+      };
+    }
+
+    function handleEditFileSelected(file) {
+      selectedEditFile = file;
+      const preview = document.getElementById('editFilePreview');
+      const ext = getFileExtension(file.name);
+
+      let extCSS = 'default';
+      if (ext === 'pdf') extCSS = 'pdf';
+      else if (['xls', 'xlsx'].includes(ext)) extCSS = 'xlsx';
+      else if (['doc', 'docx'].includes(ext)) extCSS = 'docx';
+      else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) extCSS = 'img';
+
+      const sizeStr = file.size < 1024
+        ? `${file.size} B`
+        : file.size < 1024 * 1024
+          ? `${(file.size / 1024).toFixed(1)} KB`
+          : `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+
+      preview.innerHTML = `
+        <div class="upload-file-preview">
+          <div class="upload-file-icon ${extCSS}">${ext.toUpperCase() || 'FILE'}</div>
+          <div class="upload-file-info">
+            <div class="upload-file-name">${escapeHtml(file.name)}</div>
+            <div class="upload-file-size">${sizeStr}</div>
+          </div>
+          <button type="button" class="upload-file-remove" onclick="removeEditFile()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      `;
+      preview.style.display = 'block';
+      document.getElementById('editDropzone').style.display = 'none';
+    }
+
+    function removeEditFile() {
+      selectedEditFile = null;
+      document.getElementById('editFilePreview').style.display = 'none';
+      document.getElementById('editFilePreview').innerHTML = '';
+      document.getElementById('editDropzone').style.display = '';
+      document.getElementById('editFileInput').value = '';
+    }
+
+    async function submitEditDoc(e) {
+      e.preventDefault();
+
+      const docId = document.getElementById('editDocId').value;
+      if (!docId) return;
+
+      const docName = document.getElementById('editDocName').value.trim();
+      if (!docName) {
+        alert('Nama dokumen wajib diisi.');
+        return;
+      }
+
+      const editRadios = document.getElementsByName('editUploadType');
+      let editType = 'file';
+      for (const r of editRadios) {
+        if (r.checked) editType = r.value;
+      }
+
+      const link = document.getElementById('editDocLink').value.trim();
+      if (editType === 'link' && link && !link.startsWith('http://') && !link.startsWith('https://')) {
+        alert('Tautan dokumen harus diawali http:// atau https://');
+        return;
+      }
+
+      const docDesc = document.getElementById('editDocDesc').value.trim();
+
+      const btn = document.getElementById('btnSubmitEdit');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<svg width="12" height="12" style="animation:spin .6s linear infinite" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4m-7.07-2.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.49 8.49l2.83 2.83"/></svg> Memperbarui...';
+      btn.disabled = true;
+
+      const progressDiv = document.getElementById('editProgress');
+      const progressBar = document.getElementById('editProgressBar');
+      const progressText = document.getElementById('editProgressText');
+      progressDiv.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressText.textContent = 'Memperbarui...';
+
+      const formData = new FormData();
+      formData.append('action_plan_id', currentActionPlanId);
+      formData.append('name', docName);
+      if (docDesc) formData.append('description', docDesc);
+
+      if (editType === 'tindak_lanjut') {
+        formData.append('is_tindak_lanjut', 'true');
+        formData.append('upload_type', 'tindak_lanjut');
+      } else if (editType === 'link') {
+        formData.append('upload_type', 'link');
+      } else {
+        formData.append('upload_type', 'file');
+      }
+
+      if (editType === 'file' && selectedEditFile) {
+        formData.append('file', selectedEditFile);
+      } else if (editType === 'link' && link) {
+        formData.append('link', link);
+      }
+
+      try {
+        const result = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', `/diagnosticreview-demo/api/documents/${docId}`);
+          xhr.withCredentials = true;
+
+          xhr.upload.onprogress = (evt) => {
+            if (evt.lengthComputable) {
+              const pct = Math.round((evt.loaded / evt.total) * 100);
+              progressBar.style.width = pct + '%';
+              progressText.textContent = `Memperbarui... ${pct}%`;
+            }
+          };
+
+          xhr.onload = () => {
+            try {
+              const json = JSON.parse(xhr.responseText);
+              if (xhr.status >= 200 && xhr.status < 300 && json.success) {
+                resolve(json.data);
+              } else {
+                reject(new Error(json.message || 'Gagal memperbarui'));
+              }
+            } catch (parseErr) {
+              reject(new Error('Gagal memproses respons server'));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error('Koneksi gagal'));
+          xhr.send(formData);
+        });
+
+        progressBar.style.width = '100%';
+        progressText.textContent = 'Berhasil diperbarui!';
+
+        setTimeout(async () => {
+          closeEditDocModal();
+          await loadActionPlanDetail(currentActionPlanId);
+        }, 600);
+
+      } catch (err) {
+        alert('Gagal memperbarui dokumen: ' + err.message);
+        progressDiv.style.display = 'none';
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
       }
     }
 
@@ -4814,16 +5102,21 @@
         if (radio.checked) uploadType = radio.value;
       }
 
+      const cbTindakLanjut = document.getElementById('cbTindakLanjutSaja');
+      const isTindakLanjut = uploadType === 'tindak_lanjut' || (cbTindakLanjut && cbTindakLanjut.checked);
+
       const link = document.getElementById('uploadDocLink').value.trim();
 
-      if (uploadType === 'file' && !selectedUploadFile) {
-        alert('Pilih file terlebih dahulu.');
-        return;
-      }
+      if (!isTindakLanjut) {
+        if (uploadType === 'file' && !selectedUploadFile) {
+          alert('Pilih file terlebih dahulu.');
+          return;
+        }
 
-      if (uploadType === 'link' && !link) {
-        alert('Tautan wajib diisi.');
-        return;
+        if (uploadType === 'link' && !link) {
+          alert('Tautan wajib diisi.');
+          return;
+        }
       }
 
       const docName = document.getElementById('uploadDocName').value.trim();
@@ -4845,7 +5138,7 @@
       const progressText = document.getElementById('uploadProgressText');
       progressDiv.style.display = 'block';
       progressBar.style.width = '0%';
-      progressText.textContent = 'Mengunggah...';
+      progressText.textContent = isTindakLanjut ? 'Menyimpan...' : 'Mengunggah...';
 
       const formData = new FormData();
       formData.append('action_plan_id', currentActionPlanId);
@@ -4866,7 +5159,10 @@
       formData.append('name', docName);
       if (docDesc) formData.append('description', docDesc);
 
-      if (uploadType === 'file') {
+      if (isTindakLanjut) {
+        formData.append('is_tindak_lanjut', 'true');
+        formData.append('upload_type', 'tindak_lanjut');
+      } else if (uploadType === 'file') {
         formData.append('file', selectedUploadFile);
       } else {
         formData.append('link', link);
@@ -4929,6 +5225,27 @@
         window.open(doc.file_path, '_blank');
         return;
       }
+
+      if (doc.file_type === 'tindak_lanjut' || !doc.file_path) {
+        const fileName = doc.original_file_name || doc.document_name || 'Dokumen';
+        document.getElementById('previewDocName').textContent = fileName;
+        document.getElementById('previewDocType').textContent = 'TINDAK LANJUT';
+        const btnDownload = document.getElementById('btnDownloadPreview');
+        if (btnDownload) btnDownload.style.display = 'none';
+        const frame = document.getElementById('previewDocFrame');
+        frame.innerHTML = `
+          <div class="doc-preview-nopreview">
+            <div class="doc-preview-nopreview-icon default" style="background:#F0F9FF; color:#0369A1; border:1px solid #BAE6FD; font-weight:700;">TL</div>
+            <div class="doc-preview-nopreview-text">Dokumen Tindak Lanjut Saja</div>
+            <div class="doc-preview-nopreview-hint">File belum diunggah untuk dokumen ini. Anda dapat mengunggah file atau tautan dokumen kapan saja melalui tombol Edit.</div>
+          </div>
+        `;
+        document.getElementById('modalPreviewDoc').classList.add('active');
+        return;
+      }
+
+      const btnDownload = document.getElementById('btnDownloadPreview');
+      if (btnDownload) btnDownload.style.display = '';
 
       let ext = getFileExtension(doc.original_file_name || doc.document_name);
       if (!ext && doc.file_type) {
@@ -5241,6 +5558,11 @@
       const doc = currentData.dokumen.find(d => d.document_id === docId);
       if (doc && doc.file_type === 'link') {
         window.open(doc.file_path, '_blank');
+        return;
+      }
+
+      if (doc && (doc.file_type === 'tindak_lanjut' || !doc.file_path)) {
+        alert('Dokumen ini berstatus "Tindak Lanjut Saja" dan belum memiliki file.');
         return;
       }
 

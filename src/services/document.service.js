@@ -33,7 +33,7 @@ async function logHistory(client, actionPlanId, userId, description) {
  *  - description  (optional)
  */
 async function uploadDocument(user, file, body) {
-  const { action_plan_id, sub_action_plan_id, name, description, link } = body;
+  const { action_plan_id, sub_action_plan_id, name, description, link, is_tindak_lanjut, upload_type } = body;
 
   if (!action_plan_id) {
     const error = new Error("action_plan_id wajib diisi");
@@ -41,8 +41,10 @@ async function uploadDocument(user, file, body) {
     throw error;
   }
 
-  if (!file && !link) {
-    const error = new Error("File atau Tautan wajib diisi");
+  const isTindakLanjut = is_tindak_lanjut === 'true' || is_tindak_lanjut === true || upload_type === 'tindak_lanjut';
+
+  if (!file && !link && !isTindakLanjut) {
+    const error = new Error("File, Tautan, atau Tindak Lanjut Saja wajib diisi");
     error.statusCode = 400;
     throw error;
   }
@@ -66,7 +68,7 @@ async function uploadDocument(user, file, body) {
 
     if (apCheck.rowCount === 0) {
       // Clean up uploaded file
-      if (fs.existsSync(file.path)) {
+      if (file && fs.existsSync(file.path)) {
         fs.unlinkSync(file.path);
       }
       const error = new Error("Rencana aksi tidak ditemukan");
@@ -91,6 +93,11 @@ async function uploadDocument(user, file, body) {
     } else if (link) {
       fileType = "link";
       relativePath = link;
+      originalName = name.trim();
+      fileSize = 0;
+    } else if (isTindakLanjut) {
+      fileType = "tindak_lanjut";
+      relativePath = "";
       originalName = name.trim();
       fileSize = 0;
     }
@@ -229,7 +236,7 @@ async function uploadDocument(user, file, body) {
  * Updates document metadata (name, description) and optionally replaces the file.
  */
 async function updateDocument(user, documentId, file, body) {
-  const { name, description, link } = body;
+  const { name, description, link, is_tindak_lanjut, upload_type } = body;
 
   if (!name || !name.trim()) {
     const error = new Error("Nama dokumen wajib diisi");
@@ -271,8 +278,20 @@ async function updateDocument(user, documentId, file, body) {
     if (doc.name !== name.trim()) changes.push(`nama menjadi "${name.trim()}"`);
 
     // Handle optional file replacement
-    if (file || link) {
-      if (file) {
+    if (file || link || is_tindak_lanjut === 'true' || upload_type === 'tindak_lanjut') {
+      if (is_tindak_lanjut === 'true' || upload_type === 'tindak_lanjut') {
+        sets.push(`original_file_name = $${paramIndex++}`);
+        values.push(name.trim());
+
+        sets.push(`file_type = $${paramIndex++}`);
+        values.push("tindak_lanjut");
+
+        sets.push(`file_size = $${paramIndex++}`);
+        values.push(0);
+
+        sets.push(`file_path = $${paramIndex++}`);
+        values.push("");
+      } else if (file) {
         const ext = path.extname(file.originalname).toLowerCase();
         const fileType = ext.replace(".", "") || "unknown";
         const relativeDir = path.basename(file.destination);
@@ -321,10 +340,10 @@ async function updateDocument(user, documentId, file, body) {
       changes.push(`file/tautan diperbarui`);
 
       // Delete old file from disk
-      if (doc.file_type !== 'link' && doc.file_path) {
+      if (doc.file_type !== 'link' && doc.file_type !== 'tindak_lanjut' && doc.file_path && doc.file_path.trim() !== '') {
         try {
           const oldAbsolutePath = path.join(__dirname, "../../", doc.file_path);
-          if (fs.existsSync(oldAbsolutePath)) {
+          if (fs.existsSync(oldAbsolutePath) && fs.statSync(oldAbsolutePath).isFile()) {
             fs.unlinkSync(oldAbsolutePath);
           }
         } catch (fsErr) {
@@ -708,24 +727,36 @@ async function rejectDocument(user, documentId, reason) {
       );
     }
 
-    let shouldAutoRejectSRA = false;
-    let autoRejectSraId = null;
-
     if (doc.sub_action_plan_id) {
-      shouldAutoRejectSRA = true;
-      autoRejectSraId = doc.sub_action_plan_id;
+      await client.query(
+        `UPDATE sub_action_plans 
+         SET status = 'ditolak', updated_at = CURRENT_TIMESTAMP 
+         WHERE id = $1`,
+        [doc.sub_action_plan_id]
+      );
+
+      await client.query(
+        `UPDATE sub_action_plan_approvals 
+         SET status = 'tolak', notes = $1, rejected_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP 
+         WHERE sub_action_plan_id = $2 AND status = 'menunggu'`,
+        [reason || 'Ditolak otomatis dari dokumen', doc.sub_action_plan_id]
+      );
+    }
+
+    let targetActionPlanId = doc.action_plan_id;
+    if (!targetActionPlanId && doc.sub_action_plan_id) {
+      const sapRes = await client.query("SELECT action_plan_id FROM sub_action_plans WHERE id = $1", [doc.sub_action_plan_id]);
+      if (sapRes.rowCount > 0) {
+        targetActionPlanId = sapRes.rows[0].action_plan_id;
+      }
+    }
+
+    if (targetActionPlanId) {
+      const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
+      await syncProgressHierarchy(client, targetActionPlanId);
     }
 
     await client.query("COMMIT");
-
-    if (shouldAutoRejectSRA) {
-      try {
-        const sapService = require("./subactionplan.service");
-        await sapService.rejectSubActionPlan(user, autoRejectSraId, { notes: reason || 'Ditolak otomatis dari dokumen' });
-      } catch (err) {
-        console.log("Auto-reject SRA skipped or failed:", err.message);
-      }
-    }
 
     return { document_id: Number(documentId), status: "ditolak" };
   } catch (error) {
@@ -806,23 +837,25 @@ async function deleteDocument(user, documentId) {
     await client.query("COMMIT");
 
     // Clean up file from disk (after commit)
-    try {
-      const absolutePath = path.join(
-        __dirname,
-        "../../",
-        doc.file_path,
-      );
-      if (fs.existsSync(absolutePath)) {
-        fs.unlinkSync(absolutePath);
+    if (doc.file_type !== 'link' && doc.file_type !== 'tindak_lanjut' && doc.file_path && doc.file_path.trim() !== '') {
+      try {
+        const absolutePath = path.join(
+          __dirname,
+          "../../",
+          doc.file_path,
+        );
+        if (fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()) {
+          fs.unlinkSync(absolutePath);
 
-        // Remove the folder if it's empty
-        const dirPath = path.dirname(absolutePath);
-        if (fs.existsSync(dirPath) && fs.readdirSync(dirPath).length === 0) {
-          fs.rmdirSync(dirPath);
+          // Remove the folder if it's empty
+          const dirPath = path.dirname(absolutePath);
+          if (fs.existsSync(dirPath) && fs.readdirSync(dirPath).length === 0) {
+            fs.rmdirSync(dirPath);
+          }
         }
+      } catch (fsErr) {
+        console.error("Failed to delete file from disk:", fsErr.message);
       }
-    } catch (fsErr) {
-      console.error("Failed to delete file from disk:", fsErr.message);
     }
 
     return {
@@ -859,6 +892,12 @@ async function getDocumentForDownload(documentId) {
   }
 
   const doc = result.rows[0];
+
+  if (doc.file_type === 'tindak_lanjut' || !doc.file_path) {
+    const error = new Error("Dokumen ini berstatus 'Tindak Lanjut Saja' dan belum memiliki file.");
+    error.statusCode = 400;
+    throw error;
+  }
 
   const absolutePath = path.join(__dirname, "../../", doc.file_path);
 
