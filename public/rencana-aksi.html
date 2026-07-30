@@ -4960,7 +4960,7 @@
       });
     }
 
-    function updateDocVerifikatorVisibility() {
+    async function updateDocVerifikatorVisibility() {
       const cbSesuai = document.getElementById('cbSesuaiRenaksi');
       const verifGroup = document.getElementById('docVerifikatorGroup');
       const container = document.getElementById('docApproversContainer');
@@ -4975,8 +4975,29 @@
         if (verifGroup) verifGroup.style.display = 'block';
         if (notice) notice.style.display = 'block';
         if (container && container.children.length === 0) {
-          addDocApproverRow();
-          addDocApproverRow();
+          let defaultApprovers = [];
+          if (currentData && currentData.cards && currentData.cards.pic_utama) {
+            const picUserId = currentData.cards.pic_utama.user_id;
+            try {
+              const rawRes = await fetch(`/diagnosticreview-demo/api/sub-action-plans/pic/${picUserId}/verifiers`, {
+                credentials: 'same-origin'
+              });
+              const rawJson = await rawRes.json();
+              console.log('[DEBUG-VERIF] raw response:', rawJson);
+              if (rawJson.success && rawJson.data && Array.isArray(rawJson.data) && rawJson.data.length > 0) {
+                defaultApprovers = rawJson.data.map(id => String(id));
+              }
+            } catch(e) {
+              console.error("[DEBUG-VERIF] FETCH ERROR:", e);
+            }
+          }
+
+          if (defaultApprovers.length > 0) {
+            defaultApprovers.forEach(userId => addDocApproverRow(userId));
+          } else {
+            addDocApproverRow();
+            addDocApproverRow();
+          }
         }
       } else {
         if (sraDropdown) sraDropdown.disabled = false;
@@ -4986,12 +5007,12 @@
       }
     }
 
-    function onUploadSRAChanged(sraId) {
-      updateDocVerifikatorVisibility();
+    async function onUploadSRAChanged(sraId) {
+      await updateDocVerifikatorVisibility();
     }
 
-    function toggleSesuaiRenaksi(checked) {
-      updateDocVerifikatorVisibility();
+    async function toggleSesuaiRenaksi(checked) {
+      await updateDocVerifikatorVisibility();
     }
 
     function closeUploadDocModal() {

@@ -218,4 +218,34 @@ router.post("/:id/restore", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/sub-action-plans/pic/:userId/verifiers
+ * Get default verifiers for a PIC (based on most recent sub action plan).
+ */
+router.get("/pic/:userId/verifiers", authMiddleware, async (req, res) => {
+  try {
+    const userId = Number(req.params.userId);
+    if (!userId || isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Parameter userId harus berupa angka",
+      });
+    }
+
+    const verifiers = await sapService.getPicDefaultVerifiers(req.user, userId);
+
+    res.json({
+      success: true,
+      message: "Berhasil mendapatkan verifikator default PIC",
+      data: verifiers,
+    });
+  } catch (error) {
+    console.error("Get PIC verifiers error:", error);
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Gagal mendapatkan verifikator default PIC",
+    });
+  }
+});
+
 module.exports = router;

@@ -785,6 +785,59 @@ async function restoreSubActionPlan(user, subActionPlanId) {
   }
 }
 
+function isHqUser(user) {
+  return user.company_type === "bpbumd" || user.company_type === "lainnya";
+}
+
+function getCompanyScope(user) {
+  if (isHqUser(user)) {
+    return null;
+  }
+  return user.company_id;
+}
+
+/**
+ * Get the default verifiers for a specific PIC by finding their most recent sub action plan that has verifiers.
+ */
+async function getPicDefaultVerifiers(user, picUserId) {
+  const companyScopeId = getCompanyScope(user);
+  const client = await pool.connect();
+  
+  try {
+    let query = `
+      SELECT sapa.approver_user_id, sapa.approval_order
+      FROM sub_action_plan_approvals sapa
+      WHERE sapa.sub_action_plan_id = (
+        SELECT sap.id
+        FROM sub_action_plans sap
+        JOIN action_plans ap ON sap.action_plan_id = ap.id
+        JOIN activity_groups ag ON ap.activity_group_id = ag.id
+        JOIN strategies s ON ag.strategy_id = s.id
+        JOIN aspects a ON s.aspect_id = a.id
+        WHERE sap.pic_user_id = $1
+          AND EXISTS (SELECT 1 FROM sub_action_plan_approvals sa2 WHERE sa2.sub_action_plan_id = sap.id)
+    `;
+    const params = [picUserId];
+
+    if (companyScopeId) {
+      query += ` AND a.company_id = $2 `;
+      params.push(companyScopeId);
+    }
+
+    query += `
+        ORDER BY sap.created_at DESC
+        LIMIT 1
+      )
+      ORDER BY sapa.approval_order ASC
+    `;
+
+    const res = await client.query(query, params);
+    return res.rows.map(row => row.approver_user_id);
+  } finally {
+    client.release();
+  }
+}
+
 module.exports = {
   createSubActionPlan,
   updateSubActionPlan,
@@ -792,4 +845,5 @@ module.exports = {
   approveSubActionPlan,
   rejectSubActionPlan,
   restoreSubActionPlan,
+  getPicDefaultVerifiers,
 };
