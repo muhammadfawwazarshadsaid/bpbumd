@@ -1643,8 +1643,8 @@
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <input class="search-input" id="searchInput" type="text" placeholder="Cari nama BUMD..."
-              autocomplete="off" />
+            <input class="search-input" id="searchInput" type="search" name="search_filter" placeholder="Cari nama BUMD..."
+              autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" />
           </div>
           <select class="filter-select" id="filterSector">
             <option value="">Semua Sektor</option>
