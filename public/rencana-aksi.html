@@ -2926,12 +2926,33 @@
             <input type="text" class="form-input" id="uploadDocName" required placeholder="Masukkan nama dokumen" />
           </div>
           <div class="form-group">
-            <label class="form-label">Sub Rencana Aksi <span class="required">*</span></label>
-            <select class="form-select" id="uploadDocSRAId" required>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label class="form-label" style="margin-bottom:0;">Sub Rencana Aksi</label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:var(--primary); font-weight:600;">
+                <input type="checkbox" id="cbSesuaiRenaksi" onchange="toggleSesuaiRenaksi(this.checked)" style="cursor:pointer;" />
+                Sesuai Rencana Aksi (Tanpa SRA)
+              </label>
+            </div>
+            <select class="form-select" id="uploadDocSRAId" onchange="onUploadSRAChanged(this.value)">
               <option value="">Pilih Sub Rencana Aksi terkait</option>
             </select>
-            <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih jika dokumen ini ditujukan
-              sebagai bukti untuk Sub Rencana Aksi tertentu.</div>
+            <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih Sub Rencana Aksi atau centang 'Sesuai Rencana Aksi' jika dokumen ini ditujukan untuk Rencana Aksi ini secara langsung.</div>
+            <div id="noSraInfoNotice" style="display:none; margin-top:8px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:11px; color:#0369A1; line-height:1.4;">
+              💡 <strong>Informasi:</strong> Berapapun dokumen yang diunggah untuk Rencana Aksi ini (tanpa Sub Rencana Aksi) akan dihitung sebagai 1 kesatuan unit Rencana Aksi.
+            </div>
+          </div>
+          <div class="form-group" id="docVerifikatorGroup">
+            <label class="form-label">Verifikator Dokumen</label>
+            <div id="docApproversContainer">
+              <!-- Dynamic approver rows injected by JS -->
+            </div>
+            <button type="button" class="btn-add" style="margin-top:8px; width:100%; justify-content:center;" onclick="addDocApproverRow()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Tambah Verifikator
+            </button>
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label">Deskripsi (Opsional)</label>
@@ -3335,16 +3356,16 @@
       const calcPct = (cnt) => total > 0 ? Math.round((cnt / total) * 100) : 0;
 
       const legSelesai = document.getElementById('legSelesai');
-      if (legSelesai) legSelesai.textContent = `${breakdown.selesai || 0} (${calcPct(breakdown.selesai || 0)}%)`;
+      if (legSelesai) legSelesai.textContent = `${breakdown.selesai || 0} (${breakdown.selesai_percentage !== undefined ? breakdown.selesai_percentage : calcPct(breakdown.selesai || 0)}%)`;
 
       const legVerifikasi = document.getElementById('legVerifikasi');
-      if (legVerifikasi) legVerifikasi.textContent = `${breakdown.verifikasi || 0} (${calcPct(breakdown.verifikasi || 0)}%)`;
+      if (legVerifikasi) legVerifikasi.textContent = `${breakdown.verifikasi || 0} (${breakdown.verifikasi_percentage !== undefined ? breakdown.verifikasi_percentage : calcPct(breakdown.verifikasi || 0)}%)`;
 
       const legPengajuan = document.getElementById('legPengajuan');
-      if (legPengajuan) legPengajuan.textContent = `${breakdown.pengajuan || 0} (${calcPct(breakdown.pengajuan || 0)}%)`;
+      if (legPengajuan) legPengajuan.textContent = `${breakdown.pengajuan || 0} (${breakdown.pengajuan_percentage !== undefined ? breakdown.pengajuan_percentage : calcPct(breakdown.pengajuan || 0)}%)`;
 
       const legBelum = document.getElementById('legBelum');
-      if (legBelum) legBelum.textContent = `${breakdown.belum_mulai || 0} (${calcPct(breakdown.belum_mulai || 0)}%)`;
+      if (legBelum) legBelum.textContent = `${breakdown.belum_mulai || 0} (${breakdown.belum_mulai_percentage !== undefined ? breakdown.belum_mulai_percentage : calcPct(breakdown.belum_mulai || 0)}%)`;
 
       // ── PIC Card ──
       const pic = cards.pic_utama;
@@ -3841,9 +3862,9 @@
                 </svg>
               </button>` : '';
 
-        const canDelete = (currentUser && ((doc.uploaded_by && String(currentUser.id) === String(doc.uploaded_by.user_id)) || currentUser.role === 'superadmin'));
+        const canDelete = (currentUser && ((doc.uploaded_by && String(currentUser.id) === String(doc.uploaded_by.user_id)) || currentUser.role === 'superadmin' || currentUser.role === 'admin'));
 
-        const sraNameHtml = doc.sub_action_plan_name ? escapeHtml(doc.sub_action_plan_name) : '<span style="color:var(--slate-400)">–</span>';
+        const sraNameHtml = doc.sub_action_plan_name ? escapeHtml(doc.sub_action_plan_name) : '<span class="badge" style="background:var(--slate-100); color:var(--slate-600); font-size:11px; padding:2px 8px; border-radius:4px; font-weight:600;">Sesuai Rencana Aksi</span>';
 
         const trClass = (activeSRAFilterId !== null && Number(doc.sub_action_plan_id) === activeSRAFilterId) ? 'class="active-filter-row"' : '';
 
@@ -4230,8 +4251,9 @@
       select.style.flex = '1';
       select.innerHTML = '<option value="">Pilih Verifikator ' + idx + '</option>';
 
-      // Populate with users
+      // Populate with users (exclude current logged in user from verifier list)
       allUsers.forEach(u => {
+        if (currentUser && String(u.id) === String(currentUser.id)) return;
         const cName = u.company_name || 'BPBUMD';
         const pos = u.position || 'Tidak ada posisi';
         select.innerHTML += `<option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(cName)} - ${escapeHtml(pos)})</option>`;
@@ -4571,8 +4593,12 @@
 
       // Populate SRA dropdown
       const sraDropdown = document.getElementById('uploadDocSRAId');
+      const cbSesuai = document.getElementById('cbSesuaiRenaksi');
       sraDropdown.innerHTML = '<option value="">Pilih Sub Rencana Aksi terkait</option>';
-      if (currentData && currentData.sub_rencana_aksi) {
+      
+      let hasSRA = false;
+      if (currentData && currentData.sub_rencana_aksi && currentData.sub_rencana_aksi.length > 0) {
+        hasSRA = true;
         currentData.sub_rencana_aksi.forEach(sra => {
           const option = document.createElement('option');
           option.value = sra.sub_action_plan_id;
@@ -4581,8 +4607,103 @@
         });
       }
 
+      if (cbSesuai) {
+        cbSesuai.disabled = false;
+        cbSesuai.checked = false;
+      }
+
+      // Update verifikator group visibility
+      updateDocVerifikatorVisibility();
+
       // Setup drag-and-drop
       setupDropzone();
+    }
+
+    function addDocApproverRow(preselectedUserId = '') {
+      const container = document.getElementById('docApproversContainer');
+      if (!container) return;
+      const idx = container.children.length + 1;
+      const rowDiv = document.createElement('div');
+      rowDiv.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:8px;';
+
+      const label = document.createElement('span');
+      label.style.cssText = 'min-width:20px; font-size:12px; font-weight:700; color:var(--slate-500);';
+      label.textContent = idx + '.';
+      label.className = 'approver-label';
+
+      const select = document.createElement('select');
+      select.className = 'form-select doc-approver-select';
+      select.style.flex = '1';
+      select.innerHTML = '<option value="">Pilih Verifikator ' + idx + '</option>';
+
+      allUsers.forEach(u => {
+        if (currentUser && String(u.id) === String(currentUser.id)) return;
+        const cName = u.company_name || 'BPBUMD';
+        const pos = u.position || 'Tidak ada posisi';
+        select.innerHTML += `<option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(cName)} - ${escapeHtml(pos)})</option>`;
+      });
+
+      if (preselectedUserId) select.value = preselectedUserId;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.style.cssText = 'background:none; border:1px solid var(--slate-300); border-radius:6px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--rose); flex-shrink:0;';
+      removeBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      removeBtn.onclick = function () {
+        rowDiv.remove();
+        renumberDocApproverRows();
+      };
+
+      rowDiv.appendChild(label);
+      rowDiv.appendChild(select);
+      rowDiv.appendChild(removeBtn);
+      container.appendChild(rowDiv);
+    }
+
+    function renumberDocApproverRows() {
+      const container = document.getElementById('docApproversContainer');
+      if (!container) return;
+      Array.from(container.children).forEach((row, i) => {
+        const idx = i + 1;
+        const label = row.querySelector('.approver-label');
+        if (label) label.textContent = idx + '.';
+        const select = row.querySelector('select');
+        if (select && select.options[0]) select.options[0].textContent = 'Pilih Verifikator ' + idx;
+      });
+    }
+
+    function updateDocVerifikatorVisibility() {
+      const cbSesuai = document.getElementById('cbSesuaiRenaksi');
+      const verifGroup = document.getElementById('docVerifikatorGroup');
+      const container = document.getElementById('docApproversContainer');
+      const sraDropdown = document.getElementById('uploadDocSRAId');
+      const notice = document.getElementById('noSraInfoNotice');
+
+      if (cbSesuai && cbSesuai.checked) {
+        if (sraDropdown) {
+          sraDropdown.value = '';
+          sraDropdown.disabled = true;
+        }
+        if (verifGroup) verifGroup.style.display = 'block';
+        if (notice) notice.style.display = 'block';
+        if (container && container.children.length === 0) {
+          addDocApproverRow();
+          addDocApproverRow();
+        }
+      } else {
+        if (sraDropdown) sraDropdown.disabled = false;
+        if (verifGroup) verifGroup.style.display = 'none';
+        if (notice) notice.style.display = 'none';
+        if (container) container.innerHTML = '';
+      }
+    }
+
+    function onUploadSRAChanged(sraId) {
+      updateDocVerifikatorVisibility();
+    }
+
+    function toggleSesuaiRenaksi(checked) {
+      updateDocVerifikatorVisibility();
     }
 
     function closeUploadDocModal() {
@@ -4733,6 +4854,14 @@
       if (sraId) {
         formData.append('sub_action_plan_id', sraId);
       }
+
+      // Append document approvers
+      const docApproverSelects = document.querySelectorAll('#docApproversContainer .doc-approver-select');
+      docApproverSelects.forEach(sel => {
+        if (sel.value) {
+          formData.append('approvers[]', sel.value);
+        }
+      });
 
       formData.append('name', docName);
       if (docDesc) formData.append('description', docDesc);

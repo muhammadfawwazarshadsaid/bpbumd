@@ -253,8 +253,51 @@ async function getProgressBreakdown(client, actionPlanId) {
     [actionPlanId],
   );
 
-  const row = result.rows[0] || {};
-  const total = toNumber(row.total);
+  let row = result.rows[0] || {};
+  let total = toNumber(row.total);
+
+  if (total === 0) {
+    const docRes = await client.query(
+      `
+        SELECT
+          COUNT(*)::INT AS total,
+          COUNT(*) FILTER (WHERE status = 'diunggah')::INT AS pengajuan,
+          COUNT(*) FILTER (WHERE status = 'verifikasi')::INT AS verifikasi,
+          COUNT(*) FILTER (WHERE status = 'terverifikasi')::INT AS selesai,
+          COUNT(*) FILTER (WHERE status = 'ditolak')::INT AS ditolak
+        FROM documents
+        WHERE action_plan_id = $1 AND sub_action_plan_id IS NULL
+      `,
+      [actionPlanId],
+    );
+
+    const dRow = docRes.rows[0] || {};
+    const dTotal = toNumber(dRow.total);
+
+    if (dTotal > 0) {
+      const dSelesai = toNumber(dRow.selesai);
+      const dPengajuan = toNumber(dRow.pengajuan);
+      const dVerifikasi = toNumber(dRow.verifikasi);
+      const dDitolak = toNumber(dRow.ditolak);
+      const dPct = (val) => Math.round((val / dTotal) * 100);
+
+      return {
+        total: dTotal,
+        pengajuan: dPengajuan,
+        verifikasi: dVerifikasi,
+        selesai: dSelesai,
+        terlambat: 0,
+        ditolak: dDitolak,
+        belum_mulai: 0,
+        pengajuan_percentage: dPct(dPengajuan),
+        verifikasi_percentage: dPct(dVerifikasi),
+        selesai_percentage: dPct(dSelesai),
+        terlambat_percentage: 0,
+        ditolak_percentage: dPct(dDitolak),
+        belum_mulai_percentage: 0,
+      };
+    }
+  }
 
   const pct = (val) => (total > 0 ? Math.round((val / total) * 100) : 0);
 

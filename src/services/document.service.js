@@ -159,6 +159,31 @@ async function uploadDocument(user, file, body) {
           );
         }
       }
+    } else {
+      let approverList = [];
+      if (Array.isArray(body.approvers)) {
+        approverList = body.approvers.map(Number);
+      } else if (Array.isArray(body['approvers[]'])) {
+        approverList = body['approvers[]'].map(Number);
+      } else if (body['approvers[]']) {
+        approverList = [Number(body['approvers[]'])];
+      } else if (body.approvers) {
+        approverList = [Number(body.approvers)];
+      } else if (body.approver_user_id_1 && body.approver_user_id_2) {
+        approverList = [Number(body.approver_user_id_1), Number(body.approver_user_id_2)];
+      }
+
+      if (approverList.length > 0) {
+        for (let i = 0; i < approverList.length; i++) {
+          if (approverList[i]) {
+            await client.query(
+              `INSERT INTO document_approvals (document_id, approver_user_id, approval_order, status)
+               VALUES ($1, $2, $3, 'menunggu')`,
+              [doc.id, approverList[i], i + 1]
+            );
+          }
+        }
+      }
     }
 
     // Sync hierarchy status and progress
@@ -417,8 +442,13 @@ async function verifyDocument(user, documentId) {
 
     let currentApprovalOrder = null;
 
-    if (doc.sub_action_plan_id) {
-      // 2-step verification logic
+    const checkApprovals = await client.query(
+      `SELECT COUNT(*)::INT AS cnt FROM document_approvals WHERE document_id = $1`,
+      [documentId]
+    );
+
+    if (Number(checkApprovals.rows[0].cnt) > 0) {
+      // 2-step / multi-step verification logic
       const approvalCheck = await client.query(
         `SELECT * FROM document_approvals 
          WHERE document_id = $1 AND approver_user_id = $2 

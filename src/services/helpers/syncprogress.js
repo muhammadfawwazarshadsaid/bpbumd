@@ -35,23 +35,30 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
       AND ($1::BIGINT IS NULL OR sap.action_plan_id = $1)
   `, [actionPlanId || null]);
 
-  // ── 1. Update Rencana Aksi (Action Plan) berdasarkan Sub Rencana Aksi ──
+  // ── 1. Update Rencana Aksi (Action Plan) berdasarkan Sub Rencana Aksi ATAU Dokumen ──
   if (actionPlanId) {
     await client.query(`
       UPDATE action_plans ap
       SET 
         progress_percentage = COALESCE(
           (SELECT ROUND((SUM(CASE WHEN status = 'pengajuan' THEN 30 WHEN status = 'verifikasi' THEN 65 WHEN status = 'selesai' THEN 100 ELSE 0 END))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC, 2)
-           FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL), 0
+           FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL),
+          (SELECT ROUND((SUM(CASE WHEN status = 'terverifikasi' THEN 100 WHEN status = 'verifikasi' THEN 65 WHEN status = 'diunggah' THEN 30 ELSE 0 END))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC, 2)
+           FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL),
+          0
         ),
         start_date = COALESCE(
           (SELECT MIN(created_at) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL), 
+          (SELECT MIN(uploaded_at) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL),
           ap.start_date
         ),
         end_date = CASE 
           WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL) > 0 
                AND (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL AND status != 'selesai') = 0 
           THEN (SELECT MAX(updated_at) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL AND status = 'selesai')
+          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL) = 0
+               AND (SELECT COUNT(*) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL AND status = 'terverifikasi') > 0
+          THEN (SELECT MAX(updated_at) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL AND status = 'terverifikasi')
           ELSE NULL
         END,
         status = CASE
@@ -60,7 +67,10 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
               WHEN ap.target_end_date IS NOT NULL AND (SELECT MAX(updated_at) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL AND status = 'selesai')::DATE > ap.target_end_date THEN 'selesai terlambat'
               ELSE 'selesai'
             END
-          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL AND status != 'belum mulai') = 0 THEN 'belum mulai'
+          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL) = 0
+               AND (SELECT COUNT(*) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL AND status = 'terverifikasi') > 0 THEN 'selesai'
+          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL AND status != 'belum mulai') = 0
+               AND (SELECT COUNT(*) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL) = 0 THEN 'belum mulai'
           WHEN ap.target_end_date < CURRENT_DATE THEN 'terlambat'
           ELSE 'dalam progres'
         END
@@ -111,20 +121,17 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
         (SELECT 
            CASE 
              WHEN SUM(COALESCE(ap.weight, 0)) = 0 THEN 
-               COALESCE(
-                 (SELECT ROUND((SUM(CASE WHEN sap.status = 'pengajuan' THEN 30 WHEN sap.status = 'verifikasi' THEN 65 WHEN sap.status = 'selesai' THEN 100 ELSE 0 END))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC, 2)
-                  FROM sub_action_plans sap JOIN action_plans ap2 ON ap2.id = sap.action_plan_id WHERE ap2.activity_group_id = ag.id AND sap.deleted_at IS NULL AND ap2.deleted_at IS NULL)
-               , 0)
+               COALESCE(ROUND(AVG(ap.progress_percentage), 2), 0)
              ELSE ROUND(SUM((ap.progress_percentage * COALESCE(ap.weight, 0)) / 100.0), 2)
            END
          FROM action_plans ap
          WHERE ap.activity_group_id = ag.id AND ap.deleted_at IS NULL), 0
       ),
       status = CASE
-        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL AND sap.status != 'selesai') = 0 THEN 
+        WHEN (SELECT COUNT(*) FROM action_plans WHERE activity_group_id = ag.id AND deleted_at IS NULL) > 0 AND (SELECT COUNT(*) FROM action_plans WHERE activity_group_id = ag.id AND deleted_at IS NULL AND status != 'selesai') = 0 THEN 
           CASE WHEN (SELECT COUNT(*) FROM action_plans WHERE activity_group_id = ag.id AND deleted_at IS NULL AND status = 'selesai terlambat') > 0 THEN 'selesai terlambat' ELSE 'selesai' END
         WHEN (SELECT COUNT(*) FROM action_plans WHERE activity_group_id = ag.id AND deleted_at IS NULL AND status = 'terlambat') > 0 THEN 'terlambat'
-        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id WHERE ap.activity_group_id = ag.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL AND sap.status != 'belum mulai') = 0 THEN 'belum mulai'
+        WHEN (SELECT COUNT(*) FROM action_plans WHERE activity_group_id = ag.id AND deleted_at IS NULL AND status != 'belum mulai') = 0 THEN 'belum mulai'
         ELSE 'dalam progres'
       END
     WHERE id = $1
@@ -138,20 +145,16 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
         (SELECT 
            CASE 
              WHEN SUM(COALESCE(ag.weight, 0)) = 0 THEN 
-               COALESCE(
-                 (SELECT ROUND((SUM(CASE WHEN sap.status = 'pengajuan' THEN 30 WHEN sap.status = 'verifikasi' THEN 65 WHEN sap.status = 'selesai' THEN 100 ELSE 0 END))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC, 2)
-                  FROM sub_action_plans sap JOIN action_plans ap2 ON ap2.id = sap.action_plan_id JOIN activity_groups ag2 ON ag2.id = ap2.activity_group_id WHERE ag2.strategy_id = s.id AND sap.deleted_at IS NULL AND ap2.deleted_at IS NULL)
-               , 0)
+               COALESCE(ROUND(AVG(ag.progress_percentage), 2), 0)
              ELSE ROUND(SUM((ag.progress_percentage * COALESCE(ag.weight, 0)) / 100.0), 2)
            END
          FROM activity_groups ag
          WHERE ag.strategy_id = s.id), 0
       ),
       status = CASE
-        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL AND sap.status != 'selesai') = 0 THEN 
-          CASE WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND ap.deleted_at IS NULL AND ap.status = 'selesai terlambat') > 0 THEN 'selesai terlambat' ELSE 'selesai' END
-        WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND ap.deleted_at IS NULL AND ap.status = 'terlambat') > 0 THEN 'terlambat'
-        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id WHERE ag.strategy_id = s.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL AND sap.status != 'belum mulai') = 0 THEN 'belum mulai'
+        WHEN (SELECT COUNT(*) FROM activity_groups ag WHERE ag.strategy_id = s.id) > 0 AND (SELECT COUNT(*) FROM activity_groups ag WHERE ag.strategy_id = s.id AND ag.status != 'selesai') = 0 THEN 'selesai'
+        WHEN (SELECT COUNT(*) FROM activity_groups ag WHERE ag.strategy_id = s.id AND ag.status = 'terlambat') > 0 THEN 'terlambat'
+        WHEN (SELECT COUNT(*) FROM activity_groups ag WHERE ag.strategy_id = s.id AND ag.status != 'belum mulai') = 0 THEN 'belum mulai'
         ELSE 'dalam progres'
       END
     WHERE id = $1
@@ -165,20 +168,16 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
         (SELECT 
            CASE 
              WHEN SUM(COALESCE(s.weight, 0)) = 0 THEN 
-               COALESCE(
-                 (SELECT ROUND((SUM(CASE WHEN sap.status = 'pengajuan' THEN 30 WHEN sap.status = 'verifikasi' THEN 65 WHEN sap.status = 'selesai' THEN 100 ELSE 0 END))::NUMERIC / NULLIF(COUNT(*), 0)::NUMERIC, 2)
-                  FROM sub_action_plans sap JOIN action_plans ap2 ON ap2.id = sap.action_plan_id JOIN activity_groups ag2 ON ag2.id = ap2.activity_group_id JOIN strategies s2 ON s2.id = ag2.strategy_id WHERE s2.aspect_id = a.id AND sap.deleted_at IS NULL AND ap2.deleted_at IS NULL)
-               , 0)
+               COALESCE(ROUND(AVG(s.progress_percentage), 2), 0)
              ELSE ROUND(SUM((s.progress_percentage * COALESCE(s.weight, 0)) / 100.0), 2)
            END
          FROM strategies s
          WHERE s.aspect_id = a.id), 0
       ),
       status = CASE
-        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL) > 0 AND (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL AND sap.status != 'selesai') = 0 THEN 
-          CASE WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND ap.deleted_at IS NULL AND ap.status = 'selesai terlambat') > 0 THEN 'selesai terlambat' ELSE 'selesai' END
-        WHEN (SELECT COUNT(*) FROM action_plans ap JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND ap.deleted_at IS NULL AND ap.status = 'terlambat') > 0 THEN 'terlambat'
-        WHEN (SELECT COUNT(*) FROM sub_action_plans sap JOIN action_plans ap ON ap.id = sap.action_plan_id JOIN activity_groups ag ON ag.id = ap.activity_group_id JOIN strategies s ON s.id = ag.strategy_id WHERE s.aspect_id = a.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL AND sap.status != 'belum mulai') = 0 THEN 'belum mulai'
+        WHEN (SELECT COUNT(*) FROM strategies s WHERE s.aspect_id = a.id) > 0 AND (SELECT COUNT(*) FROM strategies s WHERE s.aspect_id = a.id AND s.status != 'selesai') = 0 THEN 'selesai'
+        WHEN (SELECT COUNT(*) FROM strategies s WHERE s.aspect_id = a.id AND s.status = 'terlambat') > 0 THEN 'terlambat'
+        WHEN (SELECT COUNT(*) FROM strategies s WHERE s.aspect_id = a.id AND s.status != 'belum mulai') = 0 THEN 'belum mulai'
         ELSE 'dalam progres'
       END
     WHERE id = $1
