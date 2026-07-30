@@ -574,17 +574,26 @@ async function verifyDocument(user, documentId) {
               SET status = 'selesai', updated_at = CURRENT_TIMESTAMP
               WHERE id = $1
             `, [doc.sub_action_plan_id]);
+          } else {
+            await client.query(`
+              UPDATE sub_action_plans 
+              SET status = 'verifikasi', updated_at = CURRENT_TIMESTAMP
+              WHERE id = $1
+            `, [doc.sub_action_plan_id]);
+          }
 
-            const sapResult = await client.query("SELECT action_plan_id FROM sub_action_plans WHERE id = $1", [doc.sub_action_plan_id]);
-            if (sapResult.rowCount > 0) {
-              const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
-              await syncProgressHierarchy(client, sapResult.rows[0].action_plan_id);
-            }
+          const sapResult = await client.query("SELECT action_plan_id FROM sub_action_plans WHERE id = $1", [doc.sub_action_plan_id]);
+          if (sapResult.rowCount > 0) {
+            const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
+            await syncProgressHierarchy(client, sapResult.rows[0].action_plan_id);
           }
         }
       } catch (err) {
         console.log("Auto-approve SRA skipped or failed:", err.message);
       }
+    } else if (doc.action_plan_id) {
+      const { syncProgressHierarchy } = require("./helpers/syncprogress.js");
+      await syncProgressHierarchy(client, doc.action_plan_id);
     }
 
     await client.query("COMMIT");
