@@ -213,7 +213,7 @@ async function getAspectCards(client, aspectId) {
         (
           SELECT COUNT(*)
           FROM action_plan_rows
-          WHERE status = 'dalam progres'
+          WHERE status IN ('dalam progres', 'ditolak')
         )::INT AS dalam_progres_ap,
 
         (

@@ -71,11 +71,8 @@ async function syncProgressHierarchy(client, actionPlanId, fallbackActivityGroup
               ELSE 'selesai'
             END
           WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL) = 0
-               AND (SELECT COUNT(*) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL AND status = 'terverifikasi') > 0 THEN 'selesai'
-          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL AND status = 'ditolak') > 0
-               AND (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL AND status NOT IN ('ditolak', 'belum mulai')) = 0 THEN 'ditolak'
-          WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL) = 0
-               AND (SELECT COUNT(*) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL AND status = 'ditolak') > 0 THEN 'ditolak'
+               AND (SELECT COUNT(*) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL) > 0 
+               AND (SELECT COUNT(*) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL AND status != 'terverifikasi') = 0 THEN 'selesai'
           WHEN (SELECT COUNT(*) FROM sub_action_plans WHERE action_plan_id = ap.id AND deleted_at IS NULL AND status != 'belum mulai') = 0
                AND (SELECT COUNT(*) FROM documents WHERE action_plan_id = ap.id AND sub_action_plan_id IS NULL) = 0 THEN 'belum mulai'
           WHEN ap.target_end_date < CURRENT_DATE THEN 'terlambat'

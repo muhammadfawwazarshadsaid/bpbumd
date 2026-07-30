@@ -766,6 +766,11 @@
       color: #DC2626;
     }
 
+    .status-pill.ditolak {
+      background: #FEE2E2;
+      color: #DC2626;
+    }
+
     .status-pill.belum-mulai {
       background: var(--slate-100);
       color: var(--slate-500);
@@ -791,6 +796,10 @@
     }
 
     .status-pill.terlambat::before {
+      background: #DC2626;
+    }
+
+    .status-pill.ditolak::before {
       background: #DC2626;
     }
 
@@ -2468,6 +2477,7 @@
       if (s === 'selesai terlambat') return 'selesai-terlambat';
       if (s === 'dalam progres' || s === 'dalam progress') return 'dalam-progres';
       if (s === 'terlambat') return 'terlambat';
+      if (s === 'ditolak') return 'ditolak';
       return 'belum-mulai';
     }
 
@@ -2478,6 +2488,7 @@
       if (s === 'selesai terlambat') return 'Selesai (Terlambat)';
       if (s === 'dalam progres' || s === 'dalam progress') return 'Dalam Progres';
       if (s === 'terlambat') return 'Terlambat';
+      if (s === 'ditolak') return 'Ditolak';
       return 'Belum Mulai';
     }
 
