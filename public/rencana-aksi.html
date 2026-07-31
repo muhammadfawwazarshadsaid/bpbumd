@@ -2081,6 +2081,57 @@
       border-color: var(--slate-200);
       cursor: not-allowed;
     }
+    .chip-mapping-pic,
+    .btn-see-mapping-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      background: #F1F5F9;
+      border: 1px solid #CBD5E1;
+      color: #334155;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .chip-mapping-pic:hover,
+    .btn-see-mapping-chip:hover {
+      background: #E2E8F0;
+      color: #0F172A;
+      border-color: #94A3B8;
+    }
+
+    .verif-chip-user {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    .verif-chip-user .verif-avatar {
+      width: 20px;
+      height: 20px;
+      background: #0EA5E9;
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 
@@ -2282,6 +2333,12 @@
           </div>
           <div class="sum-card-value" id="picName" style="font-size: 18px; margin-bottom: 4px;">Rudi Hermawan</div>
           <div class="kpi-sub" id="picRole">Kepala Strategi dan Perencanaan</div>
+          <div style="margin-top:8px;">
+            <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal()">
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              Lihat Mapping PIC
+            </button>
+          </div>
         </div>
         <!-- Target Selesai -->
         <div class="sum-card rose">
@@ -2860,6 +2917,47 @@
             <label class="form-label">Nama Dokumen</label>
             <input type="text" class="form-input" id="editDocName" required placeholder="Masukkan nama dokumen" />
           </div>
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label class="form-label" style="margin-bottom:0;">Sub Rencana Aksi</label>
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; font-weight:600; color:var(--slate-700);">
+                <input type="checkbox" id="cbEditSesuaiRenaksi" onchange="toggleEditSesuaiRenaksi(this.checked)" style="width:16px; height:16px; accent-color:var(--sky);">
+                Sesuai Rencana Aksi (Tanpa SRA)
+              </label>
+            </div>
+            <select class="form-select" id="editDocSRAId" onchange="onEditSRAChanged(this.value)">
+              <option value="">Pilih Sub Rencana Aksi terkait</option>
+            </select>
+            <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih Sub Rencana Aksi atau centang 'Sesuai Rencana Aksi' jika dokumen ini ditujukan untuk Rencana Aksi ini secara langsung.</div>
+            <div id="editNoSraInfoNotice" style="display:none; margin-top:8px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:11px; color:#0369A1; line-height:1.4;">
+              💡 <strong>Informasi:</strong> Berapapun dokumen yang diunggah untuk Rencana Aksi ini (tanpa Sub Rencana Aksi) akan dihitung sebagai 1 kesatuan unit Rencana Aksi.
+            </div>
+          </div>
+          <div class="form-group" id="editDocVerifikatorGroup">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+              <label class="form-label" style="margin-bottom:0;">Verifikator Dokumen</label>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal()" title="Lihat pemetaan PIC & Verifikator">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Lihat Mapping PIC
+                </button>
+                <button type="button" class="btn-sync-verif" onclick="syncEditVerifikatorFromPIC()" title="Sinkronkan ulang verifikator sesuai Mapping PIC" style="background:#F0F9FF; border:1px solid #BAE6FD; color:#0284C7; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; transition:all 0.15s;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Sinkronkan
+                </button>
+              </div>
+            </div>
+            <div id="editDocApproversContainer">
+              <!-- Dynamic approver rows injected by JS -->
+            </div>
+            <button type="button" id="btnAddEditDocApprover" class="btn-add" style="margin-top:8px; width:100%; justify-content:center; display:none;" onclick="addEditDocApproverRow()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Tambah Verifikator
+            </button>
+          </div>
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label">Deskripsi (Opsional)</label>
             <textarea class="textarea-notes" id="editDocDesc" placeholder="Deskripsi singkat dokumen"></textarea>
@@ -2958,11 +3056,23 @@
             </div>
           </div>
           <div class="form-group" id="docVerifikatorGroup">
-            <label class="form-label">Verifikator Dokumen</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+              <label class="form-label" style="margin-bottom:0;">Verifikator Dokumen</label>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal()" title="Lihat pemetaan PIC & Verifikator">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Lihat Mapping PIC
+                </button>
+                <button type="button" class="btn-sync-verif" onclick="syncVerifikatorFromPIC()" title="Sinkronkan ulang verifikator sesuai Mapping PIC" style="background:#F0F9FF; border:1px solid #BAE6FD; color:#0284C7; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; transition:all 0.15s;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Sinkronkan
+                </button>
+              </div>
+            </div>
             <div id="docApproversContainer">
               <!-- Dynamic approver rows injected by JS -->
             </div>
-            <button type="button" class="btn-add" style="margin-top:8px; width:100%; justify-content:center;" onclick="addDocApproverRow()">
+            <button type="button" id="btnAddDocApprover" class="btn-add" style="margin-top:8px; width:100%; justify-content:center; display:none;" onclick="addDocApproverRow()">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -3086,6 +3196,36 @@
           </svg>
           Unduh
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LIHAT MAPPING PIC -->
+  <div class="modal-overlay" id="modalPicMapping">
+    <div class="modal-container" style="max-width: 760px; padding: 24px; border-radius: 16px; background: white;">
+      <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div>
+          <h3 style="font-size:16px; font-weight:700; color:var(--slate-800); margin:0;">Mapping Penanggung Jawab (PIC) & Verifikator</h3>
+          <div style="font-size:12px; color:var(--slate-500); margin-top:2px;">Daftar pemetaan otomatis Verifikator 1 & 2 berdasarkan Penanggung Jawab</div>
+        </div>
+        <button type="button" class="modal-close" onclick="closePICMappingModal()">&times;</button>
+      </div>
+      <div style="max-height: 440px; overflow-y: auto; border: 1px solid var(--slate-200); border-radius: 12px;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">
+          <thead>
+            <tr style="background:#F8FAFC; border-bottom:1px solid #E2E8F0; color:#64748B; font-weight:600;">
+              <th style="padding:12px 16px;">Penanggung Jawab (PIC)</th>
+              <th style="padding:12px 16px;">Verifikator 1</th>
+              <th style="padding:12px 16px;">Verifikator 2</th>
+            </tr>
+          </thead>
+          <tbody id="picMappingTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer" style="margin-top:16px; display:flex; justify-content:flex-end; padding:0;">
+        <button class="btn btn-outline" onclick="closePICMappingModal()">Tutup</button>
       </div>
     </div>
   </div>
@@ -4642,6 +4782,35 @@
       document.getElementById('editDocDesc').value = doc.description || '';
       document.getElementById('editDocLink').value = doc.file_type === 'link' ? (doc.file_path || '') : '';
 
+      // Populate Sub Rencana Aksi dropdown in Edit Modal
+      const sraDropdown = document.getElementById('editDocSRAId');
+      if (sraDropdown) {
+        sraDropdown.innerHTML = '<option value="">Pilih Sub Rencana Aksi terkait</option>';
+        if (currentData.sub_rencana_aksi && currentData.sub_rencana_aksi.length > 0) {
+          currentData.sub_rencana_aksi.forEach(sra => {
+            sraDropdown.innerHTML += `<option value="${sra.sub_action_plan_id}">${escapeHtml(sra.name)}</option>`;
+          });
+        }
+      }
+
+      const cbEditSesuai = document.getElementById('cbEditSesuaiRenaksi');
+      if (doc.sub_action_plan_id) {
+        if (sraDropdown) {
+          sraDropdown.value = doc.sub_action_plan_id;
+          sraDropdown.disabled = false;
+        }
+        if (cbEditSesuai) cbEditSesuai.checked = false;
+      } else {
+        if (sraDropdown) {
+          sraDropdown.value = '';
+          sraDropdown.disabled = true;
+        }
+        if (cbEditSesuai) cbEditSesuai.checked = true;
+      }
+
+      // Populate Approvers in Edit Modal
+      updateEditDocVerifikatorVisibility(doc);
+
       const hint = document.getElementById('editCurrentFileHint');
       if (doc.file_type === 'tindak_lanjut' || !doc.file_path) {
         hint.textContent = 'Status saat ini: Tindak Lanjut Saja (Belum ada file)';
@@ -4675,6 +4844,124 @@
 
       document.getElementById('modalEditDoc').classList.add('active');
       setupEditDropzone();
+    }
+
+    function addEditDocApproverRow(preselectedUserId = '', isLocked = true) {
+      const container = document.getElementById('editDocApproversContainer');
+      if (!container) return;
+      const idx = container.children.length + 1;
+      const rowDiv = document.createElement('div');
+      rowDiv.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:8px;';
+
+      const label = document.createElement('span');
+      label.style.cssText = 'min-width:20px; font-size:12px; font-weight:700; color:var(--slate-500);';
+      label.textContent = idx + '.';
+      label.className = 'approver-label';
+
+      const select = document.createElement('select');
+      select.className = 'form-select doc-approver-select';
+      select.style.flex = '1';
+      select.innerHTML = '<option value="">Pilih Verifikator ' + idx + '</option>';
+
+      allUsers.forEach(u => {
+        if (currentUser && String(u.id) === String(currentUser.id)) return;
+        const cName = u.company_name || 'BPBUMD';
+        const pos = u.position || 'Tidak ada posisi';
+        select.innerHTML += `<option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(cName)} - ${escapeHtml(pos)})</option>`;
+      });
+
+      if (preselectedUserId) select.value = preselectedUserId;
+
+      if (isLocked) {
+        select.disabled = true;
+        select.style.background = '#F8FAFC';
+        select.style.cursor = 'not-allowed';
+        select.style.opacity = '0.95';
+        select.style.borderColor = '#CBD5E1';
+      }
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.style.cssText = 'background:none; border:1px solid var(--slate-300); border-radius:6px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--rose); flex-shrink:0;';
+      if (isLocked) {
+        removeBtn.style.display = 'none';
+      }
+      removeBtn.onclick = function () {
+        rowDiv.remove();
+      };
+
+      rowDiv.appendChild(label);
+      rowDiv.appendChild(select);
+      rowDiv.appendChild(removeBtn);
+      container.appendChild(rowDiv);
+    }
+
+    async function updateEditDocVerifikatorVisibility(doc = null) {
+      const cbEditSesuai = document.getElementById('cbEditSesuaiRenaksi');
+      const verifGroup = document.getElementById('editDocVerifikatorGroup');
+      const container = document.getElementById('editDocApproversContainer');
+      const sraDropdown = document.getElementById('editDocSRAId');
+      const notice = document.getElementById('editNoSraInfoNotice');
+
+      if (cbEditSesuai && cbEditSesuai.checked) {
+        if (sraDropdown) {
+          sraDropdown.value = '';
+          sraDropdown.disabled = true;
+        }
+        if (verifGroup) verifGroup.style.display = 'block';
+        if (notice) notice.style.display = 'block';
+
+        if (container) {
+          container.innerHTML = '';
+          if (doc && doc.approvals && Array.isArray(doc.approvals) && doc.approvals.length > 0) {
+            doc.approvals.forEach(appr => {
+              addEditDocApproverRow(appr.approver_user_id, true);
+            });
+          } else {
+            await syncEditVerifikatorFromPIC();
+          }
+        }
+      } else {
+        if (sraDropdown) sraDropdown.disabled = false;
+        if (verifGroup) verifGroup.style.display = 'none';
+        if (notice) notice.style.display = 'none';
+        if (container) container.innerHTML = '';
+      }
+    }
+
+    async function syncEditVerifikatorFromPIC() {
+      const container = document.getElementById('editDocApproversContainer');
+      if (container) container.innerHTML = '';
+      let defaultApprovers = [];
+      if (currentData && currentData.cards && currentData.cards.pic_utama) {
+        const picUserId = currentData.cards.pic_utama.user_id;
+        try {
+          const rawRes = await fetch(`/diagnosticreview-demo/api/sub-action-plans/pic/${picUserId}/verifiers`, {
+            credentials: 'same-origin'
+          });
+          const rawJson = await rawRes.json();
+          if (rawJson.success && rawJson.data && Array.isArray(rawJson.data) && rawJson.data.length > 0) {
+            defaultApprovers = rawJson.data.map(id => String(id));
+          }
+        } catch(e) {
+          console.error("[SYNC-EDIT-VERIF] ERROR:", e);
+        }
+      }
+
+      if (defaultApprovers.length > 0) {
+        defaultApprovers.forEach(userId => addEditDocApproverRow(userId, true));
+      } else {
+        addEditDocApproverRow('', true);
+        addEditDocApproverRow('', true);
+      }
+    }
+
+    async function toggleEditSesuaiRenaksi(checked) {
+      await updateEditDocVerifikatorVisibility();
+    }
+
+    async function onEditSRAChanged(sraId) {
+      await updateEditDocVerifikatorVisibility();
     }
 
     function closeEditDocModal() {
@@ -4798,6 +5085,23 @@
       formData.append('name', docName);
       if (docDesc) formData.append('description', docDesc);
 
+      const editSraSelect = document.getElementById('editDocSRAId');
+      const cbEditSesuai = document.getElementById('cbEditSesuaiRenaksi');
+
+      if (cbEditSesuai && cbEditSesuai.checked) {
+        formData.append('sub_action_plan_id', '');
+      } else if (editSraSelect && editSraSelect.value) {
+        formData.append('sub_action_plan_id', editSraSelect.value);
+      }
+
+      // Append edit document approvers
+      const editApproverSelects = document.querySelectorAll('#editDocApproversContainer .doc-approver-select');
+      editApproverSelects.forEach(sel => {
+        if (sel.value) {
+          formData.append('approvers[]', sel.value);
+        }
+      });
+
       if (editType === 'tindak_lanjut') {
         formData.append('is_tindak_lanjut', 'true');
         formData.append('upload_type', 'tindak_lanjut');
@@ -4907,7 +5211,7 @@
       setupDropzone();
     }
 
-    function addDocApproverRow(preselectedUserId = '') {
+    function addDocApproverRow(preselectedUserId = '', isLocked = true) {
       const container = document.getElementById('docApproversContainer');
       if (!container) return;
       const idx = container.children.length + 1;
@@ -4933,10 +5237,20 @@
 
       if (preselectedUserId) select.value = preselectedUserId;
 
+      if (isLocked) {
+        select.disabled = true;
+        select.style.background = '#F8FAFC';
+        select.style.cursor = 'not-allowed';
+        select.style.opacity = '0.95';
+        select.style.borderColor = '#CBD5E1';
+      }
+
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.style.cssText = 'background:none; border:1px solid var(--slate-300); border-radius:6px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--rose); flex-shrink:0;';
-      removeBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      if (isLocked) {
+        removeBtn.style.display = 'none';
+      }
       removeBtn.onclick = function () {
         rowDiv.remove();
         renumberDocApproverRows();
@@ -5003,8 +5317,92 @@
         if (sraDropdown) sraDropdown.disabled = false;
         if (verifGroup) verifGroup.style.display = 'none';
         if (notice) notice.style.display = 'none';
-        if (container) container.innerHTML = '';
       }
+    }
+
+    async function syncVerifikatorFromPIC() {
+      const container = document.getElementById('docApproversContainer');
+      if (container) container.innerHTML = '';
+      let defaultApprovers = [];
+      if (currentData && currentData.cards && currentData.cards.pic_utama) {
+        const picUserId = currentData.cards.pic_utama.user_id;
+        try {
+          const rawRes = await fetch(`/diagnosticreview-demo/api/sub-action-plans/pic/${picUserId}/verifiers`, {
+            credentials: 'same-origin'
+          });
+          const rawJson = await rawRes.json();
+          if (rawJson.success && rawJson.data && Array.isArray(rawJson.data) && rawJson.data.length > 0) {
+            defaultApprovers = rawJson.data.map(id => String(id));
+          }
+        } catch(e) {
+          console.error("[SYNC-VERIF] ERROR:", e);
+        }
+      }
+
+      if (defaultApprovers.length > 0) {
+        defaultApprovers.forEach(userId => addDocApproverRow(userId, true));
+      } else {
+        addDocApproverRow('', true);
+        addDocApproverRow('', true);
+      }
+    }
+
+    async function openPICMappingModal() {
+      const modal = document.getElementById('modalPicMapping');
+      const tbody = document.getElementById('picMappingTableBody');
+      if (!modal || !tbody) return;
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:24px; color:#64748B;">Memuat data mapping PIC...</td></tr>';
+      modal.classList.add('active');
+
+      try {
+        const targetCompanyId = currentData?.action_plan?.company_id || (currentUser?.company_id);
+        let fetchUrl = '/diagnosticreview-demo/api/sub-action-plans/pic-verifiers-mapping';
+        if (targetCompanyId) fetchUrl += '?company_id=' + targetCompanyId;
+        const res = await fetch(fetchUrl, { credentials: 'same-origin' });
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          if (json.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:24px; color:#64748B;">Belum ada data mapping PIC.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = json.data.map(item => {
+            const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
+            const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
+
+            const renderChip = (v) => {
+              if (!v) return '<span style="color:#94A3B8; font-style:italic;">-</span>';
+              const init = getInitials(v.name);
+              return `
+                <span class="verif-chip-user">
+                  <span class="verif-avatar">${init}</span>
+                  <span>${escapeHtml(v.name)}</span>
+                </span>
+              `;
+            };
+
+            return `
+              <tr style="border-bottom: 1px solid #F1F5F9;">
+                <td style="padding: 12px 16px;">
+                  <div style="font-weight: 700; color: #1E293B; font-size: 13px;">${escapeHtml(item.pic_name)}</div>
+                  <div style="font-size: 11px; color: #64748B; margin-top: 2px;">${escapeHtml(item.pic_position || item.company_name || '-')}</div>
+                </td>
+                <td style="padding: 12px 16px;">${renderChip(v1)}</td>
+                <td style="padding: 12px 16px;">${renderChip(v2)}</td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:24px; color:#DC2626;">Gagal memuat data mapping.</td></tr>';
+        }
+      } catch (err) {
+        console.error('[PIC-MAPPING] FETCH ERROR:', err);
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:24px; color:#DC2626;">Terjadi kesalahan koneksi.</td></tr>';
+      }
+    }
+
+    function closePICMappingModal() {
+      const modal = document.getElementById('modalPicMapping');
+      if (modal) modal.classList.remove('active');
     }
 
     async function onUploadSRAChanged(sraId) {

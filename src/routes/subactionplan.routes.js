@@ -248,4 +248,72 @@ router.get("/pic/:userId/verifiers", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/sub-action-plans/pic-verifiers-mapping
+ * Get all PIC to verifiers mapping for modal display.
+ */
+router.get("/pic-verifiers-mapping", authMiddleware, async (req, res) => {
+  try {
+    const userCompanyScope = (!req.user || req.user.role === "admin") ? null : (req.user.company_id || null);
+    const companyId = req.query.company_id ? Number(req.query.company_id) : userCompanyScope;
+    const { pool } = require("../config/database");
+    const client = await pool.connect();
+    try {
+      let query = `
+        SELECT 
+          u.id AS pic_user_id,
+          u.name AS pic_name,
+          u.position AS pic_position,
+          u.company_id,
+          c.name AS company_name,
+          (
+            SELECT JSON_AGG(json_build_object(
+              'id', app.id,
+              'name', app.name,
+              'position', app.position,
+              'company_name', ac.name,
+              'approval_order', sapa.approval_order
+            ) ORDER BY sapa.approval_order ASC)
+            FROM sub_action_plan_approvals sapa
+            JOIN users app ON app.id = sapa.approver_user_id
+            LEFT JOIN companies ac ON ac.id = app.company_id
+            WHERE sapa.sub_action_plan_id = (
+              SELECT sap.id
+              FROM sub_action_plans sap
+              WHERE sap.pic_user_id = u.id
+                AND EXISTS (SELECT 1 FROM sub_action_plan_approvals sa2 WHERE sa2.sub_action_plan_id = sap.id)
+              ORDER BY sap.created_at DESC
+              LIMIT 1
+            )
+          ) AS verifiers
+        FROM users u
+        LEFT JOIN companies c ON c.id = u.company_id
+        WHERE u.role != 'admin'
+          AND EXISTS (SELECT 1 FROM sub_action_plans sap WHERE sap.pic_user_id = u.id)
+      `;
+      const params = [];
+      if (companyId && !isNaN(companyId)) {
+        query += ` AND u.company_id = $1 `;
+        params.push(companyId);
+      }
+      query += ` ORDER BY u.name ASC `;
+
+      const dbRes = await client.query(query, params);
+      res.json({
+        success: true,
+        message: "Berhasil mendapatkan mapping PIC & Verifikator",
+        data: dbRes.rows,
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error("Get PIC mapping error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mendapatkan mapping PIC",
+    });
+  }
+});
+
 module.exports = router;
