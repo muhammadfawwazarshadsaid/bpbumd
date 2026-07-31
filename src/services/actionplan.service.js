@@ -881,10 +881,23 @@ async function updateActionPlan(user, actionPlanId, payload) {
       "is_blocked",
     ];
 
-    const sets = [];
-    const values = [];
-    const changes = [];
-    let paramIndex = 1;
+    // Fetch users for label resolution if pic_user_id changes
+    let usersMap = {};
+    if (payload.pic_user_id !== undefined) {
+      const uRes = await client.query(`SELECT id, name FROM users`);
+      uRes.rows.forEach(u => { usersMap[u.id] = u.name; });
+    }
+
+    const formatDateStr = (val) => {
+      if (!val) return "-";
+      try {
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+          return d.toISOString().split("T")[0];
+        }
+      } catch (e) {}
+      return String(val);
+    };
 
     for (const field of FIELDS) {
       if (payload[field] !== undefined) {
@@ -895,8 +908,49 @@ async function updateActionPlan(user, actionPlanId, payload) {
         const oldVal = old[field];
         const newVal = payload[field];
 
-        if (String(oldVal) !== String(newVal)) {
-          changes.push(`${field}: "${oldVal ?? "-"}" → "${newVal}"`);
+        let label = field;
+        let formattedOld = oldVal ?? "-";
+        let formattedNew = newVal ?? "-";
+        let hasChanged = false;
+
+        if (field === "pic_user_id") {
+          label = "Penanggung Jawab (PIC)";
+          formattedOld = usersMap[oldVal] || oldVal || "-";
+          formattedNew = usersMap[newVal] || newVal || "-";
+          hasChanged = String(oldVal || "") !== String(newVal || "");
+        } else if (field === "target_percentage") {
+          label = "Target Capaian";
+          const oldNum = Number(oldVal || 0);
+          const newNum = Number(newVal || 0);
+          formattedOld = `${oldNum}%`;
+          formattedNew = `${newNum}%`;
+          hasChanged = oldNum !== newNum;
+        } else if (field === "target_end_date" || field === "end_date" || field === "start_date") {
+          label = field === "target_end_date" ? "Target Selesai" : (field === "start_date" ? "Tanggal Mulai" : "Tanggal Selesai");
+          formattedOld = formatDateStr(oldVal);
+          formattedNew = formatDateStr(newVal);
+          hasChanged = formattedOld !== formattedNew;
+        } else if (field === "indicator") {
+          label = "Penilaian Rencana Aksi";
+          hasChanged = String(oldVal || "").trim() !== String(newVal || "").trim();
+          if (String(formattedOld).length > 60) formattedOld = String(formattedOld).substring(0, 57).replace(/\s+/g, ' ') + '...';
+          if (String(formattedNew).length > 60) formattedNew = String(formattedNew).substring(0, 57).replace(/\s+/g, ' ') + '...';
+        } else if (field === "output") {
+          label = "Output Rencana Aksi";
+          hasChanged = String(oldVal || "").trim() !== String(newVal || "").trim();
+          if (String(formattedOld).length > 60) formattedOld = String(formattedOld).substring(0, 57).replace(/\s+/g, ' ') + '...';
+          if (String(formattedNew).length > 60) formattedNew = String(formattedNew).substring(0, 57).replace(/\s+/g, ' ') + '...';
+        } else if (field === "is_blocked") {
+          label = "Kendala";
+          formattedOld = oldVal ? "Ya" : "Tidak";
+          formattedNew = newVal ? "Ya" : "Tidak";
+          hasChanged = Boolean(oldVal) !== Boolean(newVal);
+        } else {
+          hasChanged = String(oldVal || "").trim() !== String(newVal || "").trim();
+        }
+
+        if (hasChanged) {
+          changes.push(`${label}: "${formattedOld}" → "${formattedNew}"`);
         }
       }
     }
