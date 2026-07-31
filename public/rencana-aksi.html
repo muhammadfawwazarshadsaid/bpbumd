@@ -2733,17 +2733,31 @@
           </div>
           <div class="form-group">
             <label class="form-label">PIC (Penanggung Jawab)</label>
-            <select class="form-select" id="sraPic">
+            <select class="form-select" id="sraPic" onchange="syncSRAVerifikatorFromSelectedPIC()">
               <option value="">Pilih PIC</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Verifikator</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+              <label class="form-label" style="margin-bottom:0;">Verifikator</label>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal()" title="Lihat pemetaan PIC & Verifikator">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Lihat Mapping PIC
+                </button>
+                <button type="button" class="btn-sync-verif" onclick="syncSRAVerifikatorFromSelectedPIC()" title="Sinkronkan ulang verifikator sesuai Mapping PIC" style="background:#F0F9FF; border:1px solid #BAE6FD; color:#0284C7; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; transition:all 0.15s;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Sinkronkan
+                </button>
+              </div>
+            </div>
+            <div id="sraUnmappedNotice" style="display:none; margin-bottom:10px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
+              💡 <strong>Informasi:</strong> PIC ini belum memiliki mapping verifikator. Silakan tentukan Verifikator 1 & 2 secara manual di bawah ini.
+            </div>
             <div id="sraApproversContainer">
               <!-- Dynamic approver rows injected by JS -->
             </div>
-            <button type="button" class="btn-add" style="margin-top:8px; width:100%; justify-content:center;"
-              onclick="addApproverRow()">
+            <button type="button" id="btnAddSRAApprover" class="btn-add" style="margin-top:8px; width:100%; justify-content:center; display:none;" onclick="addApproverRow()">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -2929,9 +2943,7 @@
               <option value="">Pilih Sub Rencana Aksi terkait</option>
             </select>
             <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih Sub Rencana Aksi atau centang 'Sesuai Rencana Aksi' jika dokumen ini ditujukan untuk Rencana Aksi ini secara langsung.</div>
-            <div id="editNoSraInfoNotice" style="display:none; margin-top:8px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:11px; color:#0369A1; line-height:1.4;">
-              💡 <strong>Informasi:</strong> Berapapun dokumen yang diunggah untuk Rencana Aksi ini (tanpa Sub Rencana Aksi) akan dihitung sebagai 1 kesatuan unit Rencana Aksi.
-            </div>
+
           </div>
           <div class="form-group" id="editDocVerifikatorGroup">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
@@ -2946,6 +2958,9 @@
                   Sinkronkan
                 </button>
               </div>
+            </div>
+            <div id="editDocUnmappedNotice" style="display:none; margin-bottom:10px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
+              💡 <strong>Informasi:</strong> PIC ini belum memiliki mapping verifikator. Silakan tentukan Verifikator 1 & 2 secara manual di bawah ini.
             </div>
             <div id="editDocApproversContainer">
               <!-- Dynamic approver rows injected by JS -->
@@ -3051,9 +3066,7 @@
               <option value="">Pilih Sub Rencana Aksi terkait</option>
             </select>
             <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih Sub Rencana Aksi atau centang 'Sesuai Rencana Aksi' jika dokumen ini ditujukan untuk Rencana Aksi ini secara langsung.</div>
-            <div id="noSraInfoNotice" style="display:none; margin-top:8px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:11px; color:#0369A1; line-height:1.4;">
-              💡 <strong>Informasi:</strong> Berapapun dokumen yang diunggah untuk Rencana Aksi ini (tanpa Sub Rencana Aksi) akan dihitung sebagai 1 kesatuan unit Rencana Aksi.
-            </div>
+
           </div>
           <div class="form-group" id="docVerifikatorGroup">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
@@ -3068,6 +3081,9 @@
                   Sinkronkan
                 </button>
               </div>
+            </div>
+            <div id="docUnmappedNotice" style="display:none; margin-bottom:10px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
+              💡 <strong>Informasi:</strong> PIC ini belum memiliki mapping verifikator. Silakan tentukan Verifikator 1 & 2 secara manual di bawah ini.
             </div>
             <div id="docApproversContainer">
               <!-- Dynamic approver rows injected by JS -->
@@ -4407,9 +4423,10 @@
     let editSRAId = null;
     let approverCounter = 0;
 
-    function addApproverRow(preselectedUserId = '') {
+    function addApproverRow(preselectedUserId = '', isLocked = true) {
       approverCounter++;
       const container = document.getElementById('sraApproversContainer');
+      if (!container) return;
       const idx = container.children.length + 1;
       const rowDiv = document.createElement('div');
       rowDiv.style.cssText = 'display:flex; gap:8px; align-items:center; margin-bottom:8px;';
@@ -4422,7 +4439,6 @@
 
       const select = document.createElement('select');
       select.className = 'form-select';
-      select.required = true;
       select.style.flex = '1';
       select.innerHTML = '<option value="">Pilih Verifikator ' + idx + '</option>';
 
@@ -4436,10 +4452,21 @@
 
       if (preselectedUserId) select.value = preselectedUserId;
 
+      if (isLocked) {
+        select.disabled = true;
+        select.style.background = '#F8FAFC';
+        select.style.cursor = 'not-allowed';
+        select.style.opacity = '0.95';
+        select.style.borderColor = '#CBD5E1';
+      }
+
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.style.cssText = 'background:none; border:1px solid var(--slate-300); border-radius:6px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--rose); flex-shrink:0;';
       removeBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      if (isLocked) {
+        removeBtn.style.display = 'none';
+      }
       removeBtn.onclick = function () {
         rowDiv.remove();
         renumberApproverRows();
@@ -4466,22 +4493,66 @@
       return Array.from(selects).map(s => s.value).filter(v => v);
     }
 
-    function openAddSRAModal() {
+    async function syncSRAVerifikatorFromSelectedPIC() {
+      const picSelect = document.getElementById('sraPic');
+      const selectedPicId = picSelect ? picSelect.value : '';
+      const container = document.getElementById('sraApproversContainer');
+      const notice = document.getElementById('sraUnmappedNotice');
+      const btnAdd = document.getElementById('btnAddSRAApprover');
+      if (container) container.innerHTML = '';
+
+      let defaultApprovers = [];
+      if (selectedPicId) {
+        try {
+          const rawRes = await fetch(`/diagnosticreview-demo/api/sub-action-plans/pic/${selectedPicId}/verifiers`, {
+            credentials: 'same-origin'
+          });
+          const rawJson = await rawRes.json();
+          if (rawJson.success && rawJson.data && Array.isArray(rawJson.data) && rawJson.data.length > 0) {
+            defaultApprovers = rawJson.data.map(id => String(id));
+          }
+        } catch(e) {
+          console.error("[SYNC-SRA-VERIF] ERROR:", e);
+        }
+      }
+
+      if (defaultApprovers.length > 0) {
+        if (notice) notice.style.display = 'none';
+        if (btnAdd) btnAdd.style.display = 'none';
+        defaultApprovers.forEach(userId => addApproverRow(userId, true));
+      } else {
+        if (selectedPicId) {
+          if (notice) notice.style.display = 'block';
+        } else {
+          if (notice) notice.style.display = 'none';
+        }
+        if (btnAdd) btnAdd.style.display = 'inline-flex';
+        addApproverRow('', false);
+        addApproverRow('', false);
+      }
+    }
+
+    async function openAddSRAModal() {
       editSRAId = null;
       document.getElementById('sraModalTitle').textContent = 'Tambah Sub Rencana Aksi';
       populateUserDropdown('sraPic');
 
       document.getElementById('formAddSRA').reset();
-      document.getElementById('sraApproversContainer').innerHTML = '';
-      addApproverRow();
-      addApproverRow();
+
+      // Auto-set PIC to PIC Utama if available
+      const sraPicSelect = document.getElementById('sraPic');
+      if (currentData && currentData.cards && currentData.cards.pic_utama && sraPicSelect) {
+        sraPicSelect.value = String(currentData.cards.pic_utama.user_id);
+      }
+
+      await syncSRAVerifikatorFromSelectedPIC();
 
       document.getElementById('btnDraftSRA').style.display = 'inline-flex';
       document.getElementById('btnSubmitSRA').innerHTML = 'Minta Verifikasi';
       document.getElementById('modalAddSRA').classList.add('active');
     }
 
-    function openEditSRAModal(id, isResubmit = false) {
+    async function openEditSRAModal(id, isResubmit = false) {
       editSRAId = id;
       const sra = currentData.sub_rencana_aksi.find(x => x.sub_action_plan_id === id);
       if (!sra) return;
@@ -4490,16 +4561,16 @@
       populateUserDropdown('sraPic');
 
       document.getElementById('sraName').value = sra.sub_action_plan_name;
-      document.getElementById('sraPic').value = sra.pic ? sra.pic.user_id : '';
+      const selectedPicId = sra.pic ? String(sra.pic.user_id) : '';
+      document.getElementById('sraPic').value = selectedPicId;
 
-      // Populate approvers dynamically
+      // Populate approvers dynamically (locked by mapping)
       document.getElementById('sraApproversContainer').innerHTML = '';
       const sortedApprovals = [...sra.approvals].sort((a, b) => a.approval_order - b.approval_order);
       if (sortedApprovals.length > 0) {
-        sortedApprovals.forEach(a => addApproverRow(a.approver.user_id));
+        sortedApprovals.forEach(a => addApproverRow(a.approver.user_id, true));
       } else {
-        addApproverRow();
-        addApproverRow();
+        await syncSRAVerifikatorFromSelectedPIC();
       }
 
       closeDetailSRAModal();
@@ -4788,7 +4859,12 @@
         sraDropdown.innerHTML = '<option value="">Pilih Sub Rencana Aksi terkait</option>';
         if (currentData.sub_rencana_aksi && currentData.sub_rencana_aksi.length > 0) {
           currentData.sub_rencana_aksi.forEach(sra => {
-            sraDropdown.innerHTML += `<option value="${sra.sub_action_plan_id}">${escapeHtml(sra.name)}</option>`;
+            const sId = sra.sub_action_plan_id || sra.id;
+            const sName = sra.sub_action_plan_name || sra.name || sra.title || '';
+            const option = document.createElement('option');
+            option.value = sId;
+            option.textContent = sName;
+            sraDropdown.appendChild(option);
           });
         }
       }
@@ -4796,7 +4872,7 @@
       const cbEditSesuai = document.getElementById('cbEditSesuaiRenaksi');
       if (doc.sub_action_plan_id) {
         if (sraDropdown) {
-          sraDropdown.value = doc.sub_action_plan_id;
+          sraDropdown.value = String(doc.sub_action_plan_id);
           sraDropdown.disabled = false;
         }
         if (cbEditSesuai) cbEditSesuai.checked = false;
@@ -4901,7 +4977,6 @@
       const verifGroup = document.getElementById('editDocVerifikatorGroup');
       const container = document.getElementById('editDocApproversContainer');
       const sraDropdown = document.getElementById('editDocSRAId');
-      const notice = document.getElementById('editNoSraInfoNotice');
 
       if (cbEditSesuai && cbEditSesuai.checked) {
         if (sraDropdown) {
@@ -4909,7 +4984,6 @@
           sraDropdown.disabled = true;
         }
         if (verifGroup) verifGroup.style.display = 'block';
-        if (notice) notice.style.display = 'block';
 
         if (container) {
           container.innerHTML = '';
@@ -4924,13 +4998,14 @@
       } else {
         if (sraDropdown) sraDropdown.disabled = false;
         if (verifGroup) verifGroup.style.display = 'none';
-        if (notice) notice.style.display = 'none';
         if (container) container.innerHTML = '';
       }
     }
 
     async function syncEditVerifikatorFromPIC() {
       const container = document.getElementById('editDocApproversContainer');
+      const notice = document.getElementById('editDocUnmappedNotice');
+      const btnAdd = document.getElementById('btnAddEditDocApprover');
       if (container) container.innerHTML = '';
       let defaultApprovers = [];
       if (currentData && currentData.cards && currentData.cards.pic_utama) {
@@ -4949,10 +5024,14 @@
       }
 
       if (defaultApprovers.length > 0) {
+        if (notice) notice.style.display = 'none';
+        if (btnAdd) btnAdd.style.display = 'none';
         defaultApprovers.forEach(userId => addEditDocApproverRow(userId, true));
       } else {
-        addEditDocApproverRow('', true);
-        addEditDocApproverRow('', true);
+        if (notice) notice.style.display = 'block';
+        if (btnAdd) btnAdd.style.display = 'inline-flex';
+        addEditDocApproverRow('', false);
+        addEditDocApproverRow('', false);
       }
     }
 
@@ -5279,7 +5358,6 @@
       const verifGroup = document.getElementById('docVerifikatorGroup');
       const container = document.getElementById('docApproversContainer');
       const sraDropdown = document.getElementById('uploadDocSRAId');
-      const notice = document.getElementById('noSraInfoNotice');
 
       if (cbSesuai && cbSesuai.checked) {
         if (sraDropdown) {
@@ -5287,41 +5365,19 @@
           sraDropdown.disabled = true;
         }
         if (verifGroup) verifGroup.style.display = 'block';
-        if (notice) notice.style.display = 'block';
         if (container && container.children.length === 0) {
-          let defaultApprovers = [];
-          if (currentData && currentData.cards && currentData.cards.pic_utama) {
-            const picUserId = currentData.cards.pic_utama.user_id;
-            try {
-              const rawRes = await fetch(`/diagnosticreview-demo/api/sub-action-plans/pic/${picUserId}/verifiers`, {
-                credentials: 'same-origin'
-              });
-              const rawJson = await rawRes.json();
-              console.log('[DEBUG-VERIF] raw response:', rawJson);
-              if (rawJson.success && rawJson.data && Array.isArray(rawJson.data) && rawJson.data.length > 0) {
-                defaultApprovers = rawJson.data.map(id => String(id));
-              }
-            } catch(e) {
-              console.error("[DEBUG-VERIF] FETCH ERROR:", e);
-            }
-          }
-
-          if (defaultApprovers.length > 0) {
-            defaultApprovers.forEach(userId => addDocApproverRow(userId));
-          } else {
-            addDocApproverRow();
-            addDocApproverRow();
-          }
+          await syncVerifikatorFromPIC();
         }
       } else {
         if (sraDropdown) sraDropdown.disabled = false;
         if (verifGroup) verifGroup.style.display = 'none';
-        if (notice) notice.style.display = 'none';
       }
     }
 
     async function syncVerifikatorFromPIC() {
       const container = document.getElementById('docApproversContainer');
+      const notice = document.getElementById('docUnmappedNotice');
+      const btnAdd = document.getElementById('btnAddDocApprover');
       if (container) container.innerHTML = '';
       let defaultApprovers = [];
       if (currentData && currentData.cards && currentData.cards.pic_utama) {
@@ -5340,10 +5396,14 @@
       }
 
       if (defaultApprovers.length > 0) {
+        if (notice) notice.style.display = 'none';
+        if (btnAdd) btnAdd.style.display = 'none';
         defaultApprovers.forEach(userId => addDocApproverRow(userId, true));
       } else {
-        addDocApproverRow('', true);
-        addDocApproverRow('', true);
+        if (notice) notice.style.display = 'block';
+        if (btnAdd) btnAdd.style.display = 'inline-flex';
+        addDocApproverRow('', false);
+        addDocApproverRow('', false);
       }
     }
 
