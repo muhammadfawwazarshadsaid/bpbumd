@@ -2297,17 +2297,118 @@
       }
     }
 
+    // ── CALCULATION HELPERS FOR FILTERED STRATEGIES ──────────
+    function calcAgStats(ag) {
+      const aps = ag.action_plans || [];
+      let total_ap = aps.length;
+      let selesai_ap = 0;
+      let total_sap = 0;
+      let selesai_sap = 0;
+      let apWeightSum = 0;
+      let apProgressWeightedSum = 0;
+
+      aps.forEach(ap => {
+        const st = (ap.status || '').toLowerCase();
+        if (st.includes('selesai')) selesai_ap++;
+
+        const apW = parseFloat(ap.weight) || 0;
+        const apProg = parseFloat(ap.progress_percentage) || 0;
+        apWeightSum += apW;
+        apProgressWeightedSum += apW * apProg;
+
+        if (ap.sub_action_plans && Array.isArray(ap.sub_action_plans)) {
+          ap.sub_action_plans.forEach(sap => {
+            total_sap++;
+            const sapSt = (sap.status || '').toLowerCase();
+            if (sapSt.includes('selesai')) selesai_sap++;
+          });
+        } else if (ap.rencana_aksi) {
+          total_sap += (ap.rencana_aksi.total || 0);
+          selesai_sap += (ap.rencana_aksi.selesai || 0);
+        }
+      });
+
+      let progress_percentage = 0;
+      if (apWeightSum > 0) {
+        progress_percentage = apProgressWeightedSum / apWeightSum;
+      } else if (aps.length > 0) {
+        const sumProg = aps.reduce((acc, ap) => acc + (parseFloat(ap.progress_percentage) || 0), 0);
+        progress_percentage = sumProg / aps.length;
+      }
+
+      return {
+        total_ap,
+        selesai_ap,
+        total_sap,
+        selesai_sap,
+        progress_percentage
+      };
+    }
+
+    function calcStrategyStats(s) {
+      const ags = s.activity_groups || [];
+      let total_ap = 0;
+      let selesai_ap = 0;
+      let total_sap = 0;
+      let selesai_sap = 0;
+      let agWeightSum = 0;
+      let agProgressWeightedSum = 0;
+      let validAgCount = 0;
+      let agProgSum = 0;
+
+      ags.forEach(ag => {
+        const stats = calcAgStats(ag);
+        total_ap += stats.total_ap;
+        selesai_ap += stats.selesai_ap;
+        total_sap += stats.total_sap;
+        selesai_sap += stats.selesai_sap;
+
+        const agW = parseFloat(ag.weight) || 0;
+        agWeightSum += agW;
+        agProgressWeightedSum += agW * stats.progress_percentage;
+
+        if (ag.action_plans && ag.action_plans.length > 0) {
+          validAgCount++;
+          agProgSum += stats.progress_percentage;
+        }
+      });
+
+      let progress_percentage = 0;
+      if (agWeightSum > 0) {
+        progress_percentage = agProgressWeightedSum / agWeightSum;
+      } else if (validAgCount > 0) {
+        progress_percentage = agProgSum / validAgCount;
+      }
+
+      return {
+        total_ap,
+        selesai_ap,
+        total_sap,
+        selesai_sap,
+        progress_percentage
+      };
+    }
+
     // ── COMPUTE FILTERED CARDS ─────────────────────────────
     function computeFilteredCards(displayStrategies) {
       let total_ap = 0, selesai_ap = 0, selesai_terlambat_ap = 0, dalam_progres_ap = 0, terlambat_ap = 0, belum_mulai_ap = 0;
       let total_aktivitas = 0, selesai = 0, selesai_terlambat = 0, dalam_progres = 0, terlambat = 0, belum_mulai = 0, ditolak_count = 0;
-      let totalProgressWeighted = 0;
-      let totalWeightSum = 0;
+      let stratProgSum = 0;
+      let stratWeightSum = 0;
+      let stratWeightedProgSum = 0;
+      let activeStratCount = 0;
 
       (displayStrategies || []).forEach(s => {
+        const sStats = calcStrategyStats(s);
         const sW = parseFloat(s.weight) || 0;
+        stratWeightSum += sW;
+        stratWeightedProgSum += sW * sStats.progress_percentage;
+        if (s.activity_groups && s.activity_groups.length > 0) {
+          activeStratCount++;
+          stratProgSum += sStats.progress_percentage;
+        }
+
         (s.activity_groups || []).forEach(ag => {
-          const agW = parseFloat(ag.weight) || 0;
           (ag.action_plans || []).forEach(ap => {
             total_ap++;
             const st = (ap.status || '').toLowerCase();
@@ -2316,10 +2417,6 @@
             else if (st.includes('dalam progres')) dalam_progres_ap++;
             else if (st.includes('terlambat') || st.includes('melewati')) terlambat_ap++;
             else belum_mulai_ap++;
-
-            const apW = (parseFloat(ap.weight) || 0) * agW * sW / 10000;
-            totalWeightSum += apW;
-            totalProgressWeighted += apW * (parseFloat(ap.progress_percentage) || 0);
 
             if (ap.sub_action_plans && Array.isArray(ap.sub_action_plans)) {
               ap.sub_action_plans.forEach(sap => {
@@ -2337,7 +2434,13 @@
         });
       });
 
-      const progress_percentage = totalWeightSum > 0 ? (totalProgressWeighted / totalWeightSum) : 0;
+      let progress_percentage = 0;
+      if (stratWeightSum > 0) {
+        progress_percentage = stratWeightedProgSum / stratWeightSum;
+      } else if (activeStratCount > 0) {
+        progress_percentage = stratProgSum / activeStratCount;
+      }
+
       const target_percentage = aspectData?.aspect?.target_percentage || 100;
 
       return {
@@ -2392,7 +2495,7 @@
       renderCards(activeCards);
 
       // Strategi tree
-      renderStrategies(daftar_strategi);
+      renderStrategies(displayStrategies);
     }
 
     // ── RENDER SUMMARY CARDS ────────────────────────────────
@@ -2630,25 +2733,27 @@
 
       container.innerHTML = calloutHtml + displayStrategies.map((s, sIdx) => {
         const sKey = 's' + s.strategy_id;
-        const sPct = formatPct(s.progress_percentage);
+        const sStats = calcStrategyStats(s);
+        const sPct = formatPct(sStats.progress_percentage);
         const sTarget = Math.round(s.target_percentage);
         const sBarColor = getBarColorClass(sPct, sTarget);
         const sStatusClass = getStatusClass(s.status);
         const sStatusLabel = getStatusLabel(s.status);
-        const sSelesai = currentProgressTab === 'sap' ? (s.selesai || 0) : (s.selesai_ap || 0);
-        const sTotal = currentProgressTab === 'sap' ? (s.total_rencana_aksi || 0) : (s.total_ap || 0);
+        const sSelesai = currentProgressTab === 'sap' ? sStats.selesai_sap : sStats.selesai_ap;
+        const sTotal = currentProgressTab === 'sap' ? sStats.total_sap : sStats.total_ap;
         const sLabel = currentProgressTab === 'sap' ? 'Sub Rencana Aksi' : 'Rencana Aksi';
 
         // Activity groups HTML
         const agHtml = (s.activity_groups || []).map((ag, agIdx) => {
           const agKey = 'ag' + ag.activity_group_id;
-          const agPct = formatPct(ag.progress_percentage);
+          const agStats = calcAgStats(ag);
+          const agPct = formatPct(agStats.progress_percentage);
           const agTarget = Math.round(ag.target_percentage);
           const agBarColor = getBarColorClass(agPct, agTarget);
           const agStatusClass = getStatusClass(ag.status);
           const agStatusLabel = getStatusLabel(ag.status);
-          const agSelesai = currentProgressTab === 'sap' ? (ag.selesai || 0) : (ag.selesai_ap || 0);
-          const agTotal = currentProgressTab === 'sap' ? (ag.total_rencana_aksi || 0) : (ag.total_ap || 0);
+          const agSelesai = currentProgressTab === 'sap' ? agStats.selesai_sap : agStats.selesai_ap;
+          const agTotal = currentProgressTab === 'sap' ? agStats.total_sap : agStats.total_ap;
           const agLabel = currentProgressTab === 'sap' ? 'Sub Rencana Aksi' : 'Rencana Aksi';
 
           // Action plans (Rencana Aksi) HTML
