@@ -479,6 +479,8 @@ async function getActionPlans(client, aspectId, userId) {
         ap.status,
         ap.weight,
         ap.pic_user_id,
+        u.name AS pic_name,
+        u.position AS pic_position,
         ap.target_end_date,
         ap.output,
         ap.indicator,
@@ -517,6 +519,8 @@ async function getActionPlans(client, aspectId, userId) {
         ON ag.id = ap.activity_group_id
       JOIN strategies s
         ON s.id = ag.strategy_id
+      LEFT JOIN users u
+        ON u.id = ap.pic_user_id
       LEFT JOIN sub_action_plans sap
         ON sap.action_plan_id = ap.id AND sap.deleted_at IS NULL
       WHERE
@@ -529,6 +533,8 @@ async function getActionPlans(client, aspectId, userId) {
         ap.status,
         ap.weight,
         ap.pic_user_id,
+        u.name,
+        u.position,
         ap.target_end_date,
         ap.output,
         ap.indicator,
@@ -549,6 +555,8 @@ async function getActionPlans(client, aspectId, userId) {
     status: row.status,
     weight: toNumber(row.weight),
     pic_user_id: row.pic_user_id,
+    pic_name: row.pic_name || null,
+    pic_position: row.pic_position || null,
     target_end_date: row.target_end_date,
     output: row.output,
     indicator: row.indicator,
@@ -640,6 +648,8 @@ function buildStrategyTree(strategies, activityGroups, actionPlans, subActionPla
       status: ap.status,
       weight: ap.weight,
       pic_user_id: ap.pic_user_id,
+      pic_name: ap.pic_name,
+      pic_position: ap.pic_position,
       target_end_date: ap.target_end_date,
       output: ap.output,
       indicator: ap.indicator,

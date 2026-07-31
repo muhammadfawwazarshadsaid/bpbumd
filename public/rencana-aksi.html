@@ -3277,7 +3277,7 @@
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
   <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.3/dist/docx-preview.min.js"></script>
-  <script src="/diagnosticreview-demo/auth.js?v=1781666555006"></script>
+  <script src="/diagnosticreview-demo/auth.js?v=1785488888888"></script>
 
   <script>
     // ── STATE ────────────────────────────────────────────────────
@@ -5500,11 +5500,12 @@
       }
     }
 
-    async function openPICMappingModal() {
+    async function openPICMappingModal(highlightPicId) {
       const modal = document.getElementById('modalPicMapping');
       const tbody = document.getElementById('picMappingTableBody');
       if (!modal || !tbody) return;
       tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:24px; color:#64748B;">Memuat data mapping PIC...</td></tr>';
+      modal.classList.add('open');
       modal.classList.add('active');
 
       try {
@@ -5521,23 +5522,27 @@
           tbody.innerHTML = json.data.map(item => {
             const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
             const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
+            const isHighlight = highlightPicId && item.pic_user_id == highlightPicId;
 
             const renderChip = (v) => {
               if (!v) return '<span style="color:#94A3B8; font-style:italic;">-</span>';
               const init = getInitials(v.name);
               return `
-                <span class="verif-chip-user">
-                  <span class="verif-avatar">${init}</span>
-                  <span>${escapeHtml(v.name)}</span>
+                <span style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155;">
+                  <span style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #0EA5E9, #38BDF8); color:#FFF; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0;">${init}</span>
+                  <span style="white-space:nowrap; max-width:240px; overflow:hidden; text-overflow:ellipsis;" title="${escapeAttr(v.name)}">${escapeHtml(v.name)}</span>
                 </span>
               `;
             };
 
             return `
-              <tr style="border-bottom: 1px solid #F1F5F9;">
+              <tr class="${isHighlight ? 'active-filter-row highlight-row' : ''}" style="border-bottom: 1px solid #F1F5F9;">
                 <td style="padding: 12px 16px;">
-                  <div style="font-weight: 700; color: #1E293B; font-size: 13px;">${escapeHtml(item.pic_name)}</div>
-                  <div style="font-size: 11px; color: #64748B; margin-top: 2px;">${escapeHtml(item.pic_position || item.company_name || '-')}</div>
+                  <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:4px;">
+                    <span style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #0EA5E9, #38BDF8); color:#FFF; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0;">${getInitials(item.pic_name)}</span>
+                    <span style="font-weight: 600; color: #1E293B;">${escapeHtml(item.pic_name)}</span>
+                  </div>
+                  <div style="font-size: 11px; color: #64748B; padding-left: 4px;">${escapeHtml(item.pic_position || item.company_name || '-')}</div>
                 </td>
                 <td style="padding: 12px 16px;">${renderChip(v1)}</td>
                 <td style="padding: 12px 16px;">${renderChip(v2)}</td>

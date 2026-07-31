@@ -96,14 +96,15 @@ app.use((req, res, next) => {
 app.use(
   express.static(path.join(__dirname, "public"), {
     setHeaders: (res, filePath) => {
-      if (filePath.endsWith('.html')) {
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      } else {
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-      }
+      // Disable caching for everything in development
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('Surrogate-Control', 'no-store');
     },
-    etag: true,
-  }),
+    etag: false,
+    lastModified: false
+  })
 );
 
 // Serve uploads directory
