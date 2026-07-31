@@ -1882,7 +1882,7 @@
                 <span id="picFilterBadgeCount"
                   style="display:none; background:#0EA5E9; color:white; font-size:10px; font-weight:700; border-radius:10px; padding:1px 6px; margin-left:2px;">0</span>
               </button>
-              <button class="btn-secondary"
+              <button class="btn-secondary" id="btnAturBobot"
                 style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px;"
                 onclick="openAturBobotModal()">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -1891,7 +1891,7 @@
                 </svg>
                 Atur Bobot
               </button>
-              <button class="btn-primary"
+              <button class="btn-primary" id="btnTambahStrategi"
                 style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px;"
                 onclick="openAddStrategyModal()">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -2240,6 +2240,7 @@
     let currentAspectId = null;
     let currentAspectCards = null;
     let currentProgressTab = 'ap';
+    let currentUser = null;
 
     function getInitials(name) {
       if (!name) return 'U';
@@ -2252,6 +2253,7 @@
     // ── INIT ─────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async function () {
       const user = await BPBUMDAuth.requireAuth();
+      currentUser = user;
       document.getElementById('userAvatarBtn').textContent = user.name.charAt(0).toUpperCase();
 
       // Read aspect param from URL
@@ -2496,6 +2498,13 @@
 
       // Strategi tree
       renderStrategies(displayStrategies);
+
+      // Role permission check for buttons
+      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+      const btnAturBobot = document.getElementById('btnAturBobot');
+      if (btnAturBobot) btnAturBobot.style.display = isAdmin ? 'inline-flex' : 'none';
+      const btnTambahStrategi = document.getElementById('btnTambahStrategi');
+      if (btnTambahStrategi) btnTambahStrategi.style.display = isAdmin ? 'inline-flex' : 'none';
     }
 
     // ── RENDER SUMMARY CARDS ────────────────────────────────
@@ -2591,6 +2600,8 @@
 
     // ── RENDER DROPDOWN ─────────────────────────────────────
     function renderDropdown(type, id) {
+      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+      if (!isAdmin) return '';
       return `
         <div class="dropdown-more">
           <button class="action-icon-btn" onclick="event.stopPropagation();toggleDropdown(this)" title="Lainnya">
@@ -2848,9 +2859,10 @@
                 <div><span class="status-pill ${agStatusClass}">${agStatusLabel}</span></div>
                 <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
                   ${renderDropdown('ag', ag.activity_group_id)}
+                  ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) ? `
                   <button class="action-icon-btn" onclick="event.stopPropagation();openAddAPModal(${ag.activity_group_id})" title="Tambah Rencana Aksi">
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                  </button>
+                  </button>` : ''}
                   <button class="expand-btn" id="expand-ag-${agKey}" onclick="event.stopPropagation();toggleAG('${agKey}')">
                     <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                       <polyline points="6,9 12,15 18,9" />
@@ -2898,9 +2910,10 @@
               <div><span class="status-pill ${sStatusClass}">${sStatusLabel}</span></div>
               <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
                 ${renderDropdown('s', s.strategy_id)}
+                ${(currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) ? `
                 <button class="action-icon-btn" onclick="event.stopPropagation();openAddAGModal(${s.strategy_id})" title="Tambah Activity Group">
                   <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                </button>
+                </button>` : ''}
                 <button class="expand-btn" id="expand-${sKey}" onclick="event.stopPropagation();toggleStrategy('${sKey}')">
                   <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <polyline points="6,9 12,15 18,9" />

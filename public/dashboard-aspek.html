@@ -2114,7 +2114,7 @@
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <div class="section-title" style="margin-bottom:0;">Progress per Aspek</div>
         <div style="display:flex; gap:10px;">
-          <button class="btn-secondary"
+          <button class="btn-secondary" id="btnImportExcel"
             style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px; background:white;"
             onclick="openImportModal()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -2124,7 +2124,7 @@
             </svg>
             Import Excel
           </button>
-          <button class="btn-primary"
+          <button class="btn-primary" id="btnTambahAspek"
             style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px;"
             onclick="openAddAspectModal()">
             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -2175,7 +2175,7 @@
           <table class="aspect-table" id="aspectTable" style="display:none;">
             <thead>
               <tr>
-                <th style="width: 40px; text-align: center;"><input type="checkbox" id="bulkSelectAllAspek"
+                <th id="bulkSelectAllAspekTh" style="width: 40px; text-align: center;"><input type="checkbox" id="bulkSelectAllAspek"
                     onchange="toggleBulkSelectAllAspek()"></th>
                 <th>Aspek</th>
                 <th>Progres</th>
@@ -2208,8 +2208,15 @@
             </button>
           </div>
 
+          <!-- Loading state -->
+          <div id="loadingState" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 24px; color: var(--slate-500);">
+            <div class="spinner-border" style="width: 36px; height: 36px; border: 3px solid #E2E8F0; border-top-color: #0EA5E9; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 14px;"></div>
+            <div style="font-size: 14px; font-weight: 500; color: var(--slate-700);">Memuat data dashboard & BUMD...</div>
+            <div style="font-size: 12px; color: var(--slate-400); margin-top: 4px;">Mohon tunggu sebentar</div>
+          </div>
+
           <!-- Empty state -->
-          <div class="empty-state" id="emptyState">
+          <div class="empty-state" id="emptyState" style="display: none;">
             <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9,22 9,12 15,12 15,22" />
@@ -2836,8 +2843,13 @@
     }
 
     function updateBulkAspekSelection() {
-      const selected = document.querySelectorAll('.aspek-bulk-cb:checked');
+      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
       const bar = document.getElementById('aspekBulkActionBar');
+      if (!isAdmin) {
+        if (bar) bar.style.display = 'none';
+        return;
+      }
+      const selected = document.querySelectorAll('.aspek-bulk-cb:checked');
       if (selected.length > 0) {
         bar.style.display = 'flex';
         document.getElementById('aspekSelectedCount').textContent = selected.length;
@@ -3037,6 +3049,7 @@
     // ── INIT ─────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async function () {
       const user = await BPBUMDAuth.requireAuth();
+      currentUser = user;
       document.getElementById('userAvatarBtn').textContent = user.name.charAt(0).toUpperCase();
 
       try {
@@ -3052,6 +3065,12 @@
 
     async function loadDashboardData() {
       try {
+        const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+        const btnImportExcel = document.getElementById('btnImportExcel');
+        if (btnImportExcel) btnImportExcel.style.display = isAdmin ? 'inline-flex' : 'none';
+        const btnTambahAspek = document.getElementById('btnTambahAspek');
+        if (btnTambahAspek) btnTambahAspek.style.display = isAdmin ? 'inline-flex' : 'none';
+
         const response = await fetch('/diagnosticreview-demo/api/dashboard/summary', { credentials: 'same-origin' });
         if (!response.ok) throw new Error('Failed to load dashboard data');
         const result = await response.json();
@@ -3059,15 +3078,17 @@
           dashboardData = result.data;
           renderKPICards(dashboardData.cards);
           renderCompanyDropdown(dashboardData.companies);
-          if (dashboardData.companies.length === 1) {
-            const companyId = dashboardData.companies[0].company_id;
-            document.getElementById('companyDropdown').value = companyId;
-            selectCompany(companyId);
-          } else {
+          
+          if (dashboardData.companies && dashboardData.companies.length > 0) {
             const savedId = localStorage.getItem('dashboardAspekSelectedCompany');
-            if (savedId && dashboardData.companies.some(c => c.company_id == savedId)) {
-              document.getElementById('companyDropdown').value = savedId;
-              selectCompany(savedId);
+            let targetId = (savedId && dashboardData.companies.some(c => c.company_id == savedId)) ? savedId : null;
+            if (!targetId && dashboardData.companies.length > 0) {
+              targetId = dashboardData.companies[0].company_id;
+            }
+            if (targetId) {
+              const dropdown = document.getElementById('companyDropdown');
+              if (dropdown) dropdown.value = targetId;
+              selectCompany(targetId);
             }
           }
         }
@@ -3190,12 +3211,19 @@
       const tbody = document.getElementById('aspectTableBody');
       const table = document.getElementById('aspectTable');
       const emptyState = document.getElementById('emptyState');
+      const loadingState = document.getElementById('loadingState');
+      if (loadingState) loadingState.style.display = 'none';
+
+      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+      const thBulk = document.getElementById('bulkSelectAllAspekTh');
+      if (thBulk) thBulk.style.display = isAdmin ? '' : 'none';
+
       if (!aspects || aspects.length === 0) {
         table.style.display = 'none';
-        emptyState.style.display = '';
+        if (emptyState) emptyState.style.display = '';
         return;
       }
-      emptyState.style.display = 'none';
+      if (emptyState) emptyState.style.display = 'none';
       table.style.display = '';
       const thTotal = document.getElementById('thTotalTitle');
       if (thTotal) {
@@ -3210,9 +3238,10 @@
         const dalam_progres = currentProgressTab === 'sap' ? (asp.dalam_progres_sap !== undefined ? asp.dalam_progres_sap : (asp.dalam_progres || 0)) : (asp.dalam_progres_ap || 0);
         const terlambat = currentProgressTab === 'sap' ? (asp.terlambat_sap !== undefined ? asp.terlambat_sap : (asp.terlambat || 0)) : (asp.terlambat_ap || 0);
         const belum_mulai = currentProgressTab === 'sap' ? (asp.belum_mulai_sap !== undefined ? asp.belum_mulai_sap : (asp.belum_mulai || 0)) : (asp.belum_mulai_ap || 0);
+        const cbTd = isAdmin ? `<td style="text-align: center;"><input type="checkbox" class="aspek-bulk-cb" value="${asp.aspect_id}" onchange="updateBulkAspekSelection()"></td>` : `<td style="display:none;"></td>`;
         return `
           <tr>
-            <td style="text-align: center;"><input type="checkbox" class="aspek-bulk-cb" value="${asp.aspect_id}" onchange="updateBulkAspekSelection()"></td>
+            ${cbTd}
             <td>${i + 1}. ${asp.aspect_name}</td>
             <td>
               <div class="aspect-prog-cell">

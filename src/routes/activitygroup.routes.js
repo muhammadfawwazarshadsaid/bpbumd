@@ -4,13 +4,13 @@ const express = require("express");
 const router = express.Router();
 
 const agService = require("../services/activitygroup.service");
-const { authMiddleware } = require("../middleware/auth.middleware");
+const { authMiddleware, adminOnly } = require("../middleware/auth.middleware");
 
 /**
  * POST /api/activity-groups
  * Body: { strategy_id, name, code_order, target_percentage }
  */
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, adminOnly, async (req, res) => {
   try {
     const data = await agService.createActivityGroup(req.user, req.body);
 
@@ -32,7 +32,7 @@ router.post("/", authMiddleware, async (req, res) => {
  * PUT /api/activity-groups/:id
  * Body: { name, code_order, target_percentage }
  */
-router.put("/:id", authMiddleware, async (req, res) => {
+router.put("/:id", authMiddleware, adminOnly, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
@@ -62,7 +62,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
 /**
  * DELETE /api/activity-groups/:id
  */
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
   try {
     const id = Number(req.params.id);
 

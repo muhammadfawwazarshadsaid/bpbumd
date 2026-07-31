@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 
 const actionPlanService = require("../services/actionplan.service");
-const { authMiddleware } = require("../middleware/auth.middleware");
+const { authMiddleware, adminOnly } = require("../middleware/auth.middleware");
 
 /**
  * GET /api/action-plans/:actionPlanId
@@ -57,7 +57,7 @@ router.get("/:actionPlanId", authMiddleware, async (req, res) => {
  * Body: { activity_group_id, name, code_order, pic_user_id,
  *         target_percentage, start_date, target_end_date, output, indicator }
  */
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, adminOnly, async (req, res) => {
   try {
     const data = await actionPlanService.createActionPlan(req.user, req.body);
 
@@ -81,7 +81,7 @@ router.post("/", authMiddleware, async (req, res) => {
  *         progress_percentage, target_percentage, start_date,
  *         end_date, target_end_date, output, indicator, is_blocked }
  */
-router.put("/:actionPlanId", authMiddleware, async (req, res) => {
+router.put("/:actionPlanId", authMiddleware, adminOnly, async (req, res) => {
   try {
     const actionPlanId = Number(req.params.actionPlanId);
 
@@ -115,7 +115,7 @@ router.put("/:actionPlanId", authMiddleware, async (req, res) => {
 /**
  * DELETE /api/action-plans/:actionPlanId
  */
-router.delete("/:actionPlanId", authMiddleware, async (req, res) => {
+router.delete("/:actionPlanId", authMiddleware, adminOnly, async (req, res) => {
   try {
     const actionPlanId = Number(req.params.actionPlanId);
 

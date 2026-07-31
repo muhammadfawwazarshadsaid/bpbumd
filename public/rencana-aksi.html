@@ -2472,7 +2472,7 @@
                 <table class="sra-table">
                   <thead>
                     <tr>
-                      <th style="width:30px;"><input type="checkbox" id="selectAllSRA"
+                      <th id="thSelectAllSRA" style="width:30px;"><input type="checkbox" id="selectAllSRA"
                           onchange="toggleSelectAllSRA(this)" style="cursor:pointer;" title="Pilih Semua" /></th>
                       <th style="width:40px;">#</th>
                       <th style="min-width:100px;">Aksi</th>
@@ -2491,7 +2491,7 @@
                 </table>
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
-                <button class="btn-add" style="margin-top: 0;" onclick="openAddSRAModal()">
+                <button class="btn-add" id="btnAddSRA" style="margin-top: 0;" onclick="openAddSRAModal()">
                   <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
@@ -3654,6 +3654,11 @@
       return div.innerHTML.replace(/\n/g, '<br>');
     }
 
+    function escapeAttr(str) {
+      if (!str) return '';
+      return str.replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+    }
+
     function renderSingleApprover(approval, currentTurnOrder, currentUser) {
       const order = approval.approval_order;
       const approverName = approval.approver ? approval.approver.name : approval.approver_name;
@@ -3795,14 +3800,20 @@
       const selectAllSRACb = document.getElementById('selectAllSRA');
       if (selectAllSRACb) selectAllSRACb.checked = false;
 
+      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+      const btnAddSRA = document.getElementById('btnAddSRA');
+      if (btnAddSRA) btnAddSRA.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      const thSelectAllSRA = document.getElementById('thSelectAllSRA');
+      if (thSelectAllSRA) thSelectAllSRA.style.display = isAdmin ? '' : 'none';
+
       if (!sraList || sraList.length === 0) {
         sraBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:24px;color:var(--slate-400);">Belum ada sub rencana aksi</td></tr>`;
         updateBulkSRAActions();
         return;
       }
       sraBody.innerHTML = sraList.map(r => {
-        const isImported = !r.submitted_by;
-        const canDeleteSRA = currentUser && (isImported || (r.submitted_by && String(currentUser.id) === String(r.submitted_by.user_id)) || (r.pic && String(currentUser.id) === String(r.pic.user_id)) || currentUser.role === 'superadmin' || currentUser.role === 'admin');
+        const canDeleteSRA = isAdmin;
         let actionBtn = `
           <button class="sra-action-btn" title="Lihat Detail" onclick="openDetailSRAModal(${r.sub_action_plan_id})">
             <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
@@ -3876,10 +3887,11 @@
         `;
 
         const trClass = isFilterActive ? 'class="active-filter-row"' : '';
+        const cbTd = isAdmin ? `<td style="text-align:center;"><input type="checkbox" class="sra-row-cb" data-id="${r.sub_action_plan_id}" data-status="${r.status}" data-can-delete="${canDeleteSRA}" onchange="updateBulkSRAActions()" style="cursor:pointer;" /></td>` : `<td style="display:none;"></td>`;
 
         return `
           <tr ${trClass}>
-            <td style="text-align:center;"><input type="checkbox" class="sra-row-cb" data-id="${r.sub_action_plan_id}" data-status="${r.status}" data-can-delete="${canDeleteSRA}" onchange="updateBulkSRAActions()" style="cursor:pointer;" /></td>
+            ${cbTd}
             <td><div class="sra-num">${r.no}</div></td>
             <td><div style="display:flex; align-items:center;">${filterBtn}${actionBtn}${editBtn}${deleteBtn}</div></td>
             <td><div style="display:flex; align-items:center; flex-wrap:wrap;"><span class="sra-desc">${escapeHtml(r.sub_action_plan_name)}</span>${badgeHtml}</div></td>
@@ -4789,13 +4801,15 @@
       let canApprove = false;
       let isMyApproval = false;
 
-      const isSubmitter = !selectedSRA.submitted_by || (selectedSRA.submitted_by && String(selectedSRA.submitted_by.user_id) === String(currentUser.id)) || (selectedSRA.pic && String(selectedSRA.pic.user_id) === String(currentUser.id)) || currentUser.role === 'superadmin' || currentUser.role === 'admin';
+      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+      const isSubmitter = !selectedSRA.submitted_by || (selectedSRA.submitted_by && String(selectedSRA.submitted_by.user_id) === String(currentUser.id)) || (selectedSRA.pic && String(selectedSRA.pic.user_id) === String(currentUser.id)) || isAdmin;
       if (isSubmitter && (selectedSRA.status === 'ditolak' || selectedSRA.status === 'pengajuan' || selectedSRA.status === 'belum mulai')) {
         const actionText = selectedSRA.status === 'belum mulai' ? 'Ajukan Verifikasi' : 'Ajukan Ulang';
+        const deleteBtnHtml = isAdmin ? `<button class="btn btn-outline" style="color:var(--rose); border-color:var(--rose);" onclick="deleteSRA(${id})">Hapus</button>` : '';
         footer.innerHTML = `
           <button class="btn btn-outline" onclick="closeDetailSRAModal()">Tutup</button>
           <div style="display:flex; gap:8px;">
-            <button class="btn btn-outline" style="color:var(--rose); border-color:var(--rose);" onclick="deleteSRA(${id})">Hapus</button>
+            ${deleteBtnHtml}
             <button class="btn btn-primary" onclick="openEditSRAModal(${id}, ${selectedSRA.status !== 'belum mulai'})">${actionText}</button>
           </div>
         `;
@@ -4810,6 +4824,11 @@
     }
 
     async function deleteSRA(id, status) {
+      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+      if (!isAdmin) {
+        alert("Akses ditolak: Akun BUMD tidak diizinkan untuk menghapus Sub Rencana Aksi.");
+        return;
+      }
       let msg = 'Apakah Anda yakin ingin menghapus Sub Rencana Aksi ini?';
       if (status && status !== 'belum mulai' && status !== 'pengajuan' && status !== 'ditolak') {
         msg = 'Perhatian: Sub Rencana Aksi ini sudah dalam proses verifikasi atau selesai. Apakah Anda yakin ingin menghapusnya?';
@@ -5514,12 +5533,16 @@
         if (targetCompanyId) fetchUrl += '?company_id=' + targetCompanyId;
         const res = await fetch(fetchUrl, { credentials: 'same-origin' });
         const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          if (json.data.length === 0) {
+        if (!res.ok || !json.success) {
+          throw new Error(json.message || 'Request gagal (status ' + res.status + ')');
+        }
+        const mappingData = json.data;
+        if (Array.isArray(mappingData)) {
+          if (mappingData.length === 0) {
             tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:24px; color:#64748B;">Belum ada data mapping PIC.</td></tr>';
             return;
           }
-          tbody.innerHTML = json.data.map(item => {
+          tbody.innerHTML = mappingData.map(item => {
             const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
             const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
             const isHighlight = highlightPicId && item.pic_user_id == highlightPicId;
@@ -5554,7 +5577,7 @@
         }
       } catch (err) {
         console.error('[PIC-MAPPING] FETCH ERROR:', err);
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:24px; color:#DC2626;">Terjadi kesalahan koneksi.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:24px; color:#DC2626;">' + (err.message || 'Terjadi kesalahan koneksi.') + '</td></tr>';
       }
     }
 

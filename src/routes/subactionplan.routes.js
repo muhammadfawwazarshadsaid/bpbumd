@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 
 const sapService = require("../services/subactionplan.service");
-const { authMiddleware } = require("../middleware/auth.middleware");
+const { authMiddleware, adminOnly } = require("../middleware/auth.middleware");
 
 // ═════════════════════════════════════════════
 //  SUBMITTER SIDE
@@ -21,7 +21,7 @@ const { authMiddleware } = require("../middleware/auth.middleware");
  *  - approver_user_id_1   (required)
  *  - approver_user_id_2   (required)
  */
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, adminOnly, async (req, res) => {
   try {
     const data = await sapService.createSubActionPlan(req.user, req.body);
 
@@ -48,7 +48,7 @@ router.post("/", authMiddleware, async (req, res) => {
  *  - pic_user_id  (optional)
  *  - weight       (optional)
  */
-router.put("/:id", authMiddleware, async (req, res) => {
+router.put("/:id", authMiddleware, adminOnly, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
@@ -79,7 +79,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
 /**
  * DELETE /api/sub-action-plans/:id
  */
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
@@ -288,7 +288,7 @@ router.get("/pic-verifiers-mapping", authMiddleware, async (req, res) => {
           ) AS verifiers
         FROM users u
         LEFT JOIN companies c ON c.id = u.company_id
-        WHERE u.role != 'admin'
+        WHERE u.username != 'admin_bpbumd'
           AND EXISTS (SELECT 1 FROM sub_action_plans sap WHERE sap.pic_user_id = u.id)
       `;
       const params = [];

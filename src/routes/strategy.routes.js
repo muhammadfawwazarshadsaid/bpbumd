@@ -4,13 +4,13 @@ const express = require("express");
 const router = express.Router();
 
 const strategyService = require("../services/strategy.service");
-const { authMiddleware } = require("../middleware/auth.middleware");
+const { authMiddleware, adminOnly } = require("../middleware/auth.middleware");
 
 /**
  * POST /api/strategies
  * Body: { aspect_id, name, code_order, target_percentage }
  */
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, adminOnly, async (req, res) => {
   try {
     const data = await strategyService.createStrategy(req.user, req.body);
 
@@ -32,7 +32,7 @@ router.post("/", authMiddleware, async (req, res) => {
  * PUT /api/strategies/:id
  * Body: { name, code_order, target_percentage }
  */
-router.put("/:id", authMiddleware, async (req, res) => {
+router.put("/:id", authMiddleware, adminOnly, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
@@ -62,7 +62,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
 /**
  * DELETE /api/strategies/:id
  */
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
   try {
     const id = Number(req.params.id);
 

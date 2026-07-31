@@ -4,7 +4,7 @@ const express = require("express");
 const router = express.Router();
 
 const aspectService = require("../services/aspect.service");
-const { authMiddleware } = require("../middleware/auth.middleware");
+const { authMiddleware, adminOnly } = require("../middleware/auth.middleware");
 
 /**
  * GET /api/aspects/:aspectId
@@ -56,7 +56,7 @@ router.get("/:aspectId", authMiddleware, async (req, res) => {
  *  - progress_percentage  (optional)
  *  - target_percentage    (optional)
  */
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, adminOnly, async (req, res) => {
   try {
     const data = await aspectService.createAspect(req.user, req.body);
 
@@ -85,7 +85,7 @@ router.post("/", authMiddleware, async (req, res) => {
  *  - progress_percentage  (optional)
  *  - target_percentage    (optional)
  */
-router.put("/:aspectId", authMiddleware, async (req, res) => {
+router.put("/:aspectId", authMiddleware, adminOnly, async (req, res) => {
   try {
     const aspectId = Number(req.params.aspectId);
 
@@ -116,7 +116,7 @@ router.put("/:aspectId", authMiddleware, async (req, res) => {
 /**
  * DELETE /api/aspects/:aspectId
  */
-router.delete("/:aspectId", authMiddleware, async (req, res) => {
+router.delete("/:aspectId", authMiddleware, adminOnly, async (req, res) => {
   try {
     const aspectId = Number(req.params.aspectId);
 
