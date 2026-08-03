@@ -621,7 +621,7 @@
 
     .strategy-col-header {
       display: grid;
-      grid-template-columns: 1fr 200px 140px 80px 130px 150px;
+      grid-template-columns: 1fr 200px 140px 130px 150px;
       gap: 12px;
       padding: 10px 24px;
       background: var(--slate-50);
@@ -643,7 +643,7 @@
 
     .strategy-main {
       display: grid;
-      grid-template-columns: 1fr 200px 140px 80px 130px 150px;
+      grid-template-columns: 1fr 200px 140px 130px 150px;
       gap: 12px;
       padding: 16px 24px;
       align-items: center;
@@ -733,6 +733,7 @@
     }
 
     .bobot-cell {
+      display: none !important;
       font-size: 13px;
       font-weight: 700;
       color: var(--slate-700);
@@ -939,7 +940,7 @@
 
     .ag-header {
       display: grid;
-      grid-template-columns: 1fr 200px 140px 80px 130px 131px;
+      grid-template-columns: 1fr 200px 140px 130px 131px;
       gap: 12px;
       padding: 13px 18px;
       cursor: pointer;
@@ -983,7 +984,7 @@
 
     .ra-row {
       display: grid;
-      grid-template-columns: 1fr 200px 140px 80px 130px 131px;
+      grid-template-columns: 1fr 200px 140px 130px 131px;
       gap: 12px;
       padding: 12px 18px;
       border-top: 1px solid var(--slate-100);
@@ -1883,7 +1884,7 @@
                   style="display:none; background:#0EA5E9; color:white; font-size:10px; font-weight:700; border-radius:10px; padding:1px 6px; margin-left:2px;">0</span>
               </button>
               <button class="btn-secondary" id="btnAturBobot"
-                style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12px;"
+                style="display:none; align-items:center; gap:6px; padding:6px 12px; font-size:12px;"
                 onclick="openAturBobotModal()">
                 <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12">
@@ -1906,7 +1907,7 @@
             <div>Strategi</div>
             <div>Progres</div>
             <div id="thTotalTitle">Rencana Aksi</div>
-            <div>Bobot</div>
+            <div style="display:none;">Bobot</div>
             <div>Status</div>
             <div></div>
           </div>
@@ -2502,7 +2503,7 @@
       // Role permission check for buttons
       const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
       const btnAturBobot = document.getElementById('btnAturBobot');
-      if (btnAturBobot) btnAturBobot.style.display = isAdmin ? 'inline-flex' : 'none';
+      if (btnAturBobot) btnAturBobot.style.display = 'none';
       const btnTambahStrategi = document.getElementById('btnTambahStrategi');
       if (btnTambahStrategi) btnTambahStrategi.style.display = isAdmin ? 'inline-flex' : 'none';
     }
@@ -2719,27 +2720,7 @@
         });
         if (Math.round(stratSum) !== 100) isWeightValid = false;
 
-        if (isWeightValid) {
-          calloutHtml = `
-            <div style="background-color: #ECFDF5; border: 1px solid #A7F3D0; color: #065F46; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px;">
-              <svg style="flex-shrink:0; margin-top:2px;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-              <div>
-                <strong style="display:block; margin-bottom:4px; font-size: 14px;">Bobot Sudah Terkonfigurasi</strong>
-                Bobot prioritas telah diatur secara menyeluruh (total 100%). Persentase progres dihitung berdasarkan bobot yang telah ditentukan.
-              </div>
-            </div>
-          `;
-        } else {
-          calloutHtml = `
-            <div style="background-color: #FFFBEB; border: 1px solid #FDE68A; color: #92400E; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: flex-start; gap: 10px;">
-              <svg style="flex-shrink:0; margin-top:2px;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-              <div>
-                <strong style="display:block; margin-bottom:4px; font-size: 14px;">Informasi Bobot</strong>
-                Terdapat hierarki yang total bobotnya belum mencapai 100% atau data baru saja ditambahkan. Pastikan Anda mengkonfigurasi bobot melalui tombol "Atur Bobot".
-              </div>
-            </div>
-          `;
-        }
+        calloutHtml = '';
       }
 
       container.innerHTML = calloutHtml + displayStrategies.map((s, sIdx) => {
@@ -3042,7 +3023,7 @@
             <div class="modal-kpi-label">Status</div>
             <div><span class="status-pill ${statusClass}">${statusLabel}</span></div>
           </div>
-          <div class="modal-kpi">
+          <div class="modal-kpi" style="display:none;">
             <div class="modal-kpi-label">Bobot</div>
             <div class="modal-kpi-val">${weight}%</div>
           </div>
