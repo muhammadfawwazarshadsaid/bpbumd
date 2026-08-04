@@ -937,6 +937,118 @@
       }
     }
 
+    /* ── TABLET (≤900px): Sidebar collapse + smaller spacing ── */
+    @media (max-width: 900px) {
+      :root {
+        --sidebar-w: 0px;
+      }
+
+      .sidebar {
+        transform: translateX(-100%);
+        width: 260px;
+        z-index: 200;
+      }
+
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 199;
+      }
+
+      .sidebar-overlay.active {
+        display: block;
+      }
+
+      .main {
+        margin-left: 0;
+      }
+
+      .topbar {
+        padding: 0 16px;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-title {
+        font-size: 15px;
+      }
+
+      .page-sub {
+        font-size: 11px;
+      }
+
+      .topbar-date {
+        display: none;
+      }
+    }
+
+    /* ── MOBILE (≤600px): Single column, compact ── */
+    @media (max-width: 600px) {
+      .topbar {
+        height: 54px;
+        padding: 0 12px;
+        gap: 8px;
+      }
+
+      .content {
+        padding: 12px;
+      }
+
+      .kpi-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .kpi-card {
+        padding: 16px 14px;
+        border-radius: 12px;
+      }
+
+      .charts-grid {
+        gap: 12px;
+      }
+
+      .bottom-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .table-card {
+        padding: 14px;
+        border-radius: 12px;
+      }
+
+      .page-title {
+        font-size: 14px;
+      }
+
+      .refresh-btn span {
+        display: none;
+      }
+
+      .notif-btn {
+        width: 32px;
+        height: 32px;
+      }
+    }
+
     /* ── COLLAPSED SIDEBAR STATE ──────────────── */
     body.sidebar-collapsed {
       --sidebar-w: 80px;
@@ -1091,6 +1203,9 @@
       </div>
     </div>
   </aside>
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
 
   <!-- MAIN CONTENT -->
   <div class="main">
@@ -1408,7 +1523,18 @@
   <script src="/diagnosticreview-demo/auth.js?v=1781666555002"></script>
   <script>
     function toggleSidebar() {
-      document.body.classList.toggle('sidebar-collapsed');
+      const isMobile = window.innerWidth <= 900;
+      if (isMobile) {
+        document.querySelector('.sidebar').classList.toggle('mobile-open');
+        document.getElementById('sidebarOverlay').classList.toggle('active');
+      } else {
+        document.body.classList.toggle('sidebar-collapsed');
+      }
+    }
+
+    function closeMobileSidebar() {
+      document.querySelector('.sidebar').classList.remove('mobile-open');
+      document.getElementById('sidebarOverlay').classList.remove('active');
     }
 
     // ── INITIAL LOAD ──────────────────────────────────────────
