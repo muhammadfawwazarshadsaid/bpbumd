@@ -2066,8 +2066,12 @@
       </nav>
 
       <!-- PAGE HEADING -->
-      <div class="page-heading">
+      <div class="page-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div class="page-heading-title">Dashboard</div>
+        <div class="progress-tab-switcher" id="progressTabSwitcher" style="display:none;">
+          <button type="button" class="tab-switch-btn" id="tab-btn-sap" onclick="switchProgressTab('sap')">Sub Rencana Aksi</button>
+          <button type="button" class="tab-switch-btn active" id="tab-btn-ap" onclick="switchProgressTab('ap')">Rencana Aksi</button>
+        </div>
       </div>
 
       <!-- KPI CARDS -->
@@ -2222,11 +2226,21 @@
               <span id="companyDisplayName">—</span>
             </div>
           </div>
-          <div class="progress-tab-switcher" id="progressTabSwitcher" style="display:none;">
-            <button type="button" class="tab-switch-btn" id="tab-btn-sap" onclick="switchProgressTab('sap')">Sub Rencana
-              Aksi</button>
-            <button type="button" class="tab-switch-btn active" id="tab-btn-ap"
-              onclick="switchProgressTab('ap')">Rencana Aksi</button>
+
+          <div style="display:flex; align-items:center; gap:12px; margin-left:auto; flex-wrap:wrap;">
+            <div id="activePicFilterTag" style="display:none; align-items:center; gap:6px; background:#F0F9FF; border:1px solid #7DD3FC; padding:4px 10px; border-radius:20px; font-size:12px; color:#0369A1; font-weight:600;">
+              <span id="activePicFilterText">Filter PIC Aktif</span>
+              <span onclick="clearActivePicFilter()" style="cursor:pointer; font-weight:700; margin-left:2px;">&times;</span>
+            </div>
+            <button class="btn-secondary" id="btnFilterPic" onclick="openPicFilterModal()"
+              style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; font-size:12px; font-weight:600; border-radius:8px; border:1px solid var(--slate-300); background:white; color:var(--slate-700); cursor:pointer;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              <span>Filter PIC &amp; Verifikator</span>
+              <span id="picFilterBadgeCount"
+                style="display:none; background:var(--sky); color:white; border-radius:10px; padding:1px 6px; font-size:10px; font-weight:700;">0</span>
+            </button>
           </div>
         </div>
 
@@ -3123,16 +3137,309 @@
     }
 
     // [Existing logic continues...]
+    let picFilterData = [];
+    let selectedPicFilterUserIds = [];
+
+    function savePicFilterToStorage() {
+      try {
+        if (selectedPicFilterUserIds && selectedPicFilterUserIds.length > 0) {
+          sessionStorage.setItem('bpbumd_pic_filter', JSON.stringify(selectedPicFilterUserIds));
+        } else {
+          sessionStorage.removeItem('bpbumd_pic_filter');
+        }
+      } catch (e) { console.error('Failed to save PIC filter', e); }
+    }
+
+    function loadPicFilterFromStorage() {
+      try {
+        const stored = sessionStorage.getItem('bpbumd_pic_filter');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            selectedPicFilterUserIds = parsed.map(String);
+          }
+        }
+      } catch (e) { console.error('Failed to load PIC filter', e); }
+    }
+
+    function getInitials(name) {
+      if (!name) return '??';
+      const parts = name.trim().split(/\s+/);
+      if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+      return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function escapeAttr(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    async function openPicFilterModal() {
+      const modal = document.getElementById('modalPicFilter');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      modal.classList.add('open');
+      const tbody = document.getElementById('picFilterTableBody');
+      if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:32px; color:#64748B;"><div class="spinner-border" style="width:24px; height:24px; border:2px solid #E2E8F0; border-top-color:#0EA5E9; border-radius:50%; animation:spin 0.8s linear infinite; display:inline-block; margin-bottom:8px;"></div><div>Memuat data PIC & Verifikator...</div></td></tr>';
+      }
+      try {
+        const targetCompanyId = selectedCompanyId || (currentUser?.company_id);
+        let fetchUrl = '/diagnosticreview-demo/api/sub-action-plans/pic-verifiers-mapping';
+        if (targetCompanyId) fetchUrl += '?company_id=' + targetCompanyId;
+        const res = await fetch(fetchUrl, { credentials: 'same-origin' });
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          picFilterData = json.data;
+          renderPicFilterTable();
+        } else {
+          if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#DC2626;">Gagal memuat data mapping.</td></tr>';
+        }
+      } catch (err) {
+        console.error('[PIC-FILTER] FETCH ERROR:', err);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#DC2626;">Terjadi kesalahan koneksi.</td></tr>';
+      }
+    }
+
+    function closePicFilterModal() {
+      const modal = document.getElementById('modalPicFilter');
+      if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('open');
+      }
+    }
+
+    function renderPicFilterTable() {
+      const tbody = document.getElementById('picFilterTableBody');
+      if (!tbody) return;
+      const search = (document.getElementById('picFilterSearchInput')?.value || '').toLowerCase().trim();
+
+      if (!picFilterData || picFilterData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#64748B;">Belum ada data mapping PIC.</td></tr>';
+        return;
+      }
+
+      const renderChip = (v) => {
+        if (!v) return '<span style="color:#94A3B8; font-style:italic;">-</span>';
+        const init = getInitials(v.name);
+        const pos = v.position || v.company_name || '';
+        return `
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:2px;">
+              <span style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #0EA5E9, #38BDF8); color:#FFF; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0;">${init}</span>
+              <span style="font-weight: 600; color: #1E293B; white-space:nowrap; max-width:200px; overflow:hidden; text-overflow:ellipsis;" title="${escapeAttr(v.name)}">${escapeHtml(v.name)}</span>
+            </div>
+            <div style="font-size: 11px; color: #64748B; padding-left: 4px;">${escapeHtml(pos || '-')}</div>
+          </div>
+        `;
+      };
+
+      const filtered = picFilterData.filter(item => {
+        if (!search) return true;
+        const v1Name = item.verifiers && item.verifiers[0] ? item.verifiers[0].name : '';
+        const v1Pos = item.verifiers && item.verifiers[0] ? (item.verifiers[0].position || item.verifiers[0].company_name || '') : '';
+        const v2Name = item.verifiers && item.verifiers[1] ? item.verifiers[1].name : '';
+        const v2Pos = item.verifiers && item.verifiers[1] ? (item.verifiers[1].position || item.verifiers[1].company_name || '') : '';
+        const text = `${item.pic_name || ''} ${item.pic_position || ''} ${item.company_name || ''} ${v1Name} ${v1Pos} ${v2Name} ${v2Pos}`.toLowerCase();
+        return text.includes(search);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#64748B;">Tidak ada PIC/Verifikator yang cocok.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(item => {
+        const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
+        const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
+        const isChecked = selectedPicFilterUserIds.includes(String(item.pic_user_id));
+
+        return `
+          <tr class="${isChecked ? 'highlight-row' : ''}" style="border-bottom: 1px solid #F1F5F9;">
+            <td style="padding: 12px 14px; text-align: center;">
+              <input type="checkbox" class="pic-filter-checkbox" value="${item.pic_user_id}" ${isChecked ? 'checked' : ''} onchange="updatePicFilterActionBar()" style="width:16px; height:16px; cursor:pointer; accent-color:var(--sky);">
+            </td>
+            <td style="padding: 12px 16px;">
+              <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:4px;">
+                <span style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #0EA5E9, #38BDF8); color:#FFF; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0;">${getInitials(item.pic_name)}</span>
+                <span style="font-weight: 600; color: #1E293B;">${escapeHtml(item.pic_name)}</span>
+              </div>
+              <div style="font-size: 11px; color: #64748B; padding-left: 4px;">${escapeHtml(item.pic_position || item.company_name || '-')}</div>
+            </td>
+            <td style="padding: 12px 16px;">${renderChip(v1)}</td>
+            <td style="padding: 12px 16px;">${renderChip(v2)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      updatePicFilterActionBar();
+    }
+
+    function filterPicFilterTableRows() {
+      renderPicFilterTable();
+    }
+
+    function toggleAllPicFilterCheckboxes(masterCb) {
+      const checkboxes = document.querySelectorAll('.pic-filter-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = masterCb.checked;
+      });
+      updatePicFilterActionBar();
+    }
+
+    function updatePicFilterActionBar() {
+      const checkedCbs = document.querySelectorAll('.pic-filter-checkbox:checked');
+      const count = checkedCbs.length;
+
+      document.querySelectorAll('.pic-filter-checkbox').forEach(cb => {
+        const tr = cb.closest('tr');
+        if (tr) {
+          if (cb.checked) tr.classList.add('highlight-row');
+          else tr.classList.remove('highlight-row');
+        }
+      });
+
+      const allCbs = document.querySelectorAll('.pic-filter-checkbox');
+      const masterCb = document.getElementById('checkAllPicFilter');
+      if (masterCb && allCbs.length > 0) {
+        masterCb.checked = checkedCbs.length === allCbs.length;
+        masterCb.indeterminate = checkedCbs.length > 0 && checkedCbs.length < allCbs.length;
+      }
+
+      const label = document.getElementById('picFilterSelectedCountLabel');
+      if (label) label.textContent = `${count}`;
+
+      const btnApply = document.getElementById('btnApplyPicFilter');
+      if (btnApply) {
+        if (count > 0) {
+          btnApply.style.borderColor = '#10B981';
+          btnApply.style.color = '#059669';
+          btnApply.style.background = '#ECFDF5';
+          btnApply.style.cursor = 'pointer';
+        } else {
+          btnApply.style.borderColor = '#E2E8F0';
+          btnApply.style.color = '#94A3B8';
+          btnApply.style.background = '#F8FAFC';
+          btnApply.style.cursor = 'not-allowed';
+        }
+        btnApply.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Terapkan Filter (${count})`;
+      }
+    }
+
+    function resetPicFilterSelections() {
+      selectedPicFilterUserIds = [];
+      savePicFilterToStorage();
+      const masterCb = document.getElementById('checkAllPicFilter');
+      if (masterCb) {
+        masterCb.checked = false;
+        masterCb.indeterminate = false;
+      }
+      const checkboxes = document.querySelectorAll('.pic-filter-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = false;
+        const tr = cb.closest('tr');
+        if (tr) tr.classList.remove('highlight-row');
+      });
+      updatePicFilterActionBar();
+      closePicFilterModal();
+      updatePicFilterUI();
+      loadDashboardData();
+    }
+
+    function submitPicFilter() {
+      const checkedCbs = document.querySelectorAll('.pic-filter-checkbox:checked');
+      selectedPicFilterUserIds = Array.from(checkedCbs).map(cb => cb.value);
+      savePicFilterToStorage();
+
+      closePicFilterModal();
+      updatePicFilterUI();
+      loadDashboardData();
+    }
+
+    function clearActivePicFilter() {
+      selectedPicFilterUserIds = [];
+      savePicFilterToStorage();
+      const masterCb = document.getElementById('checkAllPicFilter');
+      if (masterCb) {
+        masterCb.checked = false;
+        masterCb.indeterminate = false;
+      }
+      const checkboxes = document.querySelectorAll('.pic-filter-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = false;
+        const tr = cb.closest('tr');
+        if (tr) tr.classList.remove('highlight-row');
+      });
+      updatePicFilterUI();
+      loadDashboardData();
+    }
+
+    function updatePicFilterUI() {
+      const count = selectedPicFilterUserIds.length;
+      const btnFilter = document.getElementById('btnFilterPic');
+      const badgeCount = document.getElementById('picFilterBadgeCount');
+      const tag = document.getElementById('activePicFilterTag');
+      const tagText = document.getElementById('activePicFilterText');
+
+      if (count > 0) {
+        if (btnFilter) {
+          btnFilter.style.background = '#F0F9FF';
+          btnFilter.style.borderColor = '#7DD3FC';
+          btnFilter.style.color = '#0369A1';
+        }
+        if (badgeCount) {
+          badgeCount.style.display = 'inline-block';
+          badgeCount.textContent = count;
+        }
+        if (tag) {
+          tag.style.display = 'inline-flex';
+          if (tagText) tagText.textContent = `Filter PIC (${count})`;
+        }
+      } else {
+        if (btnFilter) {
+          btnFilter.style.background = 'white';
+          btnFilter.style.borderColor = 'var(--slate-300)';
+          btnFilter.style.color = 'var(--slate-700)';
+        }
+        if (badgeCount) {
+          badgeCount.style.display = 'none';
+        }
+        if (tag) {
+          tag.style.display = 'none';
+        }
+      }
+    }
+
     // ── INIT ─────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', async function () {
       const user = await BPBUMDAuth.requireAuth();
       currentUser = user;
       document.getElementById('userAvatarBtn').textContent = user.name.charAt(0).toUpperCase();
 
+      loadPicFilterFromStorage();
+      updatePicFilterUI();
+
       try {
         const uRes = await fetch('/diagnosticreview-demo/api/auth/users', { credentials: 'same-origin' });
         const uData = await uRes.json();
-        if (uData.success) companyUsers = uData.data;
+        if (uData.success) {
+          companyUsers = uData.data;
+        }
       } catch (e) {
         console.error('Failed to load users', e);
       }
@@ -3148,7 +3455,14 @@
         const btnTambahAspek = document.getElementById('btnTambahAspek');
         if (btnTambahAspek) btnTambahAspek.style.display = isAdmin ? 'inline-flex' : 'none';
 
-        const response = await fetch('/diagnosticreview-demo/api/dashboard/summary', { credentials: 'same-origin' });
+        let url = '/diagnosticreview-demo/api/dashboard/summary';
+        const params = new URLSearchParams();
+        if (selectedPicFilterUserIds && selectedPicFilterUserIds.length > 0) {
+          params.append('pic_user_id', selectedPicFilterUserIds.join(','));
+        }
+        if (params.toString()) url += '?' + params.toString();
+
+        const response = await fetch(url, { credentials: 'same-origin' });
         if (!response.ok) throw new Error('Failed to load dashboard data');
         const result = await response.json();
         if (result.success && result.data) {
@@ -4601,8 +4915,85 @@
     <h3 style="margin-top: 24px; font-size: 20px; font-weight: 700; color: #0f172a;">Memproses Data Excel</h3>
     <p
       style="color: #64748b; font-size: 14px; margin-top: 8px; max-width: 320px; text-align: center; line-height: 1.5;">
-      Sistem sedang mengekstrak baris data, memetakan PIC, dan menyusun hierarki secara otomatis. Mohon tunggu
-      sebentar...</p>
+      Sistem sedang mengekstrak baris data, memetakan PIC, dan menyusun hierarki secara otomatis. Mohon tunggu sebentar...</p>
+  </div>
+
+  <!-- MODAL FILTER PIC & VERIFIKATOR -->
+  <div class="modal-overlay" id="modalPicFilter" style="align-items: center; justify-content: center;">
+    <div class="modal-container"
+      style="max-width: 780px; width: 92%; margin: auto; padding: 20px 24px; border-radius: 16px; background: white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
+
+      <!-- HEADER -->
+      <div class="modal-header"
+        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">
+        <div>
+          <h3 style="font-size:16px; font-weight:700; color:var(--slate-800); margin:0 0 2px 0;">Filter Penanggung Jawab
+            (PIC) & Verifikator</h3>
+          <div style="font-size:12px; color:var(--slate-500); margin:0;">Pilih Penanggung Jawab atau Verifikator untuk
+            memfilter Dashboard Aspek</div>
+        </div>
+        <button type="button" class="modal-close" onclick="closePicFilterModal()">&times;</button>
+      </div>
+
+      <!-- SEARCH BAR -->
+      <div style="position:relative; margin-bottom:12px;">
+        <svg width="16" height="16" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24"
+          style="position:absolute; left:14px; top:50%; transform:translateY(-50%);">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input type="text" id="picFilterSearchInput" oninput="filterPicFilterTableRows()"
+          placeholder="Cari nama PIC, Verifikator, atau Jabatan..."
+          style="width:100%; padding:9px 14px 9px 38px; border-radius:8px; border:1px solid #E2E8F0; font-size:13px; outline:none; transition:all 0.2s;"
+          onfocus="this.style.borderColor='#38BDF8';" onblur="this.style.borderColor='#E2E8F0';">
+      </div>
+
+      <!-- TABLE CONTAINER -->
+      <div style="max-height: 380px; overflow-y: auto; border: 1px solid var(--slate-200); border-radius: 12px;">
+        <table style="width:100%; border-collapse:separate; border-spacing:0 2px; font-size:12px; text-align:left;">
+          <thead>
+            <tr
+              style="background:#F8FAFC; border-bottom:1px solid #E2E8F0; color:#64748B; font-weight:600; position:sticky; top:0; z-index:10;">
+              <th style="padding:12px 14px; width:40px; text-align:center;">
+                <input type="checkbox" id="checkAllPicFilter" onchange="toggleAllPicFilterCheckboxes(this)"
+                  style="width:16px; height:16px; cursor:pointer; accent-color:var(--sky);">
+              </th>
+              <th style="padding:12px 16px;">Penanggung Jawab (PIC)</th>
+              <th style="padding:12px 16px;">Verifikator 1</th>
+              <th style="padding:12px 16px;">Verifikator 2</th>
+            </tr>
+          </thead>
+          <tbody id="picFilterTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FOOTER ACTION BAR -->
+      <div class="modal-footer"
+        style="margin-top:16px; display:flex; justify-content:space-between; align-items:center; padding-top:12px; border-top:1px solid #F1F5F9;">
+        <span style="font-size:12px; color:var(--slate-500); font-weight:500;">
+          <span id="picFilterSelectedCountLabel">0</span> dipilih
+        </span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="btn-outline" onclick="resetPicFilterSelections()"
+            style="border:1px solid #F87171; color:#DC2626; background:#FFF1F2; padding:7px 16px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+            Reset
+          </button>
+          <button class="btn-outline" id="btnApplyPicFilter" onclick="submitPicFilter()"
+            style="border:1px solid #E2E8F0; color:#94A3B8; background:#F8FAFC; padding:7px 16px; border-radius:8px; font-size:12px; font-weight:600; cursor:not-allowed; display:inline-flex; align-items:center; gap:6px;">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            Terapkan Filter (0)
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 

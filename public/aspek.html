@@ -2335,6 +2335,9 @@
         return;
       }
 
+      loadPicFilterFromStorage();
+      updatePicFilterUI();
+
       await loadAspectData();
       await loadUsersForSelect();
     });
@@ -2360,6 +2363,9 @@
         }
 
         aspectData = result.data;
+        if (selectedPicFilterUserIds && selectedPicFilterUserIds.length > 0 && (!picFilterData || picFilterData.length === 0)) {
+          await prefetchPicFilterData();
+        }
         renderPage(aspectData);
         showContent();
 
@@ -2379,12 +2385,34 @@
       let apWeightSum = 0;
       let apProgressWeightedSum = 0;
 
+      let progress_percentage = 0;
+      const isFiltered = (selectedPicFilterUserIds && selectedPicFilterUserIds.length > 0);
+
       aps.forEach(ap => {
         const st = (ap.status || '').toLowerCase();
         if (st.includes('selesai')) selesai_ap++;
 
+        let apProg = parseFloat(ap.progress_percentage) || 0;
+        
+        // Dynamically calculate AP progress from filtered SAPs
+        if (isFiltered && ap.sub_action_plans && Array.isArray(ap.sub_action_plans)) {
+          let sapScore = 0;
+          let sapCount = 0;
+          ap.sub_action_plans.forEach(sap => {
+             const sapSt = (sap.status || '').toLowerCase();
+             if (sapSt.includes('selesai')) sapScore += 100;
+             else if (sapSt.includes('verifikasi')) sapScore += 65;
+             else if (sapSt.includes('pengajuan')) sapScore += 30;
+             sapCount++;
+          });
+          if (sapCount > 0) {
+            apProg = sapScore / sapCount;
+          } else {
+            apProg = 0;
+          }
+        }
+
         const apW = parseFloat(ap.weight) || 0;
-        const apProg = parseFloat(ap.progress_percentage) || 0;
         apWeightSum += apW;
         apProgressWeightedSum += apW * apProg;
 
@@ -2400,11 +2428,25 @@
         }
       });
 
-      let progress_percentage = 0;
       if (apWeightSum > 0) {
         progress_percentage = apProgressWeightedSum / apWeightSum;
       } else if (aps.length > 0) {
-        const sumProg = aps.reduce((acc, ap) => acc + (parseFloat(ap.progress_percentage) || 0), 0);
+        // Fallback: unweighted average of dynamic AP progresses
+        const sumProg = aps.reduce((acc, ap) => {
+          let p = parseFloat(ap.progress_percentage) || 0;
+          if (isFiltered && ap.sub_action_plans && Array.isArray(ap.sub_action_plans)) {
+            let sc = 0, c = 0;
+            ap.sub_action_plans.forEach(sap => {
+               const sapSt = (sap.status || '').toLowerCase();
+               if (sapSt.includes('selesai')) sc += 100;
+               else if (sapSt.includes('verifikasi')) sc += 65;
+               else if (sapSt.includes('pengajuan')) sc += 30;
+               c++;
+            });
+            p = c > 0 ? (sc / c) : 0;
+          }
+          return acc + p;
+        }, 0);
         progress_percentage = sumProg / aps.length;
       }
 
@@ -2547,11 +2589,29 @@
       // Filter strategies if PIC filter active
       let displayStrategies = daftar_strategi || [];
       if (selectedPicFilterUserIds && selectedPicFilterUserIds.length > 0) {
+        const selectedItems = (picFilterData || []).filter(item => selectedPicFilterUserIds.includes(String(item.pic_user_id)));
+        const selectedNames = selectedItems.map(item => (item.pic_name || '').toLowerCase().trim()).filter(Boolean);
+        const selectedUserIds = selectedPicFilterUserIds.map(id => String(id));
+
         displayStrategies = JSON.parse(JSON.stringify(daftar_strategi || [])).filter(s => {
           if (!s.activity_groups) return false;
           s.activity_groups = s.activity_groups.filter(ag => {
             if (!ag.action_plans) return false;
-            ag.action_plans = ag.action_plans.filter(ap => isActionPlanMatchingPicFilter(ap));
+            ag.action_plans = ag.action_plans.filter(ap => {
+              if (!isActionPlanMatchingPicFilter(ap)) return false;
+              
+              if (ap.sub_action_plans && Array.isArray(ap.sub_action_plans)) {
+                ap.sub_action_plans = ap.sub_action_plans.filter(sap => {
+                  if (ap.pic_user_id && selectedUserIds.includes(String(ap.pic_user_id))) return true;
+                  if (ap.pic_name && selectedNames.includes(String(ap.pic_name).toLowerCase().trim())) return true;
+                  
+                  if (sap.pic_user_id && selectedUserIds.includes(String(sap.pic_user_id))) return true;
+                  if (sap.pic_name && selectedNames.includes(String(sap.pic_name).toLowerCase().trim())) return true;
+                  return false;
+                });
+              }
+              return true;
+            });
             return ag.action_plans.length > 0;
           });
           return s.activity_groups.length > 0;
@@ -3807,6 +3867,29 @@
     let picFilterData = [];
     let selectedPicFilterUserIds = [];
 
+    function savePicFilterToStorage() {
+      try {
+        if (selectedPicFilterUserIds && selectedPicFilterUserIds.length > 0) {
+          sessionStorage.setItem('bpbumd_pic_filter', JSON.stringify(selectedPicFilterUserIds));
+        } else {
+          sessionStorage.removeItem('bpbumd_pic_filter');
+        }
+      } catch (e) { console.error('Failed to save PIC filter', e); }
+    }
+
+    function loadPicFilterFromStorage() {
+      try {
+        const stored = sessionStorage.getItem('bpbumd_pic_filter');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            selectedPicFilterUserIds = parsed.map(String);
+          }
+        }
+      } catch (e) { console.error('Failed to load PIC filter', e); }
+    }
+
+
     async function openPicFilterModal() {
       const modal = document.getElementById('modalPicFilter');
       const tbody = document.getElementById('picFilterTableBody');
@@ -3832,6 +3915,21 @@
       } catch (err) {
         console.error('[PIC-FILTER] FETCH ERROR:', err);
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#DC2626;">Terjadi kesalahan koneksi.</td></tr>';
+      }
+    }
+
+    async function prefetchPicFilterData() {
+      try {
+        const targetCompanyId = aspectData?.aspect?.company_id || currentUser?.company_id;
+        let fetchUrl = '/diagnosticreview-demo/api/sub-action-plans/pic-verifiers-mapping';
+        if (targetCompanyId) fetchUrl += '?company_id=' + targetCompanyId;
+        const res = await fetch(fetchUrl, { credentials: 'same-origin' });
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          picFilterData = json.data;
+        }
+      } catch (err) {
+        console.error('[PIC-FILTER-PREFETCH] ERROR:', err);
       }
     }
 
@@ -3954,6 +4052,7 @@
 
     function resetPicFilterSelections() {
       selectedPicFilterUserIds = [];
+      savePicFilterToStorage();
       const masterCb = document.getElementById('checkAllPicFilter');
       if (masterCb) {
         masterCb.checked = false;
@@ -3976,6 +4075,7 @@
     function submitPicFilter() {
       const checkedCbs = document.querySelectorAll('.pic-filter-checkbox:checked');
       selectedPicFilterUserIds = Array.from(checkedCbs).map(cb => cb.value);
+      savePicFilterToStorage();
 
       closePicFilterModal();
       updatePicFilterUI();
@@ -3991,6 +4091,7 @@
 
     function clearActivePicFilter() {
       selectedPicFilterUserIds = [];
+      savePicFilterToStorage();
       const masterCb = document.getElementById('checkAllPicFilter');
       if (masterCb) {
         masterCb.checked = false;

@@ -14,7 +14,13 @@ const { authMiddleware } = require("../middleware/auth.middleware");
  */
 router.get("/summary", authMiddleware, async (req, res) => {
   try {
-    const data = await dashboardService.getDashboardSummary(req.user);
+    let picUserIds = null;
+    if (req.query.pic_user_id) {
+      picUserIds = req.query.pic_user_id.split(',').map(Number).filter(Boolean);
+      if (picUserIds.length === 0) picUserIds = null;
+    }
+    const filters = { picUserIds };
+    const data = await dashboardService.getDashboardSummary(req.user, filters);
 
     res.json({
       success: true,
