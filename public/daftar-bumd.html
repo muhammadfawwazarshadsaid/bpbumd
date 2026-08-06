@@ -1527,9 +1527,114 @@
         padding: 16px 16px 80px 16px; /* space for bottom nav */
       }
       
-      .page-header h1 {
-        font-size: 18px;
+      .page-heading-title {
+        font-size: 20px;
       }
+    }
+
+    /* PAGINATION STYLING (GLOBAL) */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-top: 1px solid #E5E7EB;
+      background: #FFFFFF;
+      font-family: inherit;
+      font-size: 13px;
+      color: #374151;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+
+    .pagination-info {
+      font-size: 13px;
+      font-weight: 500;
+      color: #4B5563;
+    }
+
+    .pagination-buttons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pg-btn {
+      height: 38px;
+      padding: 0 14px;
+      border-radius: 8px;
+      border: 1px solid #E5E7EB;
+      background: #FFFFFF;
+      color: #1F2937;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .pg-btn.num {
+      min-width: 38px;
+      padding: 0 10px;
+    }
+
+    .pg-btn:hover:not(:disabled):not(.active):not(.dots) {
+      background: #F9FAFB;
+      border-color: #D1D5DB;
+      color: #111827;
+    }
+
+    .pg-btn.active {
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid)) !important;
+      color: #FFFFFF !important;
+      border-color: var(--navy) !important;
+      font-weight: 700 !important;
+      box-shadow: none !important;
+    }
+
+    .pg-btn.dots {
+      border: none;
+      background: transparent;
+      cursor: default;
+      color: #6B7280;
+      padding: 0 6px;
+      min-width: 24px;
+    }
+
+    .pg-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .pagination-size-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #4B5563;
+    }
+
+    .pagination-size-select {
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1px solid #E5E7EB;
+      background: #FFFFFF;
+      font-size: 13px;
+      color: #1F2937;
+      font-weight: 500;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .pagination-size-select:focus {
+      border-color: var(--sky);
     }
   </style>
 </head>
@@ -1731,6 +1836,7 @@
             <div class="spinner"></div>
           </div>
         </div>
+        <div id="paginationContainer"></div>
       </div>
     </main>
   </div>
@@ -2196,6 +2302,7 @@
       try {
         const res = await apiFetch(url);
         allBumds = res.data || [];
+        bumdCurrentPage = 1;
         renderTable();
         updateKPIs();
       } catch (err) {
@@ -2262,13 +2369,27 @@
       if (formSelect) formSelect.innerHTML += '<option value="__NEW__">+ Tambah Sektor Baru...</option>';
     }
 
+    let bumdCurrentPage = 1;
+    let bumdPageSize = 10;
+
     function renderTable() {
       const container = document.getElementById('tableContainer');
+      const pagContainer = document.getElementById('paginationContainer');
 
       if (allBumds.length === 0) {
         container.innerHTML = renderEmpty('Belum ada data BUMD');
+        if (pagContainer) pagContainer.innerHTML = '';
         return;
       }
+
+      const totalItems = allBumds.length;
+      const totalPages = Math.ceil(totalItems / bumdPageSize) || 1;
+      if (bumdCurrentPage > totalPages) bumdCurrentPage = totalPages;
+      if (bumdCurrentPage < 1) bumdCurrentPage = 1;
+
+      const startIndex = (bumdCurrentPage - 1) * bumdPageSize;
+      const endIndex = Math.min(startIndex + bumdPageSize, totalItems);
+      const pageItems = allBumds.slice(startIndex, endIndex);
 
       let html = `
         <table>
@@ -2287,7 +2408,8 @@
       const isBpbumd = currentUser && currentUser.company_type === 'bpbumd';
       const isLainnya = currentUser && currentUser.company_type === 'lainnya';
 
-      allBumds.forEach((bumd, i) => {
+      pageItems.forEach((bumd, i) => {
+        const globalIdx = startIndex + i;
         const users = bumd.users || [];
         let chipsHtml = users.map(u => {
           const isMe = currentUser && Number(u.user_id) === Number(currentUser.id);
@@ -2340,7 +2462,7 @@
 
         html += `
           <tr>
-            <td style="color:var(--slate-400);font-weight:600">${i + 1}</td>
+            <td style="color:var(--slate-400);font-weight:600">${globalIdx + 1}</td>
             <td>
               <div class="bumd-name" style="display:flex;align-items:center;gap:10px">
                 ${bumd.logo
@@ -2367,6 +2489,88 @@
 
       html += '</tbody></table>';
       container.innerHTML = html;
+
+      renderBumdPagination(totalItems, totalPages, startIndex, endIndex);
+    }
+
+    function renderBumdPagination(totalItems, totalPages, startIndex, endIndex) {
+      const pagContainer = document.getElementById('paginationContainer');
+      if (!pagContainer) return;
+
+      if (totalItems === 0) {
+        pagContainer.innerHTML = '';
+        return;
+      }
+
+      let buttonsHtml = '';
+
+      buttonsHtml += `
+        <button class="pg-btn" onclick="changeBumdPage(${bumdCurrentPage - 1})" ${bumdCurrentPage === 1 ? 'disabled' : ''}>
+          ‹ Back
+        </button>
+      `;
+
+      const pages = [];
+      if (totalPages <= 7) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        if (bumdCurrentPage <= 4) {
+          pages.push(1, 2, 3, 4, 5, '...', totalPages);
+        } else if (bumdCurrentPage >= totalPages - 3) {
+          pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+        } else {
+          pages.push(1, '...', bumdCurrentPage - 1, bumdCurrentPage, bumdCurrentPage + 1, '...', totalPages);
+        }
+      }
+
+      pages.forEach(p => {
+        if (p === '...') {
+          buttonsHtml += `<span class="pg-btn dots">•••</span>`;
+        } else {
+          buttonsHtml += `
+            <button class="pg-btn num ${p === bumdCurrentPage ? 'active' : ''}" onclick="changeBumdPage(${p})">
+              ${p}
+            </button>
+          `;
+        }
+      });
+
+      buttonsHtml += `
+        <button class="pg-btn" onclick="changeBumdPage(${bumdCurrentPage + 1})" ${bumdCurrentPage === totalPages ? 'disabled' : ''}>
+          Next ›
+        </button>
+      `;
+
+      pagContainer.innerHTML = `
+        <div class="pagination-bar">
+          <div class="pagination-info">
+            ${startIndex + 1}-${endIndex} dari ${totalItems} BUMD
+          </div>
+          <div class="pagination-buttons">
+            ${buttonsHtml}
+          </div>
+          <div class="pagination-size-wrap">
+            <span>Result per page</span>
+            <select class="pagination-size-select" onchange="changeBumdPageSize(this.value)">
+              <option value="10" ${bumdPageSize === 10 ? 'selected' : ''}>10</option>
+              <option value="25" ${bumdPageSize === 25 ? 'selected' : ''}>25</option>
+              <option value="50" ${bumdPageSize === 50 ? 'selected' : ''}>50</option>
+              <option value="100" ${bumdPageSize === 100 ? 'selected' : ''}>100</option>
+            </select>
+          </div>
+        </div>
+      `;
+    }
+
+    function changeBumdPage(page) {
+      bumdCurrentPage = page;
+      renderTable();
+    }
+
+    function changeBumdPageSize(size) {
+      bumdPageSize = parseInt(size, 10);
+      bumdCurrentPage = 1;
+      renderTable();
     }
 
     function renderEmpty(msg) {
