@@ -1651,9 +1651,14 @@
       .summary-row {
         grid-template-columns: 1fr 1fr;
       }
-      .brand-divider, .brand-title, .brand-sub, .nav-tabs {
+
+      .brand-divider,
+      .brand-title,
+      .brand-sub,
+      .nav-tabs {
         display: none;
       }
+
       .nav-search {
         max-width: 200px;
       }
@@ -1675,7 +1680,7 @@
       .brand-text .t2 {
         display: none;
       }
-      
+
       .nav-search {
         order: 3;
         max-width: 100%;
@@ -1700,9 +1705,9 @@
         justify-content: space-around;
         align-items: center;
         z-index: 200;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
       }
-      
+
       .icon-sidebar-bottom {
         flex-direction: row;
         margin-top: 0;
@@ -1716,7 +1721,8 @@
       }
 
       .main-area {
-        padding: 16px 16px 80px 16px; /* space for bottom nav */
+        padding: 16px 16px 80px 16px;
+        /* space for bottom nav */
       }
     }
 
@@ -1843,6 +1849,7 @@
       max-width: 100%;
       overflow-x: auto;
     }
+
     .excel-table-container table {
       border-collapse: collapse;
       min-width: 100%;
@@ -1851,6 +1858,7 @@
       color: var(--slate-800);
       background: #fff;
     }
+
     .excel-table-container table th,
     .excel-table-container table td {
       border: 1px solid var(--slate-300);
@@ -1858,15 +1866,18 @@
       text-align: left;
       white-space: nowrap;
     }
+
     .excel-table-container table td[contenteditable="true"] {
       cursor: cell;
     }
+
     .excel-table-container table td[contenteditable="true"]:focus {
       outline: 2px solid var(--primary) !important;
       outline-offset: -1px;
       background-color: #EFF6FF !important;
       color: var(--slate-900) !important;
     }
+
     .excel-table-container table tr:first-child th,
     .excel-table-container table tr:first-child td {
       position: sticky;
@@ -1875,14 +1886,17 @@
       background: var(--slate-100);
       font-weight: 600;
       color: var(--slate-700);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
+
     .excel-table-container table tr:nth-child(even):not(:first-child) {
       background-color: var(--slate-50);
     }
+
     .excel-table-container table tr:hover:not(:first-child) {
       background-color: var(--blue-50);
     }
+
     .excel-tab-btn {
       padding: 6px 14px;
       border-radius: 6px;
@@ -1894,13 +1908,15 @@
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.15s ease;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
+
     .excel-tab-btn:hover:not(.active) {
       background: #f1f5f9 !important;
       color: #0f172a !important;
       border-color: #94a3b8 !important;
     }
+
     .excel-tab-btn.active {
       background: #0284c7 !important;
       color: #ffffff !important;
@@ -1910,26 +1926,34 @@
     }
 
     /* ── DOCX PREVIEW STYLES ── */
-    .docx-preview-pane h1, .docx-preview-pane h2, .docx-preview-pane h3 {
+    .docx-preview-pane h1,
+    .docx-preview-pane h2,
+    .docx-preview-pane h3 {
       color: var(--slate-900);
       margin-top: 1.2em;
       margin-bottom: 0.5em;
       font-weight: 700;
     }
+
     .docx-preview-pane p {
       margin-bottom: 0.8em;
       color: var(--slate-700);
     }
+
     .docx-preview-pane table {
       border-collapse: collapse;
       width: 100%;
       margin: 1em 0;
     }
-    .docx-preview-pane table td, .docx-preview-pane table th {
+
+    .docx-preview-pane table td,
+    .docx-preview-pane table th {
       border: 1px solid var(--slate-300);
       padding: 8px 12px;
     }
-    .docx-preview-pane ul, .docx-preview-pane ol {
+
+    .docx-preview-pane ul,
+    .docx-preview-pane ol {
       padding-left: 24px;
       margin-bottom: 1em;
     }
@@ -2148,6 +2172,7 @@
       border-color: var(--slate-200);
       cursor: not-allowed;
     }
+
     .chip-mapping-pic,
     .btn-see-mapping-chip {
       display: inline-flex;
@@ -2199,6 +2224,7 @@
       justify-content: center;
       flex-shrink: 0;
     }
+
     #picMappingTableBody tr.highlight-row {
       background: #F0F9FF !important;
     }
@@ -2387,28 +2413,32 @@
                 <circle id="donutSelesai" cx="36" cy="36" r="28" fill="none" stroke="#10B981" stroke-width="9"
                   stroke-linecap="round" transform="rotate(-90 36 36)" />
               </svg>
-              <div class="donut-label" id="donutLabel" style="font-size: 18px;">0%</div>
+              <div class="donut-label" id="donutLabel" style="font-size: 14px;">0%</div>
             </div>
             <div class="donut-legend">
               <div class="dl-row">
-                <div class="dl-dot" style="background:#10B981"></div>Selesai (100%)<div class="dl-val" id="legSelesai">0 (0%)
+                <div class="dl-dot" style="background:#10B981"></div>Selesai (100%)<div class="dl-val" id="legSelesai">0
+                  (0%)
                 </div>
               </div>
               <div class="dl-row">
-                <div class="dl-dot" style="background:#6366F1"></div>Verifikasi (65%)<div class="dl-val" id="legVerifikasi">0 (0%)
+                <div class="dl-dot" style="background:#6366F1"></div>Verifikasi (65%)<div class="dl-val"
+                  id="legVerifikasi">0 (0%)
                 </div>
               </div>
               <div class="dl-row">
-                <div class="dl-dot" style="background:#0EA5E9"></div>Pengajuan (30%)<div class="dl-val" id="legPengajuan">0 (0%)
+                <div class="dl-dot" style="background:#0EA5E9"></div>Pengajuan (30%)<div class="dl-val"
+                  id="legPengajuan">0 (0%)
                 </div>
               </div>
               <div class="dl-row">
-                <div class="dl-dot" style="background:#EF4444"></div>Ditolak (0%)<div class="dl-val" id="legDitolak">0 (0%)
+                <div class="dl-dot" style="background:#EF4444"></div>Ditolak (0%)<div class="dl-val" id="legDitolak">0
+                  (0%)
                 </div>
               </div>
               <div class="dl-row">
-                <div class="dl-dot" style="background:#CBD5E1"></div>Belum Mulai (0%)<div
-                  class="dl-val" id="legBelum">0 (0%)</div>
+                <div class="dl-dot" style="background:#CBD5E1"></div>Belum Mulai (0%)<div class="dl-val" id="legBelum">0
+                  (0%)</div>
               </div>
             </div>
           </div>
@@ -2423,7 +2453,11 @@
           <div class="kpi-sub" id="picRole">Kepala Strategi dan Perencanaan</div>
           <div style="margin-top:8px;">
             <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(getAPComboString())">
-              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                <path
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
               Lihat Mapping PIC
             </button>
           </div>
@@ -2826,26 +2860,41 @@
             </select>
           </div>
           <div class="form-group">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
               <label class="form-label" style="margin-bottom:0;">Verifikator</label>
               <div style="display:flex; gap:6px; align-items:center;">
-                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(document.getElementById('sraPic')?.value)" title="Lihat pemetaan PIC & Verifikator">
-                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <button type="button" class="btn-see-mapping-chip"
+                  onclick="openPICMappingModal(document.getElementById('sraPic')?.value)"
+                  title="Lihat pemetaan PIC & Verifikator">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                    <path
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
                   Lihat Mapping PIC
                 </button>
-                <button type="button" class="btn-sync-verif" onclick="syncSRAVerifikatorFromSelectedPIC()" title="Sinkronkan ulang verifikator sesuai Mapping PIC" style="background:#F0F9FF; border:1px solid #BAE6FD; color:#0284C7; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; transition:all 0.15s;">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                <button type="button" class="btn-sync-verif" onclick="syncSRAVerifikatorFromSelectedPIC()"
+                  title="Sinkronkan ulang verifikator sesuai Mapping PIC"
+                  style="background:#F0F9FF; border:1px solid #BAE6FD; color:#0284C7; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; transition:all 0.15s;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M23 4v6h-6M1 20v-6h6" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                  </svg>
                   Sinkronkan
                 </button>
               </div>
             </div>
-            <div id="sraUnmappedNotice" style="display:none; margin-bottom:10px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
-              💡 <strong>Informasi:</strong> PIC ini belum memiliki mapping verifikator. Silakan tentukan Verifikator 1 & 2 secara manual di bawah ini.
+            <div id="sraUnmappedNotice"
+              style="display:none; margin-bottom:10px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
+              💡 <strong>Informasi:</strong> PIC ini belum memiliki mapping verifikator. Silakan tentukan Verifikator 1
+              & 2 secara manual di bawah ini.
             </div>
             <div id="sraApproversContainer">
               <!-- Dynamic approver rows injected by JS -->
             </div>
-            <button type="button" id="btnAddSRAApprover" class="btn-add" style="margin-top:8px; width:100%; justify-content:center; display:none;" onclick="addApproverRow()">
+            <button type="button" id="btnAddSRAApprover" class="btn-add"
+              style="margin-top:8px; width:100%; justify-content:center; display:none;" onclick="addApproverRow()">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -2985,7 +3034,8 @@
               </label>
               <label
                 style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
-                <input type="radio" name="editUploadType" value="tindak_lanjut" onchange="toggleEditUploadType('tindak_lanjut')"> 
+                <input type="radio" name="editUploadType" value="tindak_lanjut"
+                  onchange="toggleEditUploadType('tindak_lanjut')">
                 Tindak Lanjut Saja
               </label>
             </div>
@@ -3022,38 +3072,56 @@
           <div class="form-group">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
               <label class="form-label" style="margin-bottom:0;">Sub Rencana Aksi</label>
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; font-weight:600; color:var(--slate-700);">
-                <input type="checkbox" id="cbEditSesuaiRenaksi" onchange="toggleEditSesuaiRenaksi(this.checked)" style="width:16px; height:16px; accent-color:var(--sky);">
+              <label
+                style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; font-weight:600; color:var(--slate-700);">
+                <input type="checkbox" id="cbEditSesuaiRenaksi" onchange="toggleEditSesuaiRenaksi(this.checked)"
+                  style="width:16px; height:16px; accent-color:var(--sky);">
                 Sesuai Rencana Aksi (Tanpa SRA)
               </label>
             </div>
             <select class="form-select" id="editDocSRAId" onchange="onEditSRAChanged(this.value)">
               <option value="">Pilih Sub Rencana Aksi terkait</option>
             </select>
-            <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih Sub Rencana Aksi atau centang 'Sesuai Rencana Aksi' jika dokumen ini ditujukan untuk Rencana Aksi ini secara langsung.</div>
+            <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih Sub Rencana Aksi atau centang
+              'Sesuai Rencana Aksi' jika dokumen ini ditujukan untuk Rencana Aksi ini secara langsung.</div>
 
           </div>
           <div class="form-group" id="editDocVerifikatorGroup">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
               <label class="form-label" style="margin-bottom:0;">Verifikator Dokumen</label>
               <div style="display:flex; gap:6px; align-items:center;">
-                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(getAPComboString())" title="Lihat pemetaan PIC & Verifikator">
-                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(getAPComboString())"
+                  title="Lihat pemetaan PIC & Verifikator">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                    <path
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
                   Lihat Mapping PIC
                 </button>
-                <button type="button" class="btn-sync-verif" onclick="syncEditVerifikatorFromPIC()" title="Sinkronkan ulang verifikator sesuai Mapping PIC" style="background:#F0F9FF; border:1px solid #BAE6FD; color:#0284C7; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; transition:all 0.15s;">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                <button type="button" class="btn-sync-verif" onclick="syncEditVerifikatorFromPIC()"
+                  title="Sinkronkan ulang verifikator sesuai Mapping PIC"
+                  style="background:#F0F9FF; border:1px solid #BAE6FD; color:#0284C7; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; transition:all 0.15s;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M23 4v6h-6M1 20v-6h6" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                  </svg>
                   Sinkronkan
                 </button>
               </div>
             </div>
-            <div id="editDocUnmappedNotice" style="display:none; margin-bottom:10px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
-              💡 <strong>Informasi:</strong> PIC ini belum memiliki mapping verifikator. Silakan tentukan Verifikator 1 & 2 secara manual di bawah ini.
+            <div id="editDocUnmappedNotice"
+              style="display:none; margin-bottom:10px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
+              💡 <strong>Informasi:</strong> PIC ini belum memiliki mapping verifikator. Silakan tentukan Verifikator 1
+              & 2 secara manual di bawah ini.
             </div>
             <div id="editDocApproversContainer">
               <!-- Dynamic approver rows injected by JS -->
             </div>
-            <button type="button" id="btnAddEditDocApprover" class="btn-add" style="margin-top:8px; width:100%; justify-content:center; display:none;" onclick="addEditDocApproverRow()">
+            <button type="button" id="btnAddEditDocApprover" class="btn-add"
+              style="margin-top:8px; width:100%; justify-content:center; display:none;"
+              onclick="addEditDocApproverRow()">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -3108,12 +3176,15 @@
               </label>
               <label
                 style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--slate-700);">
-                <input type="radio" name="uploadType" value="tindak_lanjut" onchange="toggleUploadType('tindak_lanjut')"> Tindak Lanjut Saja
+                <input type="radio" name="uploadType" value="tindak_lanjut"
+                  onchange="toggleUploadType('tindak_lanjut')"> Tindak Lanjut Saja
               </label>
             </div>
           </div>
-          <div id="uploadTindakLanjutNotice" style="display:none; margin-bottom:16px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:10px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
-            💡 <strong>Tindak Lanjut Saja:</strong> Pengunggahan file/tautan dapat dilewati saat ini. Dokumen akan tetap dicatat sebagai unggahan resmi dan dapat dilengkapi nanti.
+          <div id="uploadTindakLanjutNotice"
+            style="display:none; margin-bottom:16px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:10px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
+            💡 <strong>Tindak Lanjut Saja:</strong> Pengunggahan file/tautan dapat dilewati saat ini. Dokumen akan tetap
+            dicatat sebagai unggahan resmi dan dapat dilengkapi nanti.
           </div>
           <div class="form-group" id="uploadFileGroup">
             <label class="form-label">File Dokumen</label>
@@ -3145,38 +3216,55 @@
           <div class="form-group">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
               <label class="form-label" style="margin-bottom:0;">Sub Rencana Aksi</label>
-              <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:var(--primary); font-weight:600;">
-                <input type="checkbox" id="cbSesuaiRenaksi" onchange="toggleSesuaiRenaksi(this.checked)" style="cursor:pointer;" />
+              <label
+                style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:var(--primary); font-weight:600;">
+                <input type="checkbox" id="cbSesuaiRenaksi" onchange="toggleSesuaiRenaksi(this.checked)"
+                  style="cursor:pointer;" />
                 Sesuai Rencana Aksi (Tanpa SRA)
               </label>
             </div>
             <select class="form-select" id="uploadDocSRAId" onchange="onUploadSRAChanged(this.value)">
               <option value="">Pilih Sub Rencana Aksi terkait</option>
             </select>
-            <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih Sub Rencana Aksi atau centang 'Sesuai Rencana Aksi' jika dokumen ini ditujukan untuk Rencana Aksi ini secara langsung.</div>
+            <div style="font-size: 11px; color: var(--slate-400); margin-top: 4px;">Pilih Sub Rencana Aksi atau centang
+              'Sesuai Rencana Aksi' jika dokumen ini ditujukan untuk Rencana Aksi ini secara langsung.</div>
 
           </div>
           <div class="form-group" id="docVerifikatorGroup">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
               <label class="form-label" style="margin-bottom:0;">Verifikator Dokumen</label>
               <div style="display:flex; gap:6px; align-items:center;">
-                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(getAPComboString())" title="Lihat pemetaan PIC & Verifikator">
-                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(getAPComboString())"
+                  title="Lihat pemetaan PIC & Verifikator">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                    <path
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
                   Lihat Mapping PIC
                 </button>
-                <button type="button" class="btn-sync-verif" onclick="syncVerifikatorFromPIC()" title="Sinkronkan ulang verifikator sesuai Mapping PIC" style="background:#F0F9FF; border:1px solid #BAE6FD; color:#0284C7; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; transition:all 0.15s;">
-                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                <button type="button" class="btn-sync-verif" onclick="syncVerifikatorFromPIC()"
+                  title="Sinkronkan ulang verifikator sesuai Mapping PIC"
+                  style="background:#F0F9FF; border:1px solid #BAE6FD; color:#0284C7; font-size:11px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:6px; transition:all 0.15s;">
+                  <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M23 4v6h-6M1 20v-6h6" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                  </svg>
                   Sinkronkan
                 </button>
               </div>
             </div>
-            <div id="docUnmappedNotice" style="display:none; margin-bottom:10px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
-              💡 <strong>Informasi:</strong> PIC ini belum memiliki mapping verifikator. Silakan tentukan Verifikator 1 & 2 secara manual di bawah ini.
+            <div id="docUnmappedNotice"
+              style="display:none; margin-bottom:10px; background:#F0F9FF; border:1px solid #BAE6FD; border-radius:6px; padding:8px 12px; font-size:12px; color:#0369A1; line-height:1.4;">
+              💡 <strong>Informasi:</strong> PIC ini belum memiliki mapping verifikator. Silakan tentukan Verifikator 1
+              & 2 secara manual di bawah ini.
             </div>
             <div id="docApproversContainer">
               <!-- Dynamic approver rows injected by JS -->
             </div>
-            <button type="button" id="btnAddDocApprover" class="btn-add" style="margin-top:8px; width:100%; justify-content:center; display:none;" onclick="addDocApproverRow()">
+            <button type="button" id="btnAddDocApprover" class="btn-add"
+              style="margin-top:8px; width:100%; justify-content:center; display:none;" onclick="addDocApproverRow()">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
@@ -3307,10 +3395,13 @@
   <!-- MODAL LIHAT MAPPING PIC -->
   <div class="modal-overlay" id="modalPicMapping">
     <div class="modal-container" style="max-width: 760px; padding: 24px; border-radius: 16px; background: white;">
-      <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div class="modal-header"
+        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <div>
-          <h3 style="font-size:16px; font-weight:700; color:var(--slate-800); margin:0;">Mapping Penanggung Jawab (PIC) & Verifikator</h3>
-          <div style="font-size:12px; color:var(--slate-500); margin-top:2px;">Daftar pemetaan otomatis Verifikator 1 & 2 berdasarkan Penanggung Jawab</div>
+          <h3 style="font-size:16px; font-weight:700; color:var(--slate-800); margin:0;">Mapping Penanggung Jawab (PIC)
+            & Verifikator</h3>
+          <div style="font-size:12px; color:var(--slate-500); margin-top:2px;">Daftar pemetaan otomatis Verifikator 1 &
+            2 berdasarkan Penanggung Jawab</div>
         </div>
         <button type="button" class="modal-close" onclick="closePICMappingModal()">&times;</button>
       </div>
@@ -3319,7 +3410,7 @@
           <thead>
             <tr style="background:#F8FAFC; border-bottom:1px solid #E2E8F0; color:#64748B; font-weight:600;">
               <th style="padding:12px 16px;">Penanggung Jawab (PIC)</th>
-                                        <th style="padding:12px 16px;">PIC Lainnya</th>
+              <th style="padding:12px 16px;">PIC Lainnya</th>
               <th style="padding:12px 16px;">Verifikator 1</th>
               <th style="padding:12px 16px;">Verifikator 2</th>
             </tr>
@@ -3487,7 +3578,7 @@
     // ── API HELPERS ──────────────────────────────────────────────
     async function apiFetch(url, options = {}) {
       let finalOptions = { ...options };
-      
+
       // Bypass WAF: Auto encode payload for POST and PUT
       if (options.body && typeof options.body === 'string' && (options.method === 'POST' || options.method === 'PUT' || !options.method)) {
         try {
@@ -3497,7 +3588,7 @@
             ...options.headers,
             'X-Encoded-Payload': 'true'
           };
-        } catch(e) {
+        } catch (e) {
           console.error("Base64 encode failed:", e);
         }
       }
@@ -4365,7 +4456,7 @@
 
       // Clean up raw dates e.g. "Wed Mar 31 2027 00:00:00 GMT+0700 (Western Indonesia Time)" -> "31 Mar 2027"
       str = str.replace(/"[A-Z][a-z]{2} ([A-Z][a-z]{2}) (\d{2}) (\d{4}) \d{2}:\d{2}:\d{2} GMT[+\-]\d{4} \([^)]+\)"/g, (match, month, day, year) => {
-        const months = { Jan:'Jan', Feb:'Feb', Mar:'Mar', Apr:'Apr', May:'Mei', Jun:'Jun', Jul:'Jul', Aug:'Agus', Sep:'Sep', Oct:'Okt', Nov:'Nov', Dec:'Des' };
+        const months = { Jan: 'Jan', Feb: 'Feb', Mar: 'Mar', Apr: 'Apr', May: 'Mei', Jun: 'Jun', Jul: 'Jul', Aug: 'Agus', Sep: 'Sep', Oct: 'Okt', Nov: 'Nov', Dec: 'Des' };
         return `"${day} ${months[month] || month} ${year}"`;
       });
 
@@ -4462,12 +4553,12 @@
         let restoreBtnHtml = '';
         if (a.metadata) {
           let meta = {};
-          try { meta = typeof a.metadata === 'string' ? JSON.parse(a.metadata) : a.metadata; } catch(e) {}
+          try { meta = typeof a.metadata === 'string' ? JSON.parse(a.metadata) : a.metadata; } catch (e) { }
           if (meta.deleted_sub_action_plan_id) {
-             restoreBtnHtml = `<button onclick="restoreSubActionPlan(${meta.deleted_sub_action_plan_id})" class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-top:8px;">Pulihkan</button>`;
+            restoreBtnHtml = `<button onclick="restoreSubActionPlan(${meta.deleted_sub_action_plan_id})" class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-top:8px;">Pulihkan</button>`;
           }
           if (meta.deleted_action_plan_id) {
-             restoreBtnHtml = `<button onclick="restoreActionPlan(${meta.deleted_action_plan_id})" class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-top:8px;">Pulihkan</button>`;
+            restoreBtnHtml = `<button onclick="restoreActionPlan(${meta.deleted_action_plan_id})" class="btn btn-outline" style="padding:4px 8px; font-size:11px; margin-top:8px;">Pulihkan</button>`;
           }
         }
         return `
@@ -4705,7 +4796,7 @@
           if (rawJson.success && rawJson.data && Array.isArray(rawJson.data) && rawJson.data.length > 0) {
             defaultApprovers = rawJson.data.map(id => String(id));
           }
-        } catch(e) {
+        } catch (e) {
           console.error("[SYNC-SRA-VERIF] ERROR:", e);
         }
       }
@@ -5219,7 +5310,7 @@
           if (rawJson.success && rawJson.data && Array.isArray(rawJson.data) && rawJson.data.length > 0) {
             defaultApprovers = rawJson.data.map(id => String(id));
           }
-        } catch(e) {
+        } catch (e) {
           console.error("[SYNC-EDIT-VERIF] ERROR:", e);
         }
       }
@@ -5467,7 +5558,7 @@
       const sraDropdown = document.getElementById('uploadDocSRAId');
       const cbSesuai = document.getElementById('cbSesuaiRenaksi');
       sraDropdown.innerHTML = '<option value="">Pilih Sub Rencana Aksi terkait</option>';
-      
+
       let hasSRA = false;
       if (currentData && currentData.sub_rencana_aksi && currentData.sub_rencana_aksi.length > 0) {
         hasSRA = true;
@@ -5591,7 +5682,7 @@
           if (rawJson.success && rawJson.data && Array.isArray(rawJson.data) && rawJson.data.length > 0) {
             defaultApprovers = rawJson.data.map(id => String(id));
           }
-        } catch(e) {
+        } catch (e) {
           console.error("[SYNC-VERIF] ERROR:", e);
         }
       }
@@ -5611,7 +5702,7 @@
     function getAPComboString() {
       const mainId = currentData?.cards?.pic_utama?.user_id || currentData?.action_plan?.pic_user_id;
       if (!mainId) return 'unassigned';
-      const addIds = (currentData?.action_plan?.additional_pic_user_ids || []).map(Number).sort((a,b)=>a-b).join(',');
+      const addIds = (currentData?.action_plan?.additional_pic_user_ids || []).map(Number).sort((a, b) => a - b).join(',');
       return mainId + '|' + addIds;
     }
 
@@ -5657,14 +5748,14 @@
               `;
             };
 
-            
-        let additionalPicsHtml = '-';
-        if (item.additional_pics && item.additional_pics.length > 0) {
-          additionalPicsHtml = '<div style="display:flex; flex-direction:column; gap:4px;">' + 
-            item.additional_pics.map(apic => renderChip(apic)).join('') + 
-            '</div>';
-        }
-        return `
+
+            let additionalPicsHtml = '-';
+            if (item.additional_pics && item.additional_pics.length > 0) {
+              additionalPicsHtml = '<div style="display:flex; flex-direction:column; gap:4px;">' +
+                item.additional_pics.map(apic => renderChip(apic)).join('') +
+                '</div>';
+            }
+            return `
               <tr class="${isHighlight ? 'active-filter-row highlight-row' : ''}" style="border-bottom: 1px solid #F1F5F9;">
                 <td style="padding: 12px 16px;">
                   <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:4px;">
@@ -6037,7 +6128,7 @@
         for (let i = 0; i < slideFiles.length; i++) {
           const xmlStr = await zip.files[slideFiles[i]].async('text');
           const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
-          
+
           const textNodes = xmlDoc.getElementsByTagName('a:t');
           let textList = [];
           for (let j = 0; j < textNodes.length; j++) {
@@ -6047,8 +6138,8 @@
 
           let slideBody = '';
           if (textList.length > 0) {
-            slideBody = textList.map((t, idx) => idx === 0 
-              ? `<h3 style="margin-top:0; color:var(--slate-900); font-size:17px; font-weight:700;">${t}</h3>` 
+            slideBody = textList.map((t, idx) => idx === 0
+              ? `<h3 style="margin-top:0; color:var(--slate-900); font-size:17px; font-weight:700;">${t}</h3>`
               : `<p style="margin:6px 0; color:var(--slate-700); font-size:13px; line-height:1.5;">${t}</p>`
             ).join('');
           } else {
@@ -6202,7 +6293,7 @@
           throw new Error(`Gagal mengunduh file (${res.status})`);
         }
         const arrayBuffer = await res.arrayBuffer();
-        
+
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
           throw new Error('File Excel tidak memiliki lembar kerja (sheet)');
