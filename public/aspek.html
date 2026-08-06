@@ -3578,7 +3578,8 @@
         document.getElementById('addAPTarget').value = Math.round(foundAP.target_percentage);
 
         selectedFormPicUserId = foundAP.pic_user_id ? Number(foundAP.pic_user_id) : null;
-        selectedFormAdditionalPicUserIds = (foundAP.additional_pic_user_ids || []).map(Number);
+        const addPicRaw = foundAP.additional_pic_user_ids || (foundAP.additional_pics || []).map(a => a.id);
+        selectedFormAdditionalPicUserIds = (addPicRaw || []).map(Number);
 
         if (!selectedFormPicUserId) {
           selectedFormComboString = 'unassigned';
@@ -4434,6 +4435,8 @@
             return;
           }
           tbody.innerHTML = json.data.map(item => {
+            const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
+            const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
             const isHighlight = highlightPicId && (
               String(item.combo_string) === String(highlightPicId) ||
               (!String(highlightPicId).includes('|') && String(item.combo_string) === String(highlightPicId) + '|')

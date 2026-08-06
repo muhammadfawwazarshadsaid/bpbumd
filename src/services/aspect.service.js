@@ -526,6 +526,7 @@ async function getActionPlans(client, aspectId, userId) {
         ap.status,
         ap.weight,
         ap.pic_user_id,
+        ap.additional_pic_user_ids,
         u.name AS pic_name,
         u.position AS pic_position,
         ap.target_end_date,
@@ -642,6 +643,7 @@ async function getSubActionPlans(client, aspectId) {
         sap.name AS sub_action_plan_name,
         sap.status,
         sap.pic_user_id,
+        sap.additional_pic_user_ids,
         u.name AS pic_name,
         (sap.pic_user_id::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(sap.additional_pic_user_ids) ORDER BY 1), ','), '')) AS combo_string,
         (
