@@ -136,11 +136,14 @@ async function importToCompany(user, companyId, rows, subApConfig = null, verifi
       // 4. Action Plan
       const targetEndDate = row.target_end_date ? row.target_end_date : null;
       const targetStartDate = row.target_start_date ? row.target_start_date : null;
+      const additionalPicUserIds = (row.additional_pic_user_ids && Array.isArray(row.additional_pic_user_ids) && row.additional_pic_user_ids.length > 0)
+        ? row.additional_pic_user_ids
+        : null;
 
       const insertAp = await client.query(
         `INSERT INTO action_plans 
-          (activity_group_id, name, code_order, target_percentage, output, indicator, pic_user_id, start_date, target_end_date, status)
-         VALUES ($1, $2, $3, 100, $4, $5, $6, $7, $8, 'belum mulai')
+          (activity_group_id, name, code_order, target_percentage, output, indicator, pic_user_id, start_date, target_end_date, status, additional_pic_user_ids)
+         VALUES ($1, $2, $3, 100, $4, $5, $6, $7, $8, 'belum mulai', $9)
          RETURNING id`,
         [
           agId,
@@ -150,7 +153,8 @@ async function importToCompany(user, companyId, rows, subApConfig = null, verifi
           row.indicator || null,
           row.pic_user_id || null,
           targetStartDate,
-          targetEndDate
+          targetEndDate,
+          additionalPicUserIds
         ]
       );
       const apId = insertAp.rows[0].id;
@@ -192,9 +196,9 @@ async function importToCompany(user, companyId, rows, subApConfig = null, verifi
           }
 
           const insertSubAp = await client.query(
-            `INSERT INTO sub_action_plans (action_plan_id, name, status, submitted_by_user_id, pic_user_id) 
-             VALUES ($1, $2, 'belum mulai', NULL, $3) RETURNING id`,
-            [apId, sub_ap.trim(), subApPic]
+            `INSERT INTO sub_action_plans (action_plan_id, name, status, submitted_by_user_id, pic_user_id, additional_pic_user_ids) 
+             VALUES ($1, $2, 'belum mulai', NULL, $3, $4) RETURNING id`,
+            [apId, sub_ap.trim(), subApPic, additionalPicUserIds]
           );
           const subApId = insertSubAp.rows[0].id;
 

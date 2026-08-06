@@ -120,6 +120,7 @@ async function getAspectCards(client, aspectId) {
       WITH sub_action_plan_rows AS (
         SELECT
           sap.id,
+          sap.action_plan_id,
           sap.status AS sap_status,
           CASE 
             WHEN sap.status = 'selesai' THEN 
@@ -127,7 +128,13 @@ async function getAspectCards(client, aspectId) {
             WHEN ap.status = 'terlambat' THEN 'terlambat'
             WHEN sap.status IN ('pengajuan', 'verifikasi', 'ditolak') THEN 'dalam_progres'
             ELSE 'belum_mulai'
-          END AS effective_status
+          END AS effective_status,
+          CASE
+            WHEN sap.status = 'pengajuan' THEN 30
+            WHEN sap.status = 'verifikasi' THEN 65
+            WHEN sap.status = 'selesai' THEN 100
+            ELSE 0
+          END AS score
         FROM sub_action_plans sap
         JOIN action_plans ap
           ON ap.id = sap.action_plan_id
@@ -147,9 +154,47 @@ async function getAspectCards(client, aspectId) {
         JOIN activity_groups ag ON ag.id = ap.activity_group_id
         JOIN strategies s ON s.id = ag.strategy_id
         WHERE s.aspect_id = $1 AND ap.deleted_at IS NULL
+      ),
+      ap_dyn AS (
+        SELECT action_plan_id, AVG(score) AS ap_prog
+        FROM sub_action_plan_rows
+        GROUP BY action_plan_id
+      ),
+      ag_dyn AS (
+        SELECT
+          ag.id AS activity_group_id, ag.strategy_id,
+          SUM(COALESCE(ad.ap_prog, 0) * COALESCE(ap.weight, 0)) / NULLIF(SUM(COALESCE(ap.weight, 0)), 0) AS ag_prog_weighted,
+          AVG(COALESCE(ad.ap_prog, 0)) AS ag_prog_unweighted,
+          SUM(COALESCE(ap.weight, 0)) AS sum_weight
+        FROM action_plans ap
+        JOIN ap_dyn ad ON ad.action_plan_id = ap.id
+        JOIN activity_groups ag ON ag.id = ap.activity_group_id
+        WHERE ap.deleted_at IS NULL
+        GROUP BY ag.id, ag.strategy_id
+      ),
+      strat_dyn AS (
+        SELECT
+          s.id AS strategy_id, s.aspect_id,
+          SUM(COALESCE(CASE WHEN ad2.sum_weight > 0 THEN ad2.ag_prog_weighted ELSE ad2.ag_prog_unweighted END, 0) * COALESCE(ag.weight, 0)) / NULLIF(SUM(COALESCE(ag.weight, 0)), 0) AS strat_prog_weighted,
+          AVG(COALESCE(CASE WHEN ad2.sum_weight > 0 THEN ad2.ag_prog_weighted ELSE ad2.ag_prog_unweighted END, 0)) AS strat_prog_unweighted,
+          SUM(COALESCE(ag.weight, 0)) AS sum_weight
+        FROM activity_groups ag
+        JOIN strategies s ON s.id = ag.strategy_id
+        JOIN ag_dyn ad2 ON ad2.activity_group_id = ag.id
+        GROUP BY s.id, s.aspect_id
+      ),
+      aspect_dyn AS (
+        SELECT
+          s.aspect_id,
+          SUM(COALESCE(CASE WHEN sd.sum_weight > 0 THEN sd.strat_prog_weighted ELSE sd.strat_prog_unweighted END, 0) * COALESCE(s.weight, 0)) / NULLIF(SUM(COALESCE(s.weight, 0)), 0) AS asp_prog_weighted,
+          AVG(COALESCE(CASE WHEN sd.sum_weight > 0 THEN sd.strat_prog_weighted ELSE sd.strat_prog_unweighted END, 0)) AS asp_prog_unweighted,
+          SUM(COALESCE(s.weight, 0)) AS sum_weight
+        FROM strategies s
+        JOIN strat_dyn sd ON sd.strategy_id = s.id
+        GROUP BY s.aspect_id
       )
       SELECT
-        (SELECT COALESCE(progress_percentage, 0) FROM aspects WHERE id = $1) AS progress_percentage,
+        ROUND(COALESCE(CASE WHEN adyn.sum_weight > 0 THEN adyn.asp_prog_weighted ELSE adyn.asp_prog_unweighted END, 0), 2) AS progress_percentage,
         (SELECT COALESCE(target_percentage, 0) FROM aspects WHERE id = $1) AS target_percentage,
 
         (
@@ -227,6 +272,8 @@ async function getAspectCards(client, aspectId) {
           FROM action_plan_rows
           WHERE status = 'belum mulai' OR status IS NULL OR status = ''
         )::INT AS belum_mulai_ap
+      FROM aspect_dyn adyn
+      RIGHT JOIN (SELECT $1::BIGINT AS aspect_id) q ON q.aspect_id = adyn.aspect_id
     `,
     [aspectId],
   );
@@ -484,6 +531,16 @@ async function getActionPlans(client, aspectId, userId) {
         ap.target_end_date,
         ap.output,
         ap.indicator,
+        (ap.pic_user_id::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(ap.additional_pic_user_ids) ORDER BY 1), ','), '')) AS combo_string,
+        (
+          SELECT JSON_AGG(json_build_object(
+            'id', apic.id,
+            'name', apic.name,
+            'position', apic.position
+          ))
+          FROM users apic
+          WHERE apic.id = ANY(ap.additional_pic_user_ids)
+        ) AS additional_pics,
 
         COALESCE(ap.progress_percentage, 0) AS progress_percentage,
         COALESCE(ap.target_percentage, 0)   AS target_percentage,
@@ -539,7 +596,8 @@ async function getActionPlans(client, aspectId, userId) {
         ap.output,
         ap.indicator,
         ap.progress_percentage,
-        ap.target_percentage
+        ap.target_percentage,
+        ap.additional_pic_user_ids
       ORDER BY
         ap.code_order,
         ap.id
@@ -562,6 +620,8 @@ async function getActionPlans(client, aspectId, userId) {
     indicator: row.indicator,
     progress_percentage: toNumber(row.progress_percentage),
     target_percentage: toNumber(row.target_percentage),
+    combo_string: row.combo_string || null,
+    additional_pics: row.additional_pics || [],
     total_sub_rencana_aksi: toNumber(row.total_sub_rencana_aksi),
     selesai_sub: toNumber(row.selesai_sub),
     ditolak_sub: toNumber(row.ditolak_sub),
@@ -582,7 +642,17 @@ async function getSubActionPlans(client, aspectId) {
         sap.name AS sub_action_plan_name,
         sap.status,
         sap.pic_user_id,
-        u.name AS pic_name
+        u.name AS pic_name,
+        (sap.pic_user_id::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(sap.additional_pic_user_ids) ORDER BY 1), ','), '')) AS combo_string,
+        (
+          SELECT JSON_AGG(json_build_object(
+            'id', apic.id,
+            'name', apic.name,
+            'position', apic.position
+          ))
+          FROM users apic
+          WHERE apic.id = ANY(sap.additional_pic_user_ids)
+        ) AS additional_pics
       FROM sub_action_plans sap
       JOIN action_plans ap ON ap.id = sap.action_plan_id
       JOIN activity_groups ag ON ag.id = ap.activity_group_id
@@ -601,6 +671,8 @@ async function getSubActionPlans(client, aspectId) {
     status: row.status,
     pic_user_id: row.pic_user_id ? Number(row.pic_user_id) : null,
     pic_name: row.pic_name || null,
+    combo_string: row.combo_string || null,
+    additional_pics: row.additional_pics || [],
   }));
 }
 
@@ -657,6 +729,8 @@ function buildStrategyTree(strategies, activityGroups, actionPlans, subActionPla
       target_percentage: ap.target_percentage,
       needs_my_verification: ap.needs_my_verification,
       ditolak_sub: ap.ditolak_sub,
+      combo_string: ap.combo_string,
+      additional_pics: ap.additional_pics,
       sub_action_plans: sapByAp.get(String(ap.action_plan_id)) || [],
       rencana_aksi: {
         selesai: ap.selesai_sub,

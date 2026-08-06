@@ -2563,8 +2563,10 @@
                           <th style="width: 44px; text-align: center;">
                             <input type="checkbox" id="checkAllPic" onchange="toggleAllPic(this)">
                           </th>
-                          <th style="width: 220px;">Divisi</th>
-                          <th>Assign ke User</th>
+                          <th style="width: 180px;">Divisi</th>
+                          <th style="width: 180px;">Assign ke User</th>
+                          <th style="width: 200px;">Divisi PIC Lainnya</th>
+                          <th>Assign PIC Lainnya ke User</th>
                           <th style="width: 70px; text-align: center;">Jml RA</th>
                         </tr>
                       </thead>
@@ -3138,12 +3140,12 @@
 
     // [Existing logic continues...]
     let picFilterData = [];
-    let selectedPicFilterUserIds = [];
+    let selectedPicFilterCombos = [];
 
     function savePicFilterToStorage() {
       try {
-        if (selectedPicFilterUserIds && selectedPicFilterUserIds.length > 0) {
-          sessionStorage.setItem('bpbumd_pic_filter', JSON.stringify(selectedPicFilterUserIds));
+        if (selectedPicFilterCombos && selectedPicFilterCombos.length > 0) {
+          sessionStorage.setItem('bpbumd_pic_filter', JSON.stringify(selectedPicFilterCombos));
         } else {
           sessionStorage.removeItem('bpbumd_pic_filter');
         }
@@ -3156,7 +3158,7 @@
         if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            selectedPicFilterUserIds = parsed.map(String);
+            selectedPicFilterCombos = parsed.map(String);
           }
         }
       } catch (e) { console.error('Failed to load PIC filter', e); }
@@ -3196,7 +3198,7 @@
       modal.classList.add('open');
       const tbody = document.getElementById('picFilterTableBody');
       if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:32px; color:#64748B;"><div class="spinner-border" style="width:24px; height:24px; border:2px solid #E2E8F0; border-top-color:#0EA5E9; border-radius:50%; animation:spin 0.8s linear infinite; display:inline-block; margin-bottom:8px;"></div><div>Memuat data PIC & Verifikator...</div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:32px; color:#64748B;"><div class="spinner-border" style="width:24px; height:24px; border:2px solid #E2E8F0; border-top-color:#0EA5E9; border-radius:50%; animation:spin 0.8s linear infinite; display:inline-block; margin-bottom:8px;"></div><div>Memuat data PIC & Verifikator...</div></td></tr>';
       }
       try {
         const targetCompanyId = selectedCompanyId || (currentUser?.company_id);
@@ -3208,11 +3210,11 @@
           picFilterData = json.data;
           renderPicFilterTable();
         } else {
-          if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#DC2626;">Gagal memuat data mapping.</td></tr>';
+          if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:#DC2626;">Gagal memuat data mapping.</td></tr>';
         }
       } catch (err) {
         console.error('[PIC-FILTER] FETCH ERROR:', err);
-        if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#DC2626;">Terjadi kesalahan koneksi.</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:#DC2626;">Terjadi kesalahan koneksi.</td></tr>';
       }
     }
 
@@ -3230,7 +3232,7 @@
       const search = (document.getElementById('picFilterSearchInput')?.value || '').toLowerCase().trim();
 
       if (!picFilterData || picFilterData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#64748B;">Belum ada data mapping PIC.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:#64748B;">Belum ada data mapping PIC.</td></tr>';
         return;
       }
 
@@ -3255,24 +3257,25 @@
         const v1Pos = item.verifiers && item.verifiers[0] ? (item.verifiers[0].position || item.verifiers[0].company_name || '') : '';
         const v2Name = item.verifiers && item.verifiers[1] ? item.verifiers[1].name : '';
         const v2Pos = item.verifiers && item.verifiers[1] ? (item.verifiers[1].position || item.verifiers[1].company_name || '') : '';
-        const text = `${item.pic_name || ''} ${item.pic_position || ''} ${item.company_name || ''} ${v1Name} ${v1Pos} ${v2Name} ${v2Pos}`.toLowerCase();
+        const additionalNames = (item.additional_pics || []).map(a => a.name + " " + (a.position || "")).join(" ");
+        const text = `${item.pic_name || ''} ${item.pic_position || ''} ${item.company_name || ''} ${additionalNames} ${v1Name} ${v1Pos} ${v2Name} ${v2Pos}`.toLowerCase();
         return text.includes(search);
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#64748B;">Tidak ada PIC/Verifikator yang cocok.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:#64748B;">Tidak ada PIC/Verifikator yang cocok.</td></tr>';
         return;
       }
 
       tbody.innerHTML = filtered.map(item => {
         const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
         const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
-        const isChecked = selectedPicFilterUserIds.includes(String(item.pic_user_id));
+        const isChecked = selectedPicFilterCombos.includes(item.combo_string);
 
         return `
           <tr class="${isChecked ? 'highlight-row' : ''}" style="border-bottom: 1px solid #F1F5F9;">
             <td style="padding: 12px 14px; text-align: center;">
-              <input type="checkbox" class="pic-filter-checkbox" value="${item.pic_user_id}" ${isChecked ? 'checked' : ''} onchange="updatePicFilterActionBar()" style="width:16px; height:16px; cursor:pointer; accent-color:var(--sky);">
+              <input type="checkbox" class="pic-filter-checkbox" value="${item.combo_string}" ${isChecked ? 'checked' : ''} onchange="updatePicFilterActionBar()" style="width:16px; height:16px; cursor:pointer; accent-color:var(--sky);">
             </td>
             <td style="padding: 12px 16px;">
               <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:4px;">
@@ -3280,6 +3283,9 @@
                 <span style="font-weight: 600; color: #1E293B;">${escapeHtml(item.pic_name)}</span>
               </div>
               <div style="font-size: 11px; color: #64748B; padding-left: 4px;">${escapeHtml(item.pic_position || item.company_name || '-')}</div>
+            </td>
+            <td style="padding: 12px 16px;">
+              ${(item.additional_pics && item.additional_pics.length > 0) ? item.additional_pics.map(apic => renderChip(apic)).join('<div style="height:4px;"></div>') : '<span style="color:#94A3B8; font-style:italic;">-</span>'}
             </td>
             <td style="padding: 12px 16px;">${renderChip(v1)}</td>
             <td style="padding: 12px 16px;">${renderChip(v2)}</td>
@@ -3342,7 +3348,7 @@
     }
 
     function resetPicFilterSelections() {
-      selectedPicFilterUserIds = [];
+      selectedPicFilterCombos = [];
       savePicFilterToStorage();
       const masterCb = document.getElementById('checkAllPicFilter');
       if (masterCb) {
@@ -3363,7 +3369,7 @@
 
     function submitPicFilter() {
       const checkedCbs = document.querySelectorAll('.pic-filter-checkbox:checked');
-      selectedPicFilterUserIds = Array.from(checkedCbs).map(cb => cb.value);
+      selectedPicFilterCombos = Array.from(checkedCbs).map(cb => cb.value);
       savePicFilterToStorage();
 
       closePicFilterModal();
@@ -3372,7 +3378,7 @@
     }
 
     function clearActivePicFilter() {
-      selectedPicFilterUserIds = [];
+      selectedPicFilterCombos = [];
       savePicFilterToStorage();
       const masterCb = document.getElementById('checkAllPicFilter');
       if (masterCb) {
@@ -3390,7 +3396,7 @@
     }
 
     function updatePicFilterUI() {
-      const count = selectedPicFilterUserIds.length;
+      const count = selectedPicFilterCombos.length;
       const btnFilter = document.getElementById('btnFilterPic');
       const badgeCount = document.getElementById('picFilterBadgeCount');
       const tag = document.getElementById('activePicFilterTag');
@@ -3457,8 +3463,8 @@
 
         let url = '/diagnosticreview-demo/api/dashboard/summary';
         const params = new URLSearchParams();
-        if (selectedPicFilterUserIds && selectedPicFilterUserIds.length > 0) {
-          params.append('pic_user_id', selectedPicFilterUserIds.join(','));
+        if (selectedPicFilterCombos && selectedPicFilterCombos.length > 0) {
+          params.append('pic_combos', selectedPicFilterCombos.join(';;'));
         }
         if (params.toString()) url += '?' + params.toString();
 
@@ -4011,6 +4017,9 @@
         if (parsedPic.lead) {
           distinctPics.add(parsedPic.lead);
         }
+        if (parsedPic.support && parsedPic.support.length > 0) {
+          parsedPic.support.forEach(s => distinctPics.add(s));
+        }
 
         const kpiRaw = currentMapping.kpi >= 0 ? row[currentMapping.kpi] : '';
         const kpis = kpiRaw ? kpiRaw.toString().split('\n').map(k => k.replace(/^-/, '').trim()).filter(k => k) : [];
@@ -4032,6 +4041,8 @@
           target_end_date: null, // will be resolved in step 2
           pic_raw: parsedPic.lead,
           pic_user_id: null, // resolved in step 3
+          additional_pic_raws: parsedPic.support || [],
+          additional_pic_user_ids: null, // resolved in step 3
           kpis: kpis,
           sub_aps: sub_aps
         });
@@ -4141,18 +4152,61 @@
     function parsePICCell(text) {
       if (!text) return { lead: '', support: [] };
       const str = text.toString().trim();
+      const rawLines = str.split('\n').map(l => l.trim()).filter(l => l);
+      if (!rawLines.length) return { lead: '', support: [] };
 
-      // If it contains "Lead:" extract it
-      const leadMatch = str.match(/Lead:\s*([^\n]+)/i);
-      if (leadMatch) {
-        return { lead: leadMatch[1].trim(), support: [] };
+      const cleanLine = (l) => {
+        let s = l.replace(/^(lead|support):\s*/i, '').trim();
+        s = s.replace(/^[\d\.\)\-\*\•\s]+/, '').trim();
+        return s;
+      };
+
+      const hasLeadMarker = rawLines.some(l => /lead:/i.test(l));
+      let lead = '';
+      let supportRawList = [];
+
+      if (hasLeadMarker) {
+        const leadLine = rawLines.find(l => /lead:/i.test(l));
+        lead = cleanLine(leadLine);
+        supportRawList = rawLines.filter(l => !/lead:/i.test(l));
+      } else {
+        lead = cleanLine(rawLines[0]);
+        supportRawList = rawLines.slice(1);
       }
-      // If no Lead:, assume the first non-empty line or whole text is the division
-      return { lead: str.split('\n')[0].trim(), support: [] };
+
+      const support = [];
+      supportRawList.forEach(l => {
+        const cleaned = cleanLine(l);
+        if (cleaned && cleaned.toLowerCase() !== lead.toLowerCase() && !support.includes(cleaned)) {
+          support.push(cleaned);
+        }
+      });
+
+      return { lead, support };
     }
 
     let currentPicTab = 'Semua';
-    let picAssignmentData = [];
+    let picAssignmentData = []; // Array of { rawComboKey, leadRaw, supportPics, apCount }
+    let leadPicAssignments = {}; // { [leadRaw]: userId }
+    let supportPicAssignments = {}; // { [supportRaw]: userId }
+
+    function resolveAllApPics() {
+      importDataParsed.forEach(ap => {
+        const leadUser = leadPicAssignments[ap.pic_raw];
+        ap.pic_user_id = leadUser ? parseInt(leadUser) : null;
+
+        const addIds = [];
+        if (ap.additional_pic_raws && Array.isArray(ap.additional_pic_raws)) {
+          ap.additional_pic_raws.forEach(r => {
+            const uId = supportPicAssignments[r];
+            if (uId && !addIds.includes(parseInt(uId))) {
+              addIds.push(parseInt(uId));
+            }
+          });
+        }
+        ap.additional_pic_user_ids = addIds.length > 0 ? addIds : null;
+      });
+    }
 
     function getLevenshtein(a, b) {
       if (!a.length) return b.length;
@@ -4172,147 +4226,146 @@
       return matrix[b.length][a.length];
     }
 
-    function populatePICTable() {
-      const picArray = Array.from(distinctPics);
-      picAssignmentData = [];
-      currentPicTab = 'Semua'; // reset tab
+    function cleanDivisionName(name) {
+      if (!name) return '';
+      let cleaned = name.toLowerCase()
+        .replace(/\s*\([^)]*\)\s*/g, '')
+        .replace(/\s*&\s*/g, ' ')
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ')
+        .replace(/\b(dan|atau|serta|yang|di|ke|dari)\b/g, ' ')
+        .replace(/\b(marketing|pemasaran)\b/g, 'pemasaran')
+        .replace(/\b(mis|management\s+information\s+system|manajemen\s+informasi\s+sistem|manajemen\s+informasi\s+system)\b/g, 'mis')
+        .replace(/\b(spi|satuan\s+pengawasan\s+internal|kesatuan\s+pengawas\s+intern|pengawas\s+intern|pengawasan\s+internal|pengawasan\s+intern)\b/g, 'spi')
+        .replace(/\b(hr|hrd|human\s+resource|human\s+resources|human\s+capital)\b/g, 'sdm')
+        .replace(/\b(it|information\s+technology|ict)\b/g, 'teknologi')
+        .replace(/\b(finance|accounting)\b/g, 'keuangan')
+        .replace(/\b(legal|law)\b/g, 'hukum')
+        .replace(/\b(corp\s*sec|corporate\s*secretary)\b/g, 'sekretaris perusahaan')
+        .replace(/\s+/g, ' ')
+        .trim();
 
-      // Remove job title prefixes AND division prefixes to help matching
-      const cleanDivisionName = (name) => {
-        let cleaned = name.toLowerCase()
-          // Strip parenthetical suffixes like "(Komersil)" or "(Manajemen Risiko)"
-          .replace(/\s*\([^)]*\)\s*/g, '')
-          // Normalize ampersand variations
-          .replace(/\s*&\s*/g, ' ')
-          // Remove punctuation
-          .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ')
-          // Remove stop words (do this before prefixes so things like "dan" are just gone)
-          .replace(/\b(dan|atau|serta|yang|di|ke|dari)\b/g, ' ')
-          // Synonym mappings (English -> Indo & Abbreviations)
-          .replace(/\b(marketing|pemasaran)\b/g, 'pemasaran')
-          .replace(/\b(mis|management\s+information\s+system|manajemen\s+informasi\s+sistem|manajemen\s+informasi\s+system)\b/g, 'mis')
-          .replace(/\b(spi|satuan\s+pengawasan\s+internal|kesatuan\s+pengawas\s+intern|pengawas\s+intern|pengawasan\s+internal|pengawasan\s+intern)\b/g, 'spi')
-          .replace(/\b(hr|hrd|human\s+resource|human\s+resources|human\s+capital)\b/g, 'sdm')
-          .replace(/\b(it|information\s+technology|ict)\b/g, 'teknologi')
-          .replace(/\b(finance|accounting)\b/g, 'keuangan')
-          .replace(/\b(legal|law)\b/g, 'hukum')
-          .replace(/\b(corp\s*sec|corporate\s*secretary)\b/g, 'sekretaris perusahaan')
-          .replace(/\s+/g, ' ')
-          .trim();
+      cleaned = cleaned.replace(/^(plt|plh)\s+/i, '')
+        .replace(/^(direktur|dir|kepala|ka|gm|general\s+manager|head\s+of|manager|manajer|kesatuan|vp|svp|avp)\s+/i, '');
 
-        // Strip job title prefixes
-        cleaned = cleaned.replace(/^(plt|plh)\s+/i, '')
-          .replace(/^(direktur|dir|kepala|ka|gm|general\s+manager|head\s+of|manager|manajer|kesatuan|vp|svp|avp)\s+/i, '');
+      cleaned = cleaned.replace(/^(divisi|div|sbu|departemen|dept|bagian|unit|satuan|subdivisi|sub\s+divisi|biro|bidang)\s+/i, '');
 
-        // Strip division/unit prefixes
-        cleaned = cleaned.replace(/^(divisi|div|sbu|departemen|dept|bagian|unit|satuan|subdivisi|sub\s+divisi|biro|bidang)\s+/i, '');
+      return cleaned.trim();
+    }
 
-        return cleaned.trim();
-      };
-
-      picArray.forEach(picRaw => {
-        const apCount = importDataParsed.filter(ap => ap.pic_raw === picRaw).length;
-        const cleanedPic = cleanDivisionName(picRaw);
-
-        // Filter users to ONLY include the selected company and BPBUMD HQ users
-        // Also EXCLUDE Direktur/Komisaris from being auto-assigned as PIC
-        let relevantUsers = companyUsers;
-        if (selectedCompanyId) {
-          relevantUsers = companyUsers.filter(u => Number(u.company_id) === Number(selectedCompanyId) || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
-        }
-        relevantUsers = relevantUsers.filter(u => !u.position || !/\b(direktur|komisaris|direksi)\b/i.test(u.position));
-
-        // Find best match in users using multiple strategies
-        let bestMatchUserId = null;
-        let bestScore = 999;
-
-        relevantUsers.forEach(u => {
-          if (!u.position) return;
-          const cleanedPos = cleanDivisionName(u.position);
-
-          let score = 999;
-
-          if (cleanedPic === cleanedPos) {
-            score = 0;
-          } else {
-            // Strategy 1: Word overlap
-            const picWords = cleanedPic.split(/\s+/).filter(w => w.length > 1);
-            const posWords = cleanedPos.split(/\s+/).filter(w => w.length > 1);
-
-            // Count matching words (exact match or substring match for words > 2 chars)
-            const commonWords = picWords.filter(w => posWords.some(pw => pw === w || (w.length > 2 && (pw.includes(w) || w.includes(pw)))));
-
-            if (commonWords.length > 0) {
-              // Word match found! Score based on the proportion of matching words
-              // The higher the proportion, the lower (better) the score. (Range approx 1 to 4)
-              const matchRatio = commonWords.length / Math.max(picWords.length, posWords.length);
-              score = 5 - (matchRatio * 4); // Exact word match would be 1.
-
-              // Add penalty for leftover unmatched words (distinguishes exact matches from partial matches)
-              score += Math.abs(picWords.length - posWords.length) * 0.5;
-            } else {
-              // Strategy 2: Levenshtein distance ONLY if it's very close and not just short acronyms
-              const lev = getLevenshtein(cleanedPic, cleanedPos);
-              const maxLen = Math.max(cleanedPic.length, cleanedPos.length);
-
-              // Only allow fuzzy matching if the distance is < 40% of the total string length
-              if (lev < maxLen * 0.4 && lev < 5) {
-                score = 5 + lev; // Score starts from 6 up to 9
-              }
-            }
-          }
-
-          // Add penalty for users not in the selected company (e.g. BPBUMD HQ users) so they are only picked if it's a perfect match and no one else exists
-          if (Number(u.company_id) !== Number(selectedCompanyId)) {
-            score += 5;
-          }
-
-          if (score < bestScore && score < 8) {
-            bestScore = score;
-            bestMatchUserId = u.id;
-          }
-        });
-
-        // Apply matched id to APs initially
-        if (bestMatchUserId) {
-          updateManualPIC(picRaw, bestMatchUserId);
-        }
-
-        picAssignmentData.push({
-          picRaw: picRaw,
-          userId: bestMatchUserId,
-          apCount: apCount
-        });
-      });
-
-      // Populate bulk assign dropdown
-      const select = document.getElementById('bulkAssignSelect');
-      select.innerHTML = '<option value="">Belum Diatur</option>';
-
-      const subApPicSelect = document.getElementById('subApPicSelect');
-      if (subApPicSelect) subApPicSelect.innerHTML = '<option value="">-- Tidak Ada / Kosong --</option>';
-
-      const subApApproversContainer = document.getElementById('subApApproversContainer');
-      if (subApApproversContainer) subApApproversContainer.innerHTML = '';
+    function autoMatchDivisionToUser(rawText) {
+      if (!rawText) return null;
+      const cleanedPic = cleanDivisionName(rawText);
+      if (!cleanedPic) return null;
 
       let relevantUsers = companyUsers;
       if (selectedCompanyId) {
         relevantUsers = companyUsers.filter(u => Number(u.company_id) === Number(selectedCompanyId) || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
       }
-      // EXCLUDE Direktur/Komisaris from PIC dropdowns
       relevantUsers = relevantUsers.filter(u => !u.position || !/\b(direktur|komisaris|direksi)\b/i.test(u.position));
 
+      let bestMatchUserId = null;
+      let bestScore = 999;
+
       relevantUsers.forEach(u => {
-        const cName = u.company_name || 'BPBUMD';
-        const pos = u.position || '-';
-        const optText = Number(u.company_id) === Number(selectedCompanyId) ? `${u.name} (${pos})` : `${u.name} (${cName} - ${pos})`;
+        if (!u.position) return;
+        const cleanedPos = cleanDivisionName(u.position);
+        let score = 999;
 
-        select.innerHTML += `<option value="${u.id}">${optText}</option>`;
+        if (cleanedPic === cleanedPos) {
+          score = 0;
+        } else {
+          const picWords = cleanedPic.split(/\s+/).filter(w => w.length > 1);
+          const posWords = cleanedPos.split(/\s+/).filter(w => w.length > 1);
+          const commonWords = picWords.filter(w => posWords.some(pw => pw === w || (w.length > 2 && (pw.includes(w) || w.includes(pw)))));
 
-        if (subApPicSelect) {
-          subApPicSelect.innerHTML += `<option value="${u.id}">${optText}</option>`;
+          if (commonWords.length > 0) {
+            const matchRatio = commonWords.length / Math.max(picWords.length, posWords.length);
+            score = 5 - (matchRatio * 4);
+            score += Math.abs(picWords.length - posWords.length) * 0.5;
+          } else {
+            const lev = getLevenshtein(cleanedPic, cleanedPos);
+            const maxLen = Math.max(cleanedPic.length, cleanedPos.length);
+            if (lev < maxLen * 0.4 && lev < 5) {
+              score = 5 + lev;
+            }
+          }
+        }
+
+        if (Number(u.company_id) !== Number(selectedCompanyId)) {
+          score += 5;
+        }
+
+        if (score < bestScore && score < 8) {
+          bestScore = score;
+          bestMatchUserId = u.id;
         }
       });
+
+      return bestMatchUserId;
+    }
+
+    function populatePICTable() {
+      picAssignmentData = [];
+      leadPicAssignments = {};
+      supportPicAssignments = {};
+      currentPicTab = 'Semua';
+
+      // Group importDataParsed by distinct PIC combination (lead_raw + additional_pic_raws)
+      const comboMap = new Map();
+
+      importDataParsed.forEach(ap => {
+        const lead = ap.pic_raw || '';
+        const supports = (ap.additional_pic_raws && Array.isArray(ap.additional_pic_raws)) ? ap.additional_pic_raws : [];
+        const key = JSON.stringify({ lead, supports });
+
+        if (!comboMap.has(key)) {
+          comboMap.set(key, { lead, supports, count: 0 });
+        }
+        comboMap.get(key).count++;
+      });
+
+      comboMap.forEach((item, key) => {
+        const leadRaw = item.lead;
+        const supportDivs = item.supports;
+
+        if (leadRaw && !(leadRaw in leadPicAssignments)) {
+          leadPicAssignments[leadRaw] = autoMatchDivisionToUser(leadRaw);
+        }
+
+        supportDivs.forEach(supRaw => {
+          if (supRaw && !(supRaw in supportPicAssignments)) {
+            supportPicAssignments[supRaw] = autoMatchDivisionToUser(supRaw);
+          }
+        });
+
+        picAssignmentData.push({
+          rawComboKey: key,
+          leadRaw: leadRaw,
+          supportPics: supportDivs,
+          apCount: item.count
+        });
+      });
+
+      resolveAllApPics();
+
+      // Populate bulk assign dropdown
+      const select = document.getElementById('bulkAssignSelect');
+      if (select) select.innerHTML = '<option value="">Belum Diatur</option>';
+
+      let relevantUsers = companyUsers;
+      if (selectedCompanyId) {
+        relevantUsers = companyUsers.filter(u => Number(u.company_id) === Number(selectedCompanyId) || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
+      }
+      relevantUsers = relevantUsers.filter(u => !u.position || !/\b(direktur|komisaris|direksi)\b/i.test(u.position));
+
+      if (select) {
+        relevantUsers.forEach(u => {
+          const cName = u.company_name || 'BPBUMD';
+          const pos = u.position || '-';
+          const optText = Number(u.company_id) === Number(selectedCompanyId) ? `${u.name} (${pos})` : `${u.name} (${cName} - ${pos})`;
+          select.innerHTML += `<option value="${u.id}">${optText}</option>`;
+        });
+      }
 
       renderPicTabs();
       renderPicTable();
@@ -4320,16 +4373,20 @@
 
     function renderPicTabs() {
       const tabsContainer = document.getElementById('picTabs');
+      if (!tabsContainer) return;
 
       let allCount = picAssignmentData.length;
-      let unassignedCount = picAssignmentData.filter(d => !d.userId).length;
+      let unassignedCount = picAssignmentData.filter(d => !leadPicAssignments[d.leadRaw] || d.supportPics.some(s => !supportPicAssignments[s])).length;
 
-      // Group by user
       const userGroup = {};
       picAssignmentData.forEach(d => {
-        if (d.userId) {
-          userGroup[d.userId] = (userGroup[d.userId] || 0) + 1;
-        }
+        const leadUid = leadPicAssignments[d.leadRaw];
+        if (leadUid) userGroup[leadUid] = (userGroup[leadUid] || 0) + 1;
+
+        d.supportPics.forEach(s => {
+          const supUid = supportPicAssignments[s];
+          if (supUid) userGroup[supUid] = (userGroup[supUid] || 0) + 1;
+        });
       });
 
       let optionsHTML = `
@@ -4352,72 +4409,126 @@
       renderPicTable();
     }
 
+    function assignLeadPic(leadRaw, userId) {
+      leadPicAssignments[leadRaw] = userId ? parseInt(userId) : null;
+      resolveAllApPics();
+      renderPicTabs();
+      renderPicTable();
+    }
+
+    function assignSupportPic(supPicRaw, userId) {
+      supportPicAssignments[supPicRaw] = userId ? parseInt(userId) : null;
+      resolveAllApPics();
+      renderPicTabs();
+      renderPicTable();
+    }
+
+    function renderUserChipWrap(currentUserId, onchangeJs) {
+      let optionsHtml = `<option value="">Belum Diatur</option>`;
+      let selectedUser = null;
+      let picEligibleUsers = companyUsers;
+      if (selectedCompanyId) {
+        picEligibleUsers = companyUsers.filter(u => Number(u.company_id) === Number(selectedCompanyId) || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
+      }
+      picEligibleUsers = picEligibleUsers.filter(u => !u.position || !/\b(direktur|komisaris|direksi)\b/i.test(u.position));
+
+      picEligibleUsers.forEach(u => {
+        const isSelected = (u.id == currentUserId);
+        if (isSelected) selectedUser = u;
+        optionsHtml += `<option value="${u.id}" ${isSelected ? 'selected' : ''}>${u.name} (${u.position || '-'})</option>`;
+      });
+
+      let chipHtml = '';
+      if (selectedUser) {
+        const initial = selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : 'U';
+        chipHtml = `
+          <div class="user-chip">
+            <span class="chip-avatar">${initial}</span>
+            <span style="padding-right: 8px;">${selectedUser.name}</span>
+          </div>
+        `;
+      } else {
+        chipHtml = `
+          <div class="user-chip empty-slot">
+            <span>Belum Diatur</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="user-chip-wrap" style="height: 36px; display: flex; align-items: center;">
+          ${chipHtml}
+          <select class="hidden-select" onchange="${onchangeJs}">
+            ${optionsHtml}
+          </select>
+        </div>
+      `;
+    }
+
     function renderPicTable() {
       const tbody = document.getElementById('picTableBody');
+      if (!tbody) return;
       tbody.innerHTML = '';
 
       let filteredData = picAssignmentData;
       if (currentPicTab === 'Belum Di-assign') {
-        filteredData = picAssignmentData.filter(d => !d.userId);
+        filteredData = picAssignmentData.filter(d => !leadPicAssignments[d.leadRaw] || d.supportPics.some(s => !supportPicAssignments[s]));
       } else if (currentPicTab !== 'Semua') {
-        filteredData = picAssignmentData.filter(d => d.userId == currentPicTab);
+        filteredData = picAssignmentData.filter(d => leadPicAssignments[d.leadRaw] == currentPicTab || d.supportPics.some(s => supportPicAssignments[s] == currentPicTab));
       }
 
       filteredData.forEach((data) => {
-        let optionsHtml = `<option value="">Belum Diatur</option>`;
-        let selectedUser = null;
-        let picEligibleUsers = companyUsers;
-        if (selectedCompanyId) {
-          picEligibleUsers = companyUsers.filter(u => Number(u.company_id) === Number(selectedCompanyId) || u.company_type === 'bpbumd' || u.company_type === 'lainnya');
-        }
-        picEligibleUsers = picEligibleUsers.filter(u => !u.position || !/\b(direktur|komisaris|direksi)\b/i.test(u.position));
+        const leadUserSelectHtml = renderUserChipWrap(
+          leadPicAssignments[data.leadRaw],
+          `assignLeadPic('${data.leadRaw.replace(/'/g, "\\'")}', this.value)`
+        );
 
-        picEligibleUsers.forEach(u => {
-          const isSelected = (u.id == data.userId);
-          if (isSelected) selectedUser = u;
-          optionsHtml += `<option value="${u.id}" ${isSelected ? 'selected' : ''}>${u.name} (${u.position || '-'})</option>`;
-        });
+        let supportDivsHtml = '';
+        let supportUsersHtml = '';
 
-        let chipHtml = '';
-        if (selectedUser) {
-          const initial = selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : 'U';
-          chipHtml = `
-            <div class="user-chip">
-              <span class="chip-avatar">${initial}</span>
-              <span style="padding-right: 8px;">${selectedUser.name}</span>
+        if (data.supportPics && data.supportPics.length > 0) {
+          supportDivsHtml = `
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${data.supportPics.map(supRaw => `
+                <div style="font-weight: 600; color: var(--slate-800); min-height: 36px; display: flex; align-items: center;">
+                  ${supRaw}
+                </div>
+              `).join('')}
+            </div>
+          `;
+
+          supportUsersHtml = `
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${data.supportPics.map(supRaw => renderUserChipWrap(
+                supportPicAssignments[supRaw],
+                `assignSupportPic('${supRaw.replace(/'/g, "\\'")}', this.value)`
+              )).join('')}
             </div>
           `;
         } else {
-          chipHtml = `
-            <div class="user-chip empty-slot">
-              <span>Belum Diatur</span>
-            </div>
-          `;
+          supportDivsHtml = `<span style="color: var(--slate-400); font-style: italic; font-size: 13px;">- Tidak Ada -</span>`;
+          supportUsersHtml = `<span style="color: var(--slate-400); font-style: italic; font-size: 13px;">-</span>`;
         }
 
-        const userName = `
-          <div class="user-chip-wrap">
-            ${chipHtml}
-            <select class="hidden-select" onchange="assignSinglePic('${data.picRaw}', this.value)">
-              ${optionsHtml}
-            </select>
-          </div>
-        `;
-
         tbody.innerHTML += `
-          <tr>
-            <td style="text-align: center;">
-              <input type="checkbox" class="pic-checkbox" value="${data.picRaw}" onchange="togglePic()">
+          <tr style="vertical-align: top;">
+            <td style="text-align: center; padding-top: 16px;">
+              <input type="checkbox" class="pic-checkbox" value="${encodeURIComponent(data.rawComboKey)}" onchange="togglePic()">
             </td>
-            <td style="font-weight:600; color:var(--slate-800);">${data.picRaw}</td>
-            <td style="font-size: 13px;">${userName}</td>
-            <td style="text-align:center; font-weight:600;">${data.apCount}</td>
+            <td style="font-weight:700; color:var(--slate-900); padding-top: 16px;">${data.leadRaw}</td>
+            <td style="font-size: 13px; padding-top: 10px;">${leadUserSelectHtml}</td>
+            <td style="padding-top: 16px;">${supportDivsHtml}</td>
+            <td style="font-size: 13px; padding-top: 10px;">${supportUsersHtml}</td>
+            <td style="text-align:center; font-weight:700; color:var(--slate-900); padding-top: 16px;">${data.apCount}</td>
           </tr>
         `;
       });
 
-      document.getElementById('checkAllPic').checked = false;
-      document.getElementById('checkAllPic').indeterminate = false;
+      const checkAll = document.getElementById('checkAllPic');
+      if (checkAll) {
+        checkAll.checked = false;
+        checkAll.indeterminate = false;
+      }
       togglePic();
       checkPICWarning();
     }
@@ -4474,37 +4585,24 @@
 
     function submitBulkAssignPic() {
       const selectedUserId = document.getElementById('bulkAssignSelect').value;
+      const uId = selectedUserId ? parseInt(selectedUserId) : null;
       const checkboxes = document.querySelectorAll('.pic-checkbox:checked');
 
       checkboxes.forEach(cb => {
-        const picRaw = cb.value;
-        const rowData = picAssignmentData.find(d => d.picRaw === picRaw);
-        if (rowData) rowData.userId = selectedUserId ? parseInt(selectedUserId) : null;
-        updateManualPIC(picRaw, selectedUserId);
-      });
-
-      closeBulkAssignDropdown();
-      renderPicTabs();
-      renderPicTable();
-    }
-
-    function updateManualPIC(picRaw, userId) {
-      importDataParsed.forEach(ap => {
-        if (ap.pic_raw === picRaw) {
-          ap.pic_user_id = userId ? parseInt(userId) : null;
+        const rawComboKey = decodeURIComponent(cb.value);
+        const item = picAssignmentData.find(d => d.rawComboKey === rawComboKey);
+        if (item) {
+          if (item.leadRaw) leadPicAssignments[item.leadRaw] = uId;
+          if (item.supportPics) {
+            item.supportPics.forEach(supRaw => {
+              supportPicAssignments[supRaw] = uId;
+            });
+          }
         }
       });
-    }
 
-    function assignSinglePic(picRaw, userId) {
-      const uId = userId ? parseInt(userId) : null;
-      updateManualPIC(picRaw, uId);
-
-      const idx = picAssignmentData.findIndex(d => d.picRaw === picRaw);
-      if (idx !== -1) {
-        picAssignmentData[idx].userId = uId;
-      }
-
+      resolveAllApPics();
+      closeBulkAssignDropdown();
       renderPicTabs();
       renderPicTable();
     }
@@ -4596,13 +4694,13 @@
       if (!tbody) return;
       tbody.innerHTML = '';
 
-      // Get unique assigned PICs from picAssignmentData
+      // Get unique assigned Lead PICs from leadPicAssignments
       const uniquePicUserIds = Array.from(new Set(
-        picAssignmentData.map(d => d.userId).filter(Boolean)
+        Object.values(leadPicAssignments).filter(Boolean)
       ));
 
       if (uniquePicUserIds.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 24px; color: var(--slate-500); font-style: italic;">Belum ada Penanggung Jawab (PIC) yang terpilih. Silakan atur di Langkah 3.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--slate-500); font-style: italic;">Belum ada Penanggung Jawab (PIC) yang terpilih. Silakan atur di Langkah 3.</td></tr>';
         return;
       }
 
@@ -4782,6 +4880,8 @@
       if (!selectedCompanyId) return;
       if (importDataParsed.length === 0) return;
 
+      resolveAllApPics();
+
       const btn = document.getElementById('btnSubmitImport');
       btn.disabled = true;
       document.getElementById('importLoadingOverlay').style.display = 'flex';
@@ -4958,6 +5058,7 @@
                   style="width:16px; height:16px; cursor:pointer; accent-color:var(--sky);">
               </th>
               <th style="padding:12px 16px;">Penanggung Jawab (PIC)</th>
+              <th style="padding:12px 16px;">PIC Lainnya</th>
               <th style="padding:12px 16px;">Verifikator 1</th>
               <th style="padding:12px 16px;">Verifikator 2</th>
             </tr>

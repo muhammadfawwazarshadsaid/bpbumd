@@ -20,14 +20,14 @@ function toNumber(value) {
 
 async function getDashboardSummary(user, filters = {}) {
   const companyScopeId = getCompanyScope(user);
-  const { picUserIds = null } = filters;
+  const { picCombos = null } = filters;
   const client = await pool.connect();
 
   try {
     const [overallCards, companyCards, progressPerAspect] = await Promise.all([
-      getOverallCards(client, companyScopeId, { picUserIds }),
-      getCompanyCards(client, companyScopeId, { picUserIds }),
-      getProgressPerAspect(client, companyScopeId, user.id, { picUserIds }),
+      getOverallCards(client, companyScopeId, { picCombos }),
+      getCompanyCards(client, companyScopeId, { picCombos }),
+      getProgressPerAspect(client, companyScopeId, user.id, { picCombos }),
     ]);
 
     const aspectMap = groupAspectsByCompany(progressPerAspect);
@@ -71,7 +71,7 @@ async function getDashboardSummary(user, filters = {}) {
 }
 
 async function getOverallCards(client, companyScopeId, filters = {}) {
-  const { picUserIds = null } = filters;
+  const { picCombos = null } = filters;
   const result = await client.query(
     `
       WITH scoped_companies AS (
@@ -94,7 +94,7 @@ async function getOverallCards(client, companyScopeId, filters = {}) {
             JOIN activity_groups ag ON ag.id = ap.activity_group_id
             JOIN strategies s ON s.id = ag.strategy_id
             WHERE s.aspect_id = a.id AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
-              AND ($2::BIGINT[] IS NULL OR sap.pic_user_id = ANY($2) OR ap.pic_user_id = ANY($2))
+              AND ($2::text[] IS NULL OR (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), '')) = ANY($2::text[]) OR ('unassigned' = ANY($2::text[]) AND COALESCE(sap.pic_user_id, ap.pic_user_id) IS NULL))
           ) AS has_sap
         FROM aspects a
         JOIN scoped_companies sc
@@ -127,7 +127,7 @@ async function getOverallCards(client, companyScopeId, filters = {}) {
         JOIN scoped_companies sc
           ON sc.id = a.company_id
         WHERE ap.deleted_at IS NULL
-          AND ($2::BIGINT[] IS NULL OR ap.pic_user_id = ANY($2))
+          AND ($2::text[] IS NULL OR (ap.pic_user_id::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(ap.additional_pic_user_ids) ORDER BY 1), ','), '')) = ANY($2::text[]) OR ('unassigned' = ANY($2::text[]) AND ap.pic_user_id IS NULL))
       ),
       sub_action_plan_rows AS (
         SELECT
@@ -159,7 +159,7 @@ async function getOverallCards(client, companyScopeId, filters = {}) {
         JOIN scoped_companies sc
           ON sc.id = a.company_id
         WHERE sap.deleted_at IS NULL AND ap.deleted_at IS NULL
-          AND ($2::BIGINT[] IS NULL OR sap.pic_user_id = ANY($2) OR ap.pic_user_id = ANY($2))
+          AND ($2::text[] IS NULL OR (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), '')) = ANY($2::text[]) OR ('unassigned' = ANY($2::text[]) AND COALESCE(sap.pic_user_id, ap.pic_user_id) IS NULL))
       ),
       ap_dyn AS (
         SELECT action_plan_id, AVG(progress_weight) AS ap_prog
@@ -209,22 +209,12 @@ async function getOverallCards(client, companyScopeId, filters = {}) {
         GROUP BY company_id
       )
       SELECT
-        CASE
-          WHEN $2::BIGINT[] IS NOT NULL THEN
-            COALESCE(
+        COALESCE(
               ROUND(
                 (SELECT AVG(company_prog) FROM company_dyn)
               , 2),
               0
-            )
-          ELSE
-            COALESCE(
-              ROUND(
-                (SELECT AVG(progress_percentage) FROM aspect_rows)
-              , 2),
-              0
-            )
-        END AS progress_percentage,
+            ) AS progress_percentage,
 
         COALESCE(
           ROUND((SELECT AVG(target_percentage) FROM aspect_rows WHERE has_sap = true), 2),
@@ -269,7 +259,7 @@ async function getOverallCards(client, companyScopeId, filters = {}) {
           WHERE status IN ('selesai', 'selesai terlambat')
         )::INT AS selesai_rencana_aksi
     `,
-    [companyScopeId, picUserIds],
+    [companyScopeId, picCombos],
   );
 
   const row = result.rows[0] || {};
@@ -288,7 +278,7 @@ async function getOverallCards(client, companyScopeId, filters = {}) {
 }
 
 async function getCompanyCards(client, companyScopeId, filters = {}) {
-  const { picUserIds = null } = filters;
+  const { picCombos = null } = filters;
   const result = await client.query(
     `
       WITH scoped_companies AS (
@@ -319,7 +309,7 @@ async function getCompanyCards(client, companyScopeId, filters = {}) {
                 JOIN aspects a2 ON a2.id = s.aspect_id
                 WHERE a2.company_id = a.company_id
                   AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
-                  AND ($2::BIGINT[] IS NULL OR sap.pic_user_id = ANY($2) OR ap.pic_user_id = ANY($2))
+                  AND ($2::text[] IS NULL OR (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), '')) = ANY($2::text[]) OR ('unassigned' = ANY($2::text[]) AND COALESCE(sap.pic_user_id, ap.pic_user_id) IS NULL))
               ) / NULLIF(
                 (
                   SELECT COUNT(*)::NUMERIC FROM sub_action_plans sap
@@ -329,7 +319,7 @@ async function getCompanyCards(client, companyScopeId, filters = {}) {
                   JOIN aspects a2 ON a2.id = s.aspect_id
                   WHERE a2.company_id = a.company_id
                     AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
-                    AND ($2::BIGINT[] IS NULL OR sap.pic_user_id = ANY($2) OR ap.pic_user_id = ANY($2))
+                    AND ($2::text[] IS NULL OR (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), '')) = ANY($2::text[]) OR ('unassigned' = ANY($2::text[]) AND COALESCE(sap.pic_user_id, ap.pic_user_id) IS NULL))
                 )
               , 0)
             , 2),
@@ -345,7 +335,7 @@ async function getCompanyCards(client, companyScopeId, filters = {}) {
                 JOIN strategies s ON s.id = ag.strategy_id
                 WHERE s.aspect_id = a.id
                   AND sap.deleted_at IS NULL AND ap.deleted_at IS NULL
-                  AND ($2::BIGINT[] IS NULL OR sap.pic_user_id = ANY($2) OR ap.pic_user_id = ANY($2))
+                  AND ($2::text[] IS NULL OR (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), '')) = ANY($2::text[]) OR ('unassigned' = ANY($2::text[]) AND COALESCE(sap.pic_user_id, ap.pic_user_id) IS NULL))
               )
             ), 2),
             0
@@ -384,7 +374,7 @@ async function getCompanyCards(client, companyScopeId, filters = {}) {
         JOIN scoped_companies sc
           ON sc.id = a.company_id
         WHERE ap.deleted_at IS NULL
-          AND ($2::BIGINT[] IS NULL OR ap.pic_user_id = ANY($2))
+          AND ($2::text[] IS NULL OR (ap.pic_user_id::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(ap.additional_pic_user_ids) ORDER BY 1), ','), '')) = ANY($2::text[]) OR ('unassigned' = ANY($2::text[]) AND ap.pic_user_id IS NULL))
         GROUP BY
           a.company_id
       ),
@@ -425,7 +415,7 @@ async function getCompanyCards(client, companyScopeId, filters = {}) {
         JOIN scoped_companies sc
           ON sc.id = a.company_id
         WHERE sap.deleted_at IS NULL AND ap.deleted_at IS NULL
-          AND ($2::BIGINT[] IS NULL OR sap.pic_user_id = ANY($2) OR ap.pic_user_id = ANY($2))
+          AND ($2::text[] IS NULL OR (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), '')) = ANY($2::text[]) OR ('unassigned' = ANY($2::text[]) AND COALESCE(sap.pic_user_id, ap.pic_user_id) IS NULL))
         GROUP BY
           a.company_id
       )
@@ -461,7 +451,7 @@ async function getCompanyCards(client, companyScopeId, filters = {}) {
       ORDER BY
         sc.name
     `,
-    [companyScopeId, picUserIds],
+    [companyScopeId, picCombos],
   );
 
   return result.rows.map((row) => ({
@@ -484,7 +474,7 @@ async function getCompanyCards(client, companyScopeId, filters = {}) {
 }
 
 async function getProgressPerAspect(client, companyScopeId, userId, filters = {}) {
-  const { picUserIds = null } = filters;
+  const { picCombos = null } = filters;
   const result = await client.query(
     `
       WITH filtered_saps AS (
@@ -499,7 +489,7 @@ async function getProgressPerAspect(client, companyScopeId, userId, filters = {}
         JOIN aspects a ON a.id = s.aspect_id
         WHERE sap.deleted_at IS NULL AND ap.deleted_at IS NULL
           AND ($1::BIGINT IS NULL OR a.company_id = $1)
-          AND ($3::BIGINT[] IS NULL OR sap.pic_user_id = ANY($3) OR ap.pic_user_id = ANY($3))
+          AND ($3::text[] IS NULL OR (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), '')) = ANY($3::text[]) OR ('unassigned' = ANY($3::text[]) AND COALESCE(sap.pic_user_id, ap.pic_user_id) IS NULL))
       ),
       ap_dyn AS (
         SELECT action_plan_id, AVG(score) AS ap_prog
@@ -605,7 +595,7 @@ async function getProgressPerAspect(client, companyScopeId, userId, filters = {}
         WHERE
           sap.deleted_at IS NULL AND ap.deleted_at IS NULL
           AND ($1::BIGINT IS NULL OR a.company_id = $1)
-          AND ($3::BIGINT[] IS NULL OR sap.pic_user_id = ANY($3) OR ap.pic_user_id = ANY($3))
+          AND ($3::text[] IS NULL OR (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), '')) = ANY($3::text[]) OR ('unassigned' = ANY($3::text[]) AND COALESCE(sap.pic_user_id, ap.pic_user_id) IS NULL))
         GROUP BY
           a.id
       ),
@@ -628,7 +618,7 @@ async function getProgressPerAspect(client, companyScopeId, userId, filters = {}
         WHERE
           ap.deleted_at IS NULL
           AND ($1::BIGINT IS NULL OR a.company_id = $1)
-          AND ($3::BIGINT[] IS NULL OR ap.pic_user_id = ANY($3))
+          AND ($3::text[] IS NULL OR (ap.pic_user_id::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(ap.additional_pic_user_ids) ORDER BY 1), ','), '')) = ANY($3::text[]) OR ('unassigned' = ANY($3::text[]) AND ap.pic_user_id IS NULL))
         GROUP BY
           a.id
       )
@@ -638,10 +628,7 @@ async function getProgressPerAspect(client, companyScopeId, userId, filters = {}
         a.name AS aspect_name,
         a.status AS aspect_status,
 
-        CASE
-          WHEN $3::BIGINT[] IS NOT NULL THEN ROUND(COALESCE(CASE WHEN adyn.sum_weight > 0 THEN adyn.asp_prog_weighted ELSE adyn.asp_prog_unweighted END, 0), 2)
-          ELSE COALESCE(a.progress_percentage, 0)
-        END AS progress_percentage,
+        ROUND(COALESCE(CASE WHEN adyn.sum_weight > 0 THEN adyn.asp_prog_weighted ELSE adyn.asp_prog_unweighted END, 0), 2) AS progress_percentage,
         COALESCE(a.target_percentage, 0) AS target_percentage,
 
         COALESCE(sa.total_sap, 0) AS total,
@@ -700,7 +687,7 @@ async function getProgressPerAspect(client, companyScopeId, userId, filters = {}
         c.name,
         a.id
     `,
-    [companyScopeId, userId, picUserIds],
+    [companyScopeId, userId, picCombos],
   );
 
   return result.rows.map((row) => ({

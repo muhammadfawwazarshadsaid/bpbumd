@@ -2422,7 +2422,7 @@
           <div class="sum-card-value" id="picName" style="font-size: 18px; margin-bottom: 4px;">Rudi Hermawan</div>
           <div class="kpi-sub" id="picRole">Kepala Strategi dan Perencanaan</div>
           <div style="margin-top:8px;">
-            <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(currentData?.cards?.pic_utama?.user_id)">
+            <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(getAPComboString())">
               <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
               Lihat Mapping PIC
             </button>
@@ -3037,7 +3037,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
               <label class="form-label" style="margin-bottom:0;">Verifikator Dokumen</label>
               <div style="display:flex; gap:6px; align-items:center;">
-                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(currentData?.cards?.pic_utama?.user_id)" title="Lihat pemetaan PIC & Verifikator">
+                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(getAPComboString())" title="Lihat pemetaan PIC & Verifikator">
                   <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                   Lihat Mapping PIC
                 </button>
@@ -3160,7 +3160,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
               <label class="form-label" style="margin-bottom:0;">Verifikator Dokumen</label>
               <div style="display:flex; gap:6px; align-items:center;">
-                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(currentData?.cards?.pic_utama?.user_id)" title="Lihat pemetaan PIC & Verifikator">
+                <button type="button" class="btn-see-mapping-chip" onclick="openPICMappingModal(getAPComboString())" title="Lihat pemetaan PIC & Verifikator">
                   <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                   Lihat Mapping PIC
                 </button>
@@ -3319,6 +3319,7 @@
           <thead>
             <tr style="background:#F8FAFC; border-bottom:1px solid #E2E8F0; color:#64748B; font-weight:600;">
               <th style="padding:12px 16px;">Penanggung Jawab (PIC)</th>
+                                        <th style="padding:12px 16px;">PIC Lainnya</th>
               <th style="padding:12px 16px;">Verifikator 1</th>
               <th style="padding:12px 16px;">Verifikator 2</th>
             </tr>
@@ -5607,6 +5608,13 @@
       }
     }
 
+    function getAPComboString() {
+      const mainId = currentData?.cards?.pic_utama?.user_id || currentData?.action_plan?.pic_user_id;
+      if (!mainId) return 'unassigned';
+      const addIds = (currentData?.action_plan?.additional_pic_user_ids || []).map(Number).sort((a,b)=>a-b).join(',');
+      return mainId + '|' + addIds;
+    }
+
     async function openPICMappingModal(highlightPicId) {
       const modal = document.getElementById('modalPicMapping');
       const tbody = document.getElementById('picMappingTableBody');
@@ -5633,7 +5641,10 @@
           tbody.innerHTML = mappingData.map(item => {
             const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
             const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
-            const isHighlight = highlightPicId && item.pic_user_id == highlightPicId;
+            const isHighlight = highlightPicId && (
+              String(item.combo_string) === String(highlightPicId) ||
+              (!String(highlightPicId).includes('|') && String(item.combo_string) === String(highlightPicId) + '|')
+            );
 
             const renderChip = (v) => {
               if (!v) return '<span style="color:#94A3B8; font-style:italic;">-</span>';
@@ -5646,7 +5657,14 @@
               `;
             };
 
-            return `
+            
+        let additionalPicsHtml = '-';
+        if (item.additional_pics && item.additional_pics.length > 0) {
+          additionalPicsHtml = '<div style="display:flex; flex-direction:column; gap:4px;">' + 
+            item.additional_pics.map(apic => renderChip(apic)).join('') + 
+            '</div>';
+        }
+        return `
               <tr class="${isHighlight ? 'active-filter-row highlight-row' : ''}" style="border-bottom: 1px solid #F1F5F9;">
                 <td style="padding: 12px 16px;">
                   <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:4px;">
@@ -5655,7 +5673,8 @@
                   </div>
                   <div style="font-size: 11px; color: #64748B; padding-left: 4px;">${escapeHtml(item.pic_position || item.company_name || '-')}</div>
                 </td>
-                <td style="padding: 12px 16px;">${renderChip(v1)}</td>
+                <td style="padding: 12px 16px;">${additionalPicsHtml}</td>
+            <td style="padding: 12px 16px;">${renderChip(v1)}</td>
                 <td style="padding: 12px 16px;">${renderChip(v2)}</td>
               </tr>
             `;

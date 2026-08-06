@@ -714,6 +714,7 @@ async function createActionPlan(user, payload) {
     name,
     code_order,
     pic_user_id,
+    additional_pic_user_ids,
     target_percentage,
     start_date,
     target_end_date,
@@ -744,25 +745,28 @@ async function createActionPlan(user, payload) {
       throw error;
     }
 
+    const addPicIds = Array.isArray(additional_pic_user_ids) && additional_pic_user_ids.length > 0 ? additional_pic_user_ids : null;
+
     const result = await client.query(
       `
         INSERT INTO action_plans (
-          activity_group_id, pic_user_id, name, code_order,
+          activity_group_id, pic_user_id, additional_pic_user_ids, name, code_order,
           status, weight, progress_percentage, target_percentage,
           start_date, end_date, target_end_date,
           output, indicator, is_blocked
         )
         VALUES (
-          $1, $2, $3, $4,
-          'belum mulai', 0, 0, $5,
-          $6, NULL, $7,
-          $8, $9, FALSE
+          $1, $2, $3, $4, $5,
+          'belum mulai', 0, 0, $6,
+          $7, NULL, $8,
+          $9, $10, FALSE
         )
         RETURNING *
       `,
       [
         activity_group_id,
         pic_user_id || null,
+        addPicIds,
         name,
         code_order || null,
         target_percentage || null,
@@ -865,10 +869,16 @@ async function updateActionPlan(user, actionPlanId, payload) {
     const old = existing.rows[0];
 
     // ── Build SET dynamically ──
+    const sets = [];
+    const values = [];
+    const changes = [];
+    let paramIndex = 1;
+
     const FIELDS = [
       "name",
       "code_order",
       "pic_user_id",
+      "additional_pic_user_ids",
       "status",
       "weight",
       "progress_percentage",

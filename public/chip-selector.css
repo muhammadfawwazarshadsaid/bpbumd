@@ -1,0 +1,164 @@
+.chip-selector-wrap {
+  position: relative;
+  width: 100%;
+}
+.chip-selector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--slate-300, #CBD5E1);
+  border-radius: 8px;
+  background: white;
+  cursor: text;
+  transition: all 0.2s;
+}
+.chip-selector:focus-within {
+  border-color: var(--sky, #0EA5E9);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+.chip-selector .selected-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip-selector .selected-chips:empty {
+  display: none;
+}
+.chip-selector .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--slate-100, #F1F5F9);
+  border: 1px solid var(--slate-200, #E2E8F0);
+  padding: 4px 10px 4px 4px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--slate-700, #334155);
+}
+.chip-selector .chip .chip-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sky, #0EA5E9), #38BDF8);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.chip-selector .chip .chip-remove {
+  background: none;
+  border: none;
+  color: var(--slate-400, #94A3B8);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  margin-left: 2px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 0.2s;
+}
+.chip-selector .chip .chip-remove:hover {
+  background: var(--rose, #EF4444);
+  color: white;
+}
+.chip-selector .chip-search-input {
+  flex: 1;
+  min-width: 120px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  padding: 4px 0;
+  color: var(--slate-900, #0F172A);
+}
+.chip-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--slate-200, #E2E8F0);
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 50;
+  display: none;
+}
+.chip-dropdown.show {
+  display: block;
+}
+.chip-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 1px solid var(--slate-100, #F1F5F9);
+}
+.chip-dropdown-item:last-child {
+  border-bottom: none;
+}
+.chip-dropdown-item:hover {
+  background: var(--slate-50, #F8FAFC);
+}
+.chip-dropdown-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--slate-50, #F8FAFC);
+}
+.chip-dropdown-item .dd-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--slate-200, #E2E8F0);
+  color: var(--slate-600, #475569);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.chip-dropdown-item .dd-info {
+  flex: 1;
+  min-width: 0;
+}
+.chip-dropdown-item .dd-name {
+  font-weight: 600;
+  color: var(--slate-800, #1E293B);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chip-dropdown-item .dd-role {
+  font-size: 11px;
+  color: var(--slate-500, #64748B);
+  margin-top: 2px;
+}
+.chip-dropdown-item .dd-check {
+  color: var(--sky, #0EA5E9);
+  flex-shrink: 0;
+}
+.chip-limit-hint {
+  font-size: 12px;
+  color: var(--slate-500, #64748B);
+  margin-top: 6px;
+  text-align: right;
+}
+.chip-limit-hint.error {
+  color: var(--rose, #EF4444);
+  font-weight: 600;
+}

@@ -260,7 +260,31 @@ router.get("/pic-verifiers-mapping", authMiddleware, async (req, res) => {
     const client = await pool.connect();
     try {
       let query = `
+        WITH raw_combos AS (
+          SELECT DISTINCT ON (
+            (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), ''))
+          )
+            (COALESCE(sap.pic_user_id, ap.pic_user_id)::text || '|' || COALESCE(array_to_string(ARRAY(SELECT unnest(COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids)) ORDER BY 1), ','), '')) AS combo_string,
+            COALESCE(sap.pic_user_id, ap.pic_user_id) AS pic_user_id,
+            COALESCE(sap.additional_pic_user_ids, ap.additional_pic_user_ids) AS additional_pic_user_ids,
+            sap.id AS sap_id
+          FROM action_plans ap
+          JOIN activity_groups ag ON ag.id = ap.activity_group_id
+          JOIN strategies s ON s.id = ag.strategy_id
+          JOIN aspects a ON a.id = s.aspect_id
+          LEFT JOIN sub_action_plans sap ON sap.action_plan_id = ap.id AND sap.deleted_at IS NULL
+          WHERE ap.deleted_at IS NULL
+            AND COALESCE(sap.pic_user_id, ap.pic_user_id) IS NOT NULL
+      `;
+      const params = [];
+      if (companyId && !isNaN(companyId)) {
+        query += ` AND a.company_id = $1 `;
+        params.push(companyId);
+      }
+      query += `
+        )
         SELECT 
+          rc.combo_string,
           u.id AS pic_user_id,
           u.name AS pic_name,
           u.position AS pic_position,
@@ -277,32 +301,41 @@ router.get("/pic-verifiers-mapping", authMiddleware, async (req, res) => {
             FROM sub_action_plan_approvals sapa
             JOIN users app ON app.id = sapa.approver_user_id
             LEFT JOIN companies ac ON ac.id = app.company_id
-            WHERE sapa.sub_action_plan_id = (
-              SELECT sap.id
-              FROM sub_action_plans sap
-              WHERE sap.pic_user_id = u.id
-                AND EXISTS (SELECT 1 FROM sub_action_plan_approvals sa2 WHERE sa2.sub_action_plan_id = sap.id)
-              ORDER BY sap.created_at DESC
-              LIMIT 1
-            )
-          ) AS verifiers
-        FROM users u
+            WHERE sapa.sub_action_plan_id = rc.sap_id
+          ) AS verifiers,
+          (
+            SELECT JSON_AGG(json_build_object(
+              'id', apic.id,
+              'name', apic.name,
+              'position', apic.position
+            ))
+            FROM users apic
+            WHERE apic.id = ANY(rc.additional_pic_user_ids)
+          ) AS additional_pics
+        FROM raw_combos rc
+        JOIN users u ON u.id = rc.pic_user_id
         LEFT JOIN companies c ON c.id = u.company_id
         WHERE u.username != 'admin_bpbumd'
-          AND EXISTS (SELECT 1 FROM sub_action_plans sap WHERE sap.pic_user_id = u.id)
+        ORDER BY rc.combo_string ASC, u.name ASC
       `;
-      const params = [];
-      if (companyId && !isNaN(companyId)) {
-        query += ` AND u.company_id = $1 `;
-        params.push(companyId);
-      }
-      query += ` ORDER BY u.name ASC `;
 
       const dbRes = await client.query(query, params);
+      const unassignedRow = {
+        combo_string: 'unassigned',
+        pic_user_id: 'unassigned',
+        pic_name: 'Belum ada PIC',
+        pic_position: '-',
+        company_id: null,
+        company_name: '-',
+        verifiers: [],
+        additional_pics: []
+      };
+      const finalData = [unassignedRow, ...dbRes.rows];
+
       res.json({
         success: true,
         message: "Berhasil mendapatkan mapping PIC & Verifikator",
-        data: dbRes.rows,
+        data: finalData,
       });
     } finally {
       client.release();

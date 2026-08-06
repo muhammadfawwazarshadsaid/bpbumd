@@ -2115,10 +2115,13 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">PIC Utama</label>
-            <select id="addAPPic" class="form-select">
-              <option value="">Pilih PIC</option>
-            </select>
+            <label class="form-label">Penanggung Jawab (PIC)</label>
+            <div id="addAPPicDisplayCard" onclick="openPicPickerModal()" style="border:2px dashed #0EA5E9; padding:12px 16px; border-radius:12px; background:#F0F9FF; cursor:pointer; min-height:52px; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+              <div style="display:inline-flex; align-items:center; gap:8px; color:#0284C7; font-size:13px; font-weight:700;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                <span>Pilih Penanggung Jawab (PIC)</span>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -2209,6 +2212,7 @@
           <thead>
             <tr style="background:#F8FAFC; border-bottom:1px solid #E2E8F0; color:#64748B; font-weight:600;">
               <th style="padding:12px 16px;">Penanggung Jawab (PIC)</th>
+                                        <th style="padding:12px 16px;">PIC Lainnya</th>
               <th style="padding:12px 16px;">Verifikator 1</th>
               <th style="padding:12px 16px;">Verifikator 2</th>
             </tr>
@@ -2220,6 +2224,89 @@
       </div>
       <div class="modal-footer" style="margin-top:14px; display:flex; justify-content:flex-end; padding:0;">
         <button class="btn-secondary" onclick="closePICMappingModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PICKER PENANGGUNG JAWAB (PIC) UNTUK FORM RENCANA AKSI -->
+  <div class="modal-overlay" id="modalPicPicker" style="align-items: center; justify-content: center; z-index: 1050;">
+    <div class="modal-container"
+      style="max-width: 820px; width: 94%; margin: auto; padding: 20px 24px; border-radius: 16px; background: white; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
+      
+      <!-- HEADER -->
+      <div class="modal-header"
+        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">
+        <div>
+          <h3 style="font-size:16px; font-weight:700; color:var(--slate-800); margin:0 0 2px 0;">Pilih Penanggung Jawab (PIC) & Verifikator</h3>
+          <div style="font-size:12px; color:var(--slate-500); margin:0;" id="picPickerSubtitle">Pilih paketan PIC atau atur PIC kustom untuk Rencana Aksi ini</div>
+        </div>
+        <button type="button" class="modal-close" onclick="closePicPickerModal()">&times;</button>
+      </div>
+
+      <!-- SEARCH BAR & TOGGLE -->
+      <div style="margin-bottom:12px; display:flex; gap:10px; align-items:center;">
+        <div style="position:relative; flex:1;">
+          <svg width="16" height="16" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24"
+            style="position:absolute; left:14px; top:50%; transform:translateY(-50%);">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" id="picPickerSearchInput" oninput="onPickerSearchInput()"
+            placeholder="Cari nama PIC, Verifikator, atau Jabatan..."
+            style="width:100%; padding:9px 14px 9px 38px; border-radius:8px; border:1px solid #E2E8F0; font-size:13px; outline:none; transition:all 0.2s;">
+        </div>
+        <!-- Toggle Custom PIC -->
+        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; white-space:nowrap; font-size:12px; font-weight:600; color:#334155; background:#F1F5F9; border:1px solid #CBD5E1; padding:7px 14px; border-radius:8px; user-select:none;" id="lblToggleCustomPic">
+          <div style="position:relative; width:36px; height:20px; flex-shrink:0;">
+            <input type="checkbox" id="chkCustomPicToggle" onchange="onCustomPicToggle()" style="opacity:0; width:0; height:0; position:absolute;">
+            <span id="customPicToggleTrack" style="position:absolute; inset:0; background:#CBD5E1; border-radius:10px; transition:all 0.25s;"></span>
+            <span id="customPicToggleThumb" style="position:absolute; top:2px; left:2px; width:16px; height:16px; background:white; border-radius:50%; transition:all 0.25s; box-shadow:0 1px 3px rgba(0,0,0,0.15);"></span>
+          </div>
+          Custom PIC
+        </label>
+      </div>
+
+      <!-- CUSTOM SECTION (Hidden by default, replaces table when active) -->
+      <div id="pickerCustomSection" style="display:none;">
+        <div style="background:#F8FAFC; border:1px solid #E2E8F0; padding:16px; border-radius:10px; display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <!-- PIC Utama -->
+          <div>
+            <label class="form-label" style="font-size:12px; font-weight:700; margin-bottom:6px;">PIC Utama</label>
+            <div id="addAPPicMainList" style="max-height:280px; overflow-y:auto; background:white; border:1px solid #CBD5E1; padding:6px 0; border-radius:8px; font-size:13px; color:#334155;">
+              <span style="color:#94A3B8; font-style:italic; padding:8px 14px; display:block;">Memuat daftar PIC Utama...</span>
+            </div>
+          </div>
+          <!-- PIC Tambahan -->
+          <div>
+            <label class="form-label" style="font-size:12px; font-weight:700; margin-bottom:6px;">PIC Tambahan / Pendukung</label>
+            <div id="addAPAdditionalPicsList" style="max-height:280px; overflow-y:auto; background:white; border:1px solid #CBD5E1; padding:6px 0; border-radius:8px; font-size:13px; color:#334155;">
+              <span style="color:#94A3B8; font-style:italic; padding:8px 14px; display:block;">Memuat daftar PIC tambahan...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE (shown when custom is OFF) -->
+      <div id="pickerTableSection" style="max-height: 380px; overflow-y: auto; border: 1px solid var(--slate-200); border-radius: 12px;">
+        <table style="width:100%; border-collapse:separate; border-spacing:0; font-size:12px; text-align:left;">
+          <thead>
+            <tr style="background:#F8FAFC; border-bottom:1px solid #E2E8F0; color:#64748B; font-weight:600; position:sticky; top:0; z-index:5;">
+              <th style="padding:10px 14px; width:40px; text-align:center;">Pilih</th>
+              <th style="padding:10px 16px;">Penanggung Jawab (PIC)</th>
+              <th style="padding:10px 16px;">PIC Lainnya</th>
+              <th style="padding:10px 16px;">Verifikator 1</th>
+              <th style="padding:10px 16px;">Verifikator 2</th>
+            </tr>
+          </thead>
+          <tbody id="picPickerTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer" style="margin-top:14px; display:flex; justify-content:flex-end; gap:8px; padding:0;">
+        <button class="btn-secondary" type="button" onclick="closePicPickerModal()">Batal</button>
+        <button class="btn-primary" type="button" onclick="confirmPicPickerSelection()">Gunakan PIC Ini</button>
       </div>
     </div>
   </div>
@@ -2264,6 +2351,7 @@
                   style="width:16px; height:16px; cursor:pointer; accent-color:var(--sky);">
               </th>
               <th style="padding:12px 16px;">Penanggung Jawab (PIC)</th>
+              <th style="padding:12px 16px;">PIC Lainnya</th>
               <th style="padding:12px 16px;">Verifikator 1</th>
               <th style="padding:12px 16px;">Verifikator 2</th>
             </tr>
@@ -2589,8 +2677,10 @@
       // Filter strategies if PIC filter active
       let displayStrategies = daftar_strategi || [];
       if (selectedPicFilterUserIds && selectedPicFilterUserIds.length > 0) {
-        const selectedItems = (picFilterData || []).filter(item => selectedPicFilterUserIds.includes(String(item.pic_user_id)));
-        const selectedNames = selectedItems.map(item => (item.pic_name || '').toLowerCase().trim()).filter(Boolean);
+        const selectedItems = (picFilterData || []).filter(item => selectedPicFilterUserIds.includes(item.combo_string));
+        const selectedCombos = selectedItems.map(item => item.combo_string).filter(Boolean);
+      
+      if (selectedCombos.includes('unassigned') && !ap.pic_user_id) return true;
         const selectedUserIds = selectedPicFilterUserIds.map(id => String(id));
 
         displayStrategies = JSON.parse(JSON.stringify(daftar_strategi || [])).filter(s => {
@@ -2603,10 +2693,10 @@
               if (ap.sub_action_plans && Array.isArray(ap.sub_action_plans)) {
                 ap.sub_action_plans = ap.sub_action_plans.filter(sap => {
                   if (ap.pic_user_id && selectedUserIds.includes(String(ap.pic_user_id))) return true;
-                  if (ap.pic_name && selectedNames.includes(String(ap.pic_name).toLowerCase().trim())) return true;
+                  if (ap.combo_string && selectedCombos.includes(ap.combo_string)) return true;
                   
                   if (sap.pic_user_id && selectedUserIds.includes(String(sap.pic_user_id))) return true;
-                  if (sap.pic_name && selectedNames.includes(String(sap.pic_name).toLowerCase().trim())) return true;
+                  if (sap.combo_string && selectedCombos.includes(sap.combo_string)) return true;
                   return false;
                 });
               }
@@ -2753,18 +2843,18 @@
     function isActionPlanMatchingPicFilter(ap) {
       if (!selectedPicFilterUserIds || selectedPicFilterUserIds.length === 0) return true;
 
-      const selectedItems = (picFilterData || []).filter(item => selectedPicFilterUserIds.includes(String(item.pic_user_id)));
-      const selectedNames = selectedItems.map(item => (item.pic_name || '').toLowerCase().trim()).filter(Boolean);
+      const selectedItems = (picFilterData || []).filter(item => selectedPicFilterUserIds.includes(item.combo_string));
+      const selectedCombos = selectedItems.map(item => item.combo_string).filter(Boolean);
       const selectedUserIds = selectedPicFilterUserIds.map(id => String(id));
 
       if (ap.pic_user_id && selectedUserIds.includes(String(ap.pic_user_id))) return true;
 
-      if (ap.pic_name && selectedNames.includes(String(ap.pic_name).toLowerCase().trim())) return true;
+      if (ap.combo_string && selectedCombos.includes(ap.combo_string)) return true;
 
       if (ap.sub_action_plans && Array.isArray(ap.sub_action_plans)) {
         const hasSapMatch = ap.sub_action_plans.some(sap => {
           if (sap.pic_user_id && selectedUserIds.includes(String(sap.pic_user_id))) return true;
-          if (sap.pic_name && selectedNames.includes(String(sap.pic_name).toLowerCase().trim())) return true;
+          if (sap.combo_string && selectedCombos.includes(sap.combo_string)) return true;
           return false;
         });
         if (hasSapMatch) return true;
@@ -2896,12 +2986,22 @@
             }
 
             const picDisplayName = ap.pic_name || (ap.sub_action_plans && ap.sub_action_plans[0] ? ap.sub_action_plans[0].pic_name : null);
-            const picUserId = ap.pic_user_id || (ap.sub_action_plans && ap.sub_action_plans[0] ? ap.sub_action_plans[0].pic_user_id : null);
+            const picComboString = ap.combo_string || (ap.sub_action_plans && ap.sub_action_plans[0] ? ap.sub_action_plans[0].combo_string : null);
             const picChipHtml = picDisplayName ? `
-              <span class="pic-badge-chip" onclick="openPICMappingModal(${picUserId || 'null'})" title="Klik untuk melihat pemetaan Verifikator 1 & 2" style="display: inline-flex; align-items: center; gap: 6px; background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px 4px 4px; border-radius: 20px; font-size: 11px; font-weight: 500; color: #334155; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='#F0F9FF'; this.style.borderColor='#7DD3FC';" onmouseout="this.style.background='#F1F5F9'; this.style.borderColor='#E2E8F0';">
+              <span class="pic-badge-chip" onclick="openPICMappingModal('${picComboString || ''}')" title="Klik untuk melihat pemetaan Verifikator 1 & 2" style="display: inline-flex; align-items: center; gap: 6px; background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px 4px 4px; border-radius: 20px; font-size: 11px; font-weight: 500; color: #334155; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='#F0F9FF'; this.style.borderColor='#7DD3FC';" onmouseout="this.style.background='#F1F5F9'; this.style.borderColor='#E2E8F0';">
                 <span style="width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #0EA5E9, #38BDF8); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0;">${getInitials(picDisplayName)}</span>
                 <span>${escapeHtml(picDisplayName)}</span>
-              </span>` : '';
+              </span>
+              ${(() => {
+                const addPics = (ap.additional_pics && ap.additional_pics.length > 0) ? ap.additional_pics : (ap.sub_action_plans && ap.sub_action_plans[0] ? (ap.sub_action_plans[0].additional_pics || []) : []);
+                if (!addPics || addPics.length === 0) return '';
+                return addPics.map(apic => `
+                  <span class="pic-badge-chip" onclick="openPICMappingModal('${picComboString || ''}')" title="Klik untuk melihat pemetaan Verifikator 1 & 2" style="display: inline-flex; align-items: center; gap: 6px; background: #F1F5F9; border: 1px solid #E2E8F0; padding: 4px 10px 4px 4px; border-radius: 20px; font-size: 11px; font-weight: 500; color: #334155; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='#F0F9FF'; this.style.borderColor='#7DD3FC';" onmouseout="this.style.background='#F1F5F9'; this.style.borderColor='#E2E8F0';">
+                    <span style="width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #0EA5E9, #38BDF8); color: #FFFFFF; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0;">${getInitials(apic.name)}</span>
+                    <span>${escapeHtml(apic.name)}</span>
+                  </span>
+                `).join('');
+              })()}` : '';
 
             return `
               <div class="ra-row">
@@ -3312,6 +3412,13 @@
       document.getElementById('editAPId').value = '';
       document.getElementById('apModalTitle').textContent = 'Tambah Rencana Aksi';
       document.getElementById('formAddAP').reset();
+      
+      selectedFormPicUserId = null;
+      selectedFormAdditionalPicUserIds = [];
+      selectedFormComboString = null;
+      isCustomPicMode = false;
+      updatePicDisplayCard();
+
       document.getElementById('modalAddAP').classList.add('open');
     }
 
@@ -3322,13 +3429,14 @@
     async function submitAddAP(e) {
       e.preventDefault();
       const editId = document.getElementById('editAPId').value;
+
       const payload = {
         activity_group_id: document.getElementById('addAPActivityGroupId').value,
         name: document.getElementById('addAPName').value,
         code_order: document.getElementById('addAPCode').value,
         target_percentage: Number(document.getElementById('addAPTarget').value),
-        pic_user_id: document.getElementById('addAPPic').value || null,
-        // start_date is auto-calculated from Sub Action Plans
+        pic_user_id: selectedFormPicUserId,
+        additional_pic_user_ids: selectedFormAdditionalPicUserIds.length > 0 ? selectedFormAdditionalPicUserIds : null,
         target_end_date: document.getElementById('addAPEnd').value || null,
         output: document.getElementById('addAPOutput').value,
         indicator: document.getElementById('addAPIndicator').value
@@ -3425,8 +3533,23 @@
         document.getElementById('addAPName').value = foundAP.action_plan_name;
         document.getElementById('addAPCode').value = foundAP.code_order || '';
         document.getElementById('addAPTarget').value = Math.round(foundAP.target_percentage);
-        document.getElementById('addAPPic').value = foundAP.pic_user_id || '';
-        // start_date is auto-calculated
+        
+        selectedFormPicUserId = foundAP.pic_user_id ? Number(foundAP.pic_user_id) : null;
+        selectedFormAdditionalPicUserIds = (foundAP.additional_pic_user_ids || []).map(Number);
+        
+        if (!selectedFormPicUserId) {
+          selectedFormComboString = 'unassigned';
+        } else {
+          const comboStr = selectedFormPicUserId + '|' + selectedFormAdditionalPicUserIds.slice().sort().join(',');
+          const matched = picPackagesData.find(p => String(p.combo_string) === comboStr);
+          selectedFormComboString = matched ? matched.combo_string : 'custom';
+        }
+
+        // If the combo is custom (not from packages), auto-enable custom mode
+        isCustomPicMode = (selectedFormComboString === 'custom');
+
+        updatePicDisplayCard();
+        
         if (foundAP.target_end_date) document.getElementById('addAPEnd').value = foundAP.target_end_date.split('T')[0];
         document.getElementById('addAPOutput').value = foundAP.output || '';
         document.getElementById('addAPIndicator').value = foundAP.indicator || '';
@@ -3768,33 +3891,378 @@
       }
     }
 
-    // Load users for PIC select — only show users from the same BUMD
+    let picPackagesData = [];
+    let allUsersData = [];
+
+    // Load users and PIC packages for AP modal select
     async function loadUsersForSelect() {
       try {
+        const targetCompanyId = aspectData?.aspect?.company_id || currentUser?.company_id;
+
+        // 1. Load users
         const res = await fetch('/diagnosticreview-demo/api/auth/users');
         const data = await res.json();
         if (data && data.success && data.data) {
-          const targetCompanyId = aspectData?.aspect?.company_id;
-          const select = document.getElementById('addAPPic');
-          select.innerHTML = '<option value="">Pilih PIC</option>';
-
-          // Filter: only users from the same BUMD company, or bpbumd, or lainnya
-          const filtered = data.data.filter(user => {
+          allUsersData = data.data.filter(user => {
             if (user.company_type === 'bpbumd' || user.company_type === 'lainnya') return true;
             if (user.company_type !== 'bumd') return false;
             if (targetCompanyId && Number(user.company_id) !== Number(targetCompanyId)) return false;
             return true;
           });
 
-          filtered.forEach(user => {
-            const cName = user.company_name || 'BPBUMD';
-            const pos = user.position || 'Tidak ada posisi';
-            select.innerHTML += `<option value="${user.id}">${escapeHtml(user.name)} (${escapeHtml(cName)} - ${escapeHtml(pos)})</option>`;
-          });
+        }
+
+        // 2. Load PIC Mapping Packages
+        let fetchUrl = '/diagnosticreview-demo/api/sub-action-plans/pic-verifiers-mapping';
+        if (targetCompanyId) fetchUrl += '?company_id=' + targetCompanyId;
+        const resMap = await fetch(fetchUrl, { credentials: 'same-origin' });
+        const jsonMap = await resMap.json();
+
+        if (jsonMap.success && Array.isArray(jsonMap.data)) {
+          picPackagesData = jsonMap.data;
         }
       } catch (err) {
         console.error('Failed to load users for select', err);
       }
+    }
+
+    let selectedFormPicUserId = null;
+    let selectedFormAdditionalPicUserIds = [];
+    let selectedFormComboString = null;
+    let isCustomPicMode = false;
+
+    function openPicPickerModal() {
+      const modal = document.getElementById('modalPicPicker');
+      if (!modal) return;
+      // Reset toggle to match current state
+      const chk = document.getElementById('chkCustomPicToggle');
+      if (chk) chk.checked = isCustomPicMode;
+      applyCustomPicToggleVisual();
+      if (isCustomPicMode) {
+        renderCustomPicSection();
+      } else {
+        renderPicPickerTable();
+      }
+      modal.classList.add('open');
+    }
+
+    function closePicPickerModal() {
+      const modal = document.getElementById('modalPicPicker');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function onCustomPicToggle() {
+      const chk = document.getElementById('chkCustomPicToggle');
+      isCustomPicMode = chk ? chk.checked : false;
+      applyCustomPicToggleVisual();
+      if (isCustomPicMode) {
+        renderCustomPicSection();
+      } else {
+        renderPicPickerTable();
+      }
+    }
+
+    function applyCustomPicToggleVisual() {
+      const track = document.getElementById('customPicToggleTrack');
+      const thumb = document.getElementById('customPicToggleThumb');
+      const tableSection = document.getElementById('pickerTableSection');
+      const customSection = document.getElementById('pickerCustomSection');
+      const subtitle = document.getElementById('picPickerSubtitle');
+      const searchInput = document.getElementById('picPickerSearchInput');
+
+      if (isCustomPicMode) {
+        if (track) track.style.background = '#0EA5E9';
+        if (thumb) thumb.style.left = '18px';
+        if (tableSection) tableSection.style.display = 'none';
+        if (customSection) customSection.style.display = 'block';
+        if (subtitle) subtitle.textContent = 'Pilih PIC Utama dan beri centang pada PIC Tambahan secara bebas';
+        if (searchInput) searchInput.placeholder = 'Cari nama PIC Utama atau PIC Tambahan...';
+      } else {
+        if (track) track.style.background = '#CBD5E1';
+        if (thumb) thumb.style.left = '2px';
+        if (tableSection) tableSection.style.display = 'block';
+        if (customSection) customSection.style.display = 'none';
+        if (subtitle) subtitle.textContent = 'Pilih paketan PIC atau atur PIC kustom untuk Rencana Aksi ini';
+        if (searchInput) searchInput.placeholder = 'Cari nama PIC, Verifikator, atau Jabatan...';
+      }
+    }
+
+    function onPickerSearchInput() {
+      if (isCustomPicMode) {
+        renderCustomPicSection();
+      } else {
+        renderPicPickerTable();
+      }
+    }
+
+    function selectMainPicUser(userId) {
+      const numId = Number(userId);
+      if (selectedFormPicUserId === numId) {
+        selectedFormPicUserId = null;
+      } else {
+        selectedFormPicUserId = numId;
+      }
+      onCustomPicInputChange();
+      renderCustomPicSection();
+    }
+
+    function renderCustomPicSection() {
+      const search = (document.getElementById('picPickerSearchInput')?.value || '').toLowerCase().trim();
+
+      // 1. Filter & render PIC Utama (Checkbox list with single-select disable style)
+      const mainList = document.getElementById('addAPPicMainList');
+      if (mainList) {
+        const filteredUsers = allUsersData.filter(u => {
+          if (!search) return true;
+          const searchText = `${u.name} ${u.position || ''} ${u.company_name || ''}`.toLowerCase();
+          return searchText.includes(search);
+        });
+
+        if (filteredUsers.length === 0) {
+          mainList.innerHTML = '<span style="color:#94A3B8; font-style:italic; padding:8px 14px; display:block;">Tidak ada PIC Utama yang cocok.</span>';
+        } else {
+          const hasSelection = !!selectedFormPicUserId;
+          mainList.innerHTML = filteredUsers.map(u => {
+            const pos = u.position || u.company_name || '-';
+            const isSelected = hasSelection && Number(selectedFormPicUserId) === Number(u.id);
+            const isDisabled = hasSelection && !isSelected;
+            const rowOpacity = isDisabled ? 'opacity:0.4;' : '';
+
+            return `
+              <label style="display:flex; align-items:center; gap:10px; padding:8px 14px; cursor:pointer; border-bottom:1px solid #F1F5F9; transition:all 0.2s; ${rowOpacity}" onmouseenter="this.style.background='#F8FAFC'" onmouseleave="this.style.background='transparent'">
+                <input type="checkbox" value="${u.id}" ${isSelected ? 'checked' : ''} onchange="selectMainPicUser(${u.id})" style="width:16px; height:16px; flex-shrink:0; accent-color:#0EA5E9; cursor:pointer;">
+                <div style="flex:1; min-width:0;">
+                  <div style="font-weight:600; color:#1E293B; font-size:13px;">${escapeHtml(u.name)}</div>
+                  <div style="font-size:11px; color:#64748B;">${escapeHtml(pos)}</div>
+                </div>
+              </label>
+            `;
+          }).join('');
+        }
+      }
+
+      // 2. Filter & render PIC Tambahan (Checkbox list with live search)
+      const addList = document.getElementById('addAPAdditionalPicsList');
+      if (addList) {
+        const checkedIds = Array.from(document.querySelectorAll('.add-ap-additional-pic-cb:checked')).map(cb => Number(cb.value));
+        const filteredUsers = allUsersData.filter(u => {
+          if (!search) return true;
+          const searchText = `${u.name} ${u.position || ''} ${u.company_name || ''}`.toLowerCase();
+          return searchText.includes(search);
+        });
+
+        if (filteredUsers.length === 0) {
+          addList.innerHTML = '<span style="color:#94A3B8; font-style:italic; padding:8px 14px; display:block;">Tidak ada PIC Tambahan yang cocok.</span>';
+        } else {
+          addList.innerHTML = filteredUsers.map(u => {
+            const pos = u.position || u.company_name || '-';
+            const isChecked = checkedIds.includes(Number(u.id)) || selectedFormAdditionalPicUserIds.includes(Number(u.id));
+            return `
+              <label style="display:flex; align-items:center; gap:10px; padding:8px 14px; cursor:pointer; border-bottom:1px solid #F1F5F9; transition:background 0.15s;" onmouseenter="this.style.background='#F8FAFC'" onmouseleave="this.style.background='transparent'">
+                <input type="checkbox" class="add-ap-additional-pic-cb" value="${u.id}" ${isChecked ? 'checked' : ''} onchange="onCustomPicInputChange()" style="width:16px; height:16px; flex-shrink:0; accent-color:#0EA5E9; cursor:pointer;">
+                <div style="flex:1; min-width:0;">
+                  <div style="font-weight:600; color:#1E293B; font-size:13px;">${escapeHtml(u.name)}</div>
+                  <div style="font-size:11px; color:#64748B;">${escapeHtml(pos)}</div>
+                </div>
+              </label>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function renderPicPickerTable() {
+      const tbody = document.getElementById('picPickerTableBody');
+      if (!tbody) return;
+
+      const search = (document.getElementById('picPickerSearchInput')?.value || '').toLowerCase().trim();
+
+      let dataList = [
+        {
+          combo_string: 'unassigned',
+          pic_user_id: null,
+          pic_name: 'Belum ada PIC',
+          pic_position: '-',
+          additional_pics: [],
+          verifiers: []
+        },
+        ...picPackagesData.filter(item => item.combo_string !== 'unassigned')
+      ];
+
+      const filtered = dataList.filter(item => {
+        if (!search) return true;
+        const v1Name = item.verifiers && item.verifiers[0] ? item.verifiers[0].name : '';
+        const v1Pos = item.verifiers && item.verifiers[0] ? (item.verifiers[0].position || item.verifiers[0].company_name || '') : '';
+        const v2Name = item.verifiers && item.verifiers[1] ? item.verifiers[1].name : '';
+        const v2Pos = item.verifiers && item.verifiers[1] ? (item.verifiers[1].position || item.verifiers[1].company_name || '') : '';
+        const additionalNames = (item.additional_pics || []).map(a => a.name + ' ' + (a.position || '')).join(' ');
+        const text = `${item.pic_name || ''} ${item.pic_position || ''} ${item.company_name || ''} ${additionalNames} ${v1Name} ${v1Pos} ${v2Name} ${v2Pos}`.toLowerCase();
+        return text.includes(search);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:24px; color:#64748B;">Tidak ada paketan PIC yang cocok.</td></tr>';
+        return;
+      }
+
+      const renderChipLocal = (v) => {
+        if (!v) return '<span style="color:#94A3B8; font-style:italic;">-</span>';
+        const init = getInitials(v.name);
+        const pos = v.position || v.company_name || '';
+        return `
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:2px;">
+              <span style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #0EA5E9, #38BDF8); color:#FFF; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0;">${init}</span>
+              <span style="font-weight: 600; color: #1E293B; white-space:nowrap; max-width:200px; overflow:hidden; text-overflow:ellipsis;" title="${escapeAttr(v.name)}">${escapeHtml(v.name)}</span>
+            </div>
+            <div style="font-size: 11px; color: #64748B; padding-left: 4px;">${escapeHtml(pos || '-')}</div>
+          </div>
+        `;
+      };
+
+      const hasSelection = !!selectedFormComboString;
+
+      tbody.innerHTML = filtered.map(item => {
+        const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
+        const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
+        const isSelected = selectedFormComboString === item.combo_string;
+        const isDisabled = hasSelection && !isSelected;
+        const rowOpacity = isDisabled ? 'opacity:0.4;' : '';
+
+        return `
+          <tr class="${isSelected ? 'highlight-row' : ''}" style="border-bottom: 1px solid #F1F5F9; cursor:pointer; transition:opacity 0.2s; ${rowOpacity}" onclick="selectPicPickerRow('${escapeAttr(item.combo_string)}')">
+            <td style="padding: 12px 14px; text-align: center;" onclick="event.stopPropagation();">
+              <input type="checkbox" value="${escapeAttr(item.combo_string)}" ${isSelected ? 'checked' : ''} onchange="selectPicPickerRow('${escapeAttr(item.combo_string)}')" style="width:16px; height:16px; cursor:pointer; accent-color:#0EA5E9;">
+            </td>
+            <td style="padding: 12px 16px;">
+              ${item.combo_string === 'unassigned' ? `
+                <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; color:#64748B;">
+                  Belum ada PIC
+                </div>
+              ` : `
+                <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:4px;">
+                  <span style="width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg, #0EA5E9, #38BDF8); color:#FFF; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0;">${getInitials(item.pic_name)}</span>
+                  <span style="font-weight: 600; color: #1E293B;">${escapeHtml(item.pic_name)}</span>
+                </div>
+                <div style="font-size: 11px; color: #64748B; padding-left: 4px;">${escapeHtml(item.pic_position || item.company_name || '-')}</div>
+              `}
+            </td>
+            <td style="padding: 12px 16px;">
+              ${(item.additional_pics && item.additional_pics.length > 0) ? item.additional_pics.map(apic => renderChipLocal(apic)).join('<div style="height:4px;"></div>') : '<span style="color:#94A3B8; font-style:italic;">-</span>'}
+            </td>
+            <td style="padding: 12px 16px;">${renderChipLocal(v1)}</td>
+            <td style="padding: 12px 16px;">${renderChipLocal(v2)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function selectPicPickerRow(comboStr) {
+      // Toggle: if clicking the already-selected row, deselect it
+      if (selectedFormComboString === comboStr) {
+        selectedFormComboString = null;
+        selectedFormPicUserId = null;
+        selectedFormAdditionalPicUserIds = [];
+      } else {
+        selectedFormComboString = comboStr;
+        if (comboStr === 'unassigned') {
+          selectedFormPicUserId = null;
+          selectedFormAdditionalPicUserIds = [];
+        } else {
+          const pkg = picPackagesData.find(p => String(p.combo_string) === String(comboStr));
+          if (pkg) {
+            selectedFormPicUserId = pkg.pic_user_id ? Number(pkg.pic_user_id) : null;
+            selectedFormAdditionalPicUserIds = (pkg.additional_pics || []).map(a => Number(a.id));
+          }
+        }
+      }
+
+      renderPicPickerTable();
+    }
+
+    function onCustomPicInputChange() {
+      const checkedAddPicIds = Array.from(document.querySelectorAll('.add-ap-additional-pic-cb:checked')).map(cb => Number(cb.value));
+
+      selectedFormAdditionalPicUserIds = checkedAddPicIds;
+
+      if (!selectedFormPicUserId) {
+        selectedFormComboString = checkedAddPicIds.length === 0 ? 'unassigned' : 'custom';
+      } else {
+        const comboStr = selectedFormPicUserId + '|' + checkedAddPicIds.slice().sort().join(',');
+        const matched = picPackagesData.find(p => String(p.combo_string) === comboStr);
+        selectedFormComboString = matched ? matched.combo_string : 'custom';
+      }
+    }
+
+    function confirmPicPickerSelection() {
+      updatePicDisplayCard();
+      closePicPickerModal();
+    }
+
+    function updatePicDisplayCard() {
+      const card = document.getElementById('addAPPicDisplayCard');
+      if (!card) return;
+
+      if (!selectedFormPicUserId && selectedFormAdditionalPicUserIds.length === 0) {
+        card.style.border = '2px dashed #0EA5E9';
+        card.style.background = '#F0F9FF';
+        card.style.padding = '12px 16px';
+        card.style.borderRadius = '12px';
+        card.style.justifyContent = 'center';
+
+        card.innerHTML = `
+          <div style="display:inline-flex; align-items:center; gap:8px; color:#0284C7; font-size:13px; font-weight:700;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            <span>Pilih Penanggung Jawab (PIC)</span>
+          </div>
+        `;
+        return;
+      }
+
+      card.style.border = '1px solid #CBD5E1';
+      card.style.background = '#F8FAFC';
+      card.style.padding = '12px 14px';
+      card.style.borderRadius = '12px';
+      card.style.justifyContent = 'space-between';
+
+      const renderChipLocal = (v) => {
+        if (!v) return '';
+        const init = getInitials(v.name);
+        const pos = v.position || v.company_name || '';
+        return `
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155;">
+              <span style="width:20px; height:20px; border-radius:50%; background:linear-gradient(135deg, #0EA5E9, #38BDF8); color:#FFF; display:inline-flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; flex-shrink:0;">${init}</span>
+              <span style="font-weight: 600; color: #1E293B;">${escapeHtml(v.name)}</span>
+            </div>
+            <div style="font-size: 10px; color: #64748B; padding-left: 4px;">${escapeHtml(pos || '-')}</div>
+          </div>
+        `;
+      };
+
+      const mainUserObj = allUsersData.find(u => Number(u.id) === Number(selectedFormPicUserId));
+      const addUsersObjs = allUsersData.filter(u => selectedFormAdditionalPicUserIds.includes(Number(u.id)));
+
+      // Collect all PIC objects starting with main PIC
+      const allPicObjs = [];
+      if (mainUserObj) allPicObjs.push(mainUserObj);
+      addUsersObjs.forEach(u => {
+        if (!allPicObjs.some(x => Number(x.id) === Number(u.id))) {
+          allPicObjs.push(u);
+        }
+      });
+
+      const chipsHtml = allPicObjs.map(u => renderChipLocal(u)).join('');
+
+      card.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; flex:1;">
+          ${chipsHtml}
+        </div>
+        <span style="font-size:12px; font-weight:700; color:#0284C7; background:#F0F9FF; border:2px dashed #0EA5E9; padding:6px 14px; border-radius:12px; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; margin-left:auto; cursor:pointer;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          Ubah PIC
+        </span>
+      `;
     }
 
     async function openPICMappingModal(highlightPicId) {
@@ -3816,9 +4284,10 @@
             return;
           }
           tbody.innerHTML = json.data.map(item => {
-            const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
-            const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
-            const isHighlight = highlightPicId && item.pic_user_id == highlightPicId;
+            const isHighlight = highlightPicId && (
+              String(item.combo_string) === String(highlightPicId) ||
+              (!String(highlightPicId).includes('|') && String(item.combo_string) === String(highlightPicId) + '|')
+            );
 
             const renderChip = (v) => {
               if (!v) return '<span style="color:#94A3B8; font-style:italic;">-</span>';
@@ -3835,7 +4304,14 @@
               `;
             };
 
-            return `
+            
+        let additionalPicsHtml = '-';
+        if (item.additional_pics && item.additional_pics.length > 0) {
+          additionalPicsHtml = '<div style="display:flex; flex-direction:column; gap:4px;">' + 
+            item.additional_pics.map(apic => renderChip(apic)).join('') + 
+            '</div>';
+        }
+        return `
               <tr class="${isHighlight ? 'highlight-row' : ''}" style="border-bottom: 1px solid #F1F5F9;">
                 <td style="padding: 12px 16px;">
                   <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:2px;">
@@ -3844,7 +4320,8 @@
                   </div>
                   <div style="font-size: 11px; color: #64748B; padding-left: 4px;">${escapeHtml(item.pic_position || item.company_name || '-')}</div>
                 </td>
-                <td style="padding: 12px 16px;">${renderChip(v1)}</td>
+                <td style="padding: 12px 16px;">${additionalPicsHtml}</td>
+            <td style="padding: 12px 16px;">${renderChip(v1)}</td>
                 <td style="padding: 12px 16px;">${renderChip(v2)}</td>
               </tr>
             `;
@@ -3964,7 +4441,8 @@
         const v1Pos = item.verifiers && item.verifiers[0] ? (item.verifiers[0].position || item.verifiers[0].company_name || '') : '';
         const v2Name = item.verifiers && item.verifiers[1] ? item.verifiers[1].name : '';
         const v2Pos = item.verifiers && item.verifiers[1] ? (item.verifiers[1].position || item.verifiers[1].company_name || '') : '';
-        const text = `${item.pic_name || ''} ${item.pic_position || ''} ${item.company_name || ''} ${v1Name} ${v1Pos} ${v2Name} ${v2Pos}`.toLowerCase();
+        const additionalNames = (item.additional_pics || []).map(ap => ap.name).join(' ');
+        const text = `${item.pic_name || ''} ${item.pic_position || ''} ${item.company_name || ''} ${additionalNames} ${v1Name} ${v1Pos} ${v2Name} ${v2Pos}`.toLowerCase();
         return text.includes(search);
       });
 
@@ -3976,12 +4454,19 @@
       tbody.innerHTML = filtered.map(item => {
         const v1 = (item.verifiers && item.verifiers[0]) ? item.verifiers[0] : null;
         const v2 = (item.verifiers && item.verifiers[1]) ? item.verifiers[1] : null;
-        const isChecked = selectedPicFilterUserIds.includes(String(item.pic_user_id));
-
+        const isChecked = selectedPicFilterUserIds.includes(item.combo_string);
+        
+        
+        let additionalPicsHtml = '-';
+        if (item.additional_pics && item.additional_pics.length > 0) {
+          additionalPicsHtml = '<div style="display:flex; flex-direction:column; gap:4px;">' + 
+            item.additional_pics.map(apic => renderChip(apic)).join('') + 
+            '</div>';
+        }
         return `
           <tr class="${isChecked ? 'highlight-row' : ''}" style="border-bottom: 1px solid #F1F5F9;">
             <td style="padding: 12px 14px; text-align: center;">
-              <input type="checkbox" class="pic-filter-checkbox" value="${item.pic_user_id}" ${isChecked ? 'checked' : ''} onchange="updatePicFilterActionBar()" style="width:16px; height:16px; cursor:pointer; accent-color:var(--sky);">
+              <input type="checkbox" class="pic-filter-checkbox" value="${item.combo_string}" ${isChecked ? 'checked' : ''} onchange="updatePicFilterActionBar()" style="width:16px; height:16px; cursor:pointer; accent-color:var(--sky);">
             </td>
             <td style="padding: 12px 16px;">
               <div style="display:inline-flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; padding:4px 10px 4px 4px; border-radius:20px; font-size:11px; font-weight:500; color:#334155; margin-bottom:4px;">
@@ -3990,6 +4475,7 @@
               </div>
               <div style="font-size: 11px; color: #64748B; padding-left: 4px;">${escapeHtml(item.pic_position || item.company_name || '-')}</div>
             </td>
+            <td style="padding: 12px 16px;">${additionalPicsHtml}</td>
             <td style="padding: 12px 16px;">${renderChip(v1)}</td>
             <td style="padding: 12px 16px;">${renderChip(v2)}</td>
           </tr>
